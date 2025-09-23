@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Restaurant Login</title>
+    <script src="https://unpkg.com/amazon-cognito-identity-js@6.3.12/dist/amazon-cognito-identity.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: Arial, sans-serif; background: #f5f5f5; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+        .login-container { background: white; padding: 2rem; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); width: 100%; max-width: 400px; }
+        .login-container h2 { text-align: center; color: #2c3e50; margin-bottom: 2rem; }
+        .login-container input { width: 100%; padding: 0.75rem; margin: 0.5rem 0; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box; }
+        .login-container button { width: 100%; padding: 0.75rem; background: #3498db; color: white; border: none; border-radius: 4px; cursor: pointer; margin: 0.5rem 0; }
+        .login-container button:hover { background: #2980b9; }
+        .message { margin-top: 1rem; padding: 0.5rem; border-radius: 4px; text-align: center; display: none; }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <h2>🏪 Restaurant Login</h2>
+        <input type="email" id="login-email" placeholder="Email">
+        <input type="password" id="login-password" placeholder="Password">
+        <button onclick="signIn()">Sign In</button>
+        <div id="message" class="message"></div>
+    </div>
+
+    <script>
+        const cognitoConfig = {
+            region: 'us-east-1',
+            userPoolId: 'us-east-1_2U2AHiHNV',
+            userPoolWebClientId: '5bbbp1hnbamv3pirmonfj7or84'
+        };
+
+        const userPool = new AmazonCognitoIdentity.CognitoUserPool({
+            UserPoolId: cognitoConfig.userPoolId,
+            ClientId: cognitoConfig.userPoolWebClientId
+        });
+
+        function signIn() {
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+
+            if (!email || !password) {
+                showMessage('Please enter email and password', 'error');
+                return;
+            }
+
+            const authenticationDetails = new AmazonCognitoIdentity.AuthenticationDetails({
+                Username: email,
+                Password: password
+            });
+
+            const cognitoUser = new AmazonCognitoIdentity.CognitoUser({
+                Username: email,
+                Pool: userPool
+            });
+
+            cognitoUser.authenticateUser(authenticationDetails, {
+                onSuccess: (result) => {
+                    window.location.href = 'index.html';
+                },
+                onFailure: (err) => {
+                    showMessage(err.message, 'error');
+                }
+            });
+        }
+
+        function showMessage(message, type) {
+            const messageDiv = document.getElementById('message');
+            messageDiv.textContent = message;
+            messageDiv.style.display = 'block';
+            messageDiv.style.background = type === 'error' ? '#ffebee' : '#e8f5e8';
+            messageDiv.style.color = type === 'error' ? '#c62828' : '#2e7d32';
+            messageDiv.style.border = type === 'error' ? '1px solid #ffcdd2' : '1px solid #c8e6c9';
+        }
+
+        // Check if already authenticated
+        const currentUser = userPool.getCurrentUser();
+        if (currentUser) {
+            currentUser.getSession((err, session) => {
+                if (!err && session.isValid()) {
+                    window.location.href = 'index.html';
+                }
+            });
+        }
+    </script>
+</body>
+</html>

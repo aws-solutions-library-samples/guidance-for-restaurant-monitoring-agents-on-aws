@@ -1,0 +1,735 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'Complete Restaurant Kitchen Assistant Infrastructure - DynamoDB, API Gateway, Cognito, Dashboard'
+
+Parameters:
+  ProjectName:
+    Type: String
+    Default: restaurant-kitchen-assistant
+  Environment:
+    Type: String
+    Default: production
+
+Resources:
+  # DynamoDB Tables
+  RestaurantDataTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub '${ProjectName}-restaurants-${Environment}'
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: id
+          AttributeType: S
+      KeySchema:
+        - AttributeName: id
+          KeyType: HASH
+      SSESpecification:
+        SSEEnabled: true
+
+  EquipmentReadingsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub '${ProjectName}-equipment-readings-${Environment}'
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: restaurant_id
+          AttributeType: S
+        - AttributeName: equipment_id
+          AttributeType: S
+      KeySchema:
+        - AttributeName: restaurant_id
+          KeyType: HASH
+        - AttributeName: equipment_id
+          KeyType: RANGE
+      StreamSpecification:
+        StreamViewType: NEW_AND_OLD_IMAGES
+      SSESpecification:
+        SSEEnabled: true
+
+  TicketsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub '${ProjectName}-tickets-${Environment}'
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: ticket_id
+          AttributeType: S
+      KeySchema:
+        - AttributeName: ticket_id
+          KeyType: HASH
+      SSESpecification:
+        SSEEnabled: true
+
+  ChatHistoryTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub '${ProjectName}-chat-history-${Environment}'
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: session_id
+          AttributeType: S
+        - AttributeName: timestamp
+          AttributeType: S
+      KeySchema:
+        - AttributeName: session_id
+          KeyType: HASH
+        - AttributeName: timestamp
+          KeyType: RANGE
+      TimeToLiveSpecification:
+        AttributeName: ttl
+        Enabled: true
+      SSESpecification:
+        SSEEnabled: true
+
+  # API Gateway Lambda Role
+  ApiLambdaRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub '${ProjectName}-api-lambda-role-${Environment}'
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+            Condition:
+              StringEquals:
+                'aws:SourceAccount': !Ref 'AWS::AccountId'
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Policies:
+        - PolicyName: DynamoDBReadOnlyAccess
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - dynamodb:GetItem
+                  - dynamodb:Query
+                  - dynamodb:Scan
+                Resource:
+                  - !GetAtt RestaurantDataTable.Arn
+                  - !GetAtt EquipmentReadingsTable.Arn
+                  - !GetAtt TicketsTable.Arn
+                Condition:
+                  StringEquals:
+                    'aws:RequestedRegion': !Ref 'AWS::Region'
+
+  # API Lambda Function
+  ApiLambdaFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Sub '${ProjectName}-api-${Environment}'
+      Runtime: python3.11
+      Handler: index.lambda_handler
+      Role: !GetAtt ApiLambdaRole.Arn
+      Environment:
+        Variables:
+          RESTAURANTS_TABLE: !Ref RestaurantDataTable
+          EQUIPMENT_TABLE: !Ref EquipmentReadingsTable
+          TICKETS_TABLE: !Ref TicketsTable
+      Code:
+        ZipFile: |
+          import json
+          import boto3
+          import os
+          from decimal import Decimal
+          
+          dynamodb = boto3.resource('dynamodb')
+          
+          def decimal_default(obj):
+              if isinstance(obj, Decimal):
+                  return float(obj)
+              raise TypeError
+          
+          def lambda_handler(event, context):
+              try:
+                  path = event.get('path', '')
+                  method = event.get('httpMethod', 'GET')
+                  
+                  headers = {
+                      'Access-Control-Allow-Origin': '*',
+                      'Access-Control-Allow-Headers': 'Content-Type',
+                      'Access-Control-Allow-Methods': 'GET, POST, OPTIONS'
+                  }
+                  
+                  if method == 'OPTIONS':
+                      return {
+                          'statusCode': 200,
+                          'headers': headers,
+                          'body': ''
+                      }
+                  
+                  if path == '/restaurants':
+                      table = dynamodb.Table(os.environ['RESTAURANTS_TABLE'])
+                      response = table.scan()
+                      restaurants = response.get('Items', [])
+                      
+                      # Get tickets to determine restaurant status
+                      tickets_table = dynamodb.Table(os.environ['TICKETS_TABLE'])
+                      tickets_response = tickets_table.scan()
+                      tickets = tickets_response.get('Items', [])
+                      
+                      # Add status based on tickets
+                      for restaurant in restaurants:
+                          restaurant_tickets = [t for t in tickets if t.get('location_id') == restaurant.get('id')]
+                          if any(t.get('priority') in ['critical', 'high'] for t in restaurant_tickets):
+                              restaurant['status'] = 'critical'
+                          elif any(t.get('priority') in ['medium', 'warning'] for t in restaurant_tickets):
+                              restaurant['status'] = 'warning'
+                          else:
+                              restaurant['status'] = 'operational'
+                      
+                      return {
+                          'statusCode': 200,
+                          'headers': headers,
+                          'body': json.dumps(restaurants, default=decimal_default)
+                      }
+                  
+                  elif path == '/tickets':
+                      table = dynamodb.Table(os.environ['TICKETS_TABLE'])
+                      response = table.scan()
+                      tickets = response.get('Items', [])
+                      
+                      return {
+                          'statusCode': 200,
+                          'headers': headers,
+                          'body': json.dumps(tickets, default=decimal_default)
+                      }
+                  
+                  elif path == '/equipment':
+                      table = dynamodb.Table(os.environ['EQUIPMENT_TABLE'])
+                      response = table.scan()
+                      equipment = response.get('Items', [])
+                      
+                      return {
+                          'statusCode': 200,
+                          'headers': headers,
+                          'body': json.dumps(equipment, default=decimal_default)
+                      }
+                  
+                  else:
+                      return {
+                          'statusCode': 404,
+                          'headers': headers,
+                          'body': json.dumps({'error': 'Not found'})
+                      }
+                      
+              except Exception as e:
+                  return {
+                      'statusCode': 500,
+                      'headers': headers,
+                      'body': json.dumps({'error': str(e)})
+                  }
+
+  # API Gateway
+  RestApi:
+    Type: AWS::ApiGateway::RestApi
+    Properties:
+      Name: !Sub '${ProjectName}-api-${Environment}'
+      Description: 'Restaurant Kitchen Assistant API'
+      EndpointConfiguration:
+        Types:
+          - REGIONAL
+
+  # API Resources
+  RestaurantsResource:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      RestApiId: !Ref RestApi
+      ParentId: !GetAtt RestApi.RootResourceId
+      PathPart: restaurants
+
+  TicketsResource:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      RestApiId: !Ref RestApi
+      ParentId: !GetAtt RestApi.RootResourceId
+      PathPart: tickets
+
+  EquipmentResource:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      RestApiId: !Ref RestApi
+      ParentId: !GetAtt RestApi.RootResourceId
+      PathPart: equipment
+
+
+
+  # API Methods
+  RestaurantsMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId: !Ref RestApi
+      ResourceId: !Ref RestaurantsResource
+      HttpMethod: GET
+      AuthorizationType: NONE
+      Integration:
+        Type: AWS_PROXY
+        IntegrationHttpMethod: POST
+        Uri: !Sub 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ApiLambdaFunction.Arn}/invocations'
+
+  TicketsMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId: !Ref RestApi
+      ResourceId: !Ref TicketsResource
+      HttpMethod: GET
+      AuthorizationType: NONE
+      Integration:
+        Type: AWS_PROXY
+        IntegrationHttpMethod: POST
+        Uri: !Sub 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ApiLambdaFunction.Arn}/invocations'
+
+  EquipmentMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId: !Ref RestApi
+      ResourceId: !Ref EquipmentResource
+      HttpMethod: GET
+      AuthorizationType: NONE
+      Integration:
+        Type: AWS_PROXY
+        IntegrationHttpMethod: POST
+        Uri: !Sub 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ApiLambdaFunction.Arn}/invocations'
+
+
+
+  # CORS Options Methods
+  RestaurantsOptionsMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId: !Ref RestApi
+      ResourceId: !Ref RestaurantsResource
+      HttpMethod: OPTIONS
+      AuthorizationType: NONE
+      Integration:
+        Type: AWS_PROXY
+        IntegrationHttpMethod: POST
+        Uri: !Sub 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ApiLambdaFunction.Arn}/invocations'
+
+  TicketsOptionsMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId: !Ref RestApi
+      ResourceId: !Ref TicketsResource
+      HttpMethod: OPTIONS
+      AuthorizationType: NONE
+      Integration:
+        Type: AWS_PROXY
+        IntegrationHttpMethod: POST
+        Uri: !Sub 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ApiLambdaFunction.Arn}/invocations'
+
+
+
+  # Lambda Permissions
+  ApiLambdaPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref ApiLambdaFunction
+      Action: lambda:InvokeFunction
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub 'arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${RestApi}/*/*'
+
+
+
+  # API Deployment
+  ApiDeployment:
+    Type: AWS::ApiGateway::Deployment
+    DependsOn:
+      - RestaurantsMethod
+      - TicketsMethod
+      - EquipmentMethod
+    Properties:
+      RestApiId: !Ref RestApi
+      StageName: prod
+
+  # S3 Bucket for Dashboard
+  DashboardBucket:
+    Type: AWS::S3::Bucket
+    DeletionPolicy: Retain
+    Properties:
+
+      WebsiteConfiguration:
+        IndexDocument: index.html
+        ErrorDocument: error.html
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+            BucketKeyEnabled: true
+      LoggingConfiguration:
+        DestinationBucketName: !Ref AccessLogsBucket
+        LogFilePrefix: dashboard-access-logs/
+      VersioningConfiguration:
+        Status: Enabled
+
+
+  # S3 Bucket for Access Logs
+  AccessLogsBucket:
+    Type: AWS::S3::Bucket
+    DeletionPolicy: Retain
+    Properties:
+      OwnershipControls:
+        Rules:
+          - ObjectOwnership: BucketOwnerPreferred
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: false
+        BlockPublicPolicy: true
+        IgnorePublicAcls: false
+        RestrictPublicBuckets: true
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+            BucketKeyEnabled: true
+      LifecycleConfiguration:
+        Rules:
+          - Id: DeleteOldLogs
+            Status: Enabled
+            ExpirationInDays: 90
+
+  # CloudFront Origin Access Control
+  OriginAccessControl:
+    Type: AWS::CloudFront::OriginAccessControl
+    Properties:
+      OriginAccessControlConfig:
+        Name: !Sub '${ProjectName}-oac-${Environment}'
+        OriginAccessControlOriginType: s3
+        SigningBehavior: always
+        SigningProtocol: sigv4
+
+  # CloudFront Distribution
+  CloudFrontDistribution:
+    Type: AWS::CloudFront::Distribution
+    Properties:
+      DistributionConfig:
+        Origins:
+          - Id: S3Origin
+            DomainName: !GetAtt DashboardBucket.RegionalDomainName
+            S3OriginConfig:
+              OriginAccessIdentity: ''
+            OriginAccessControlId: !GetAtt OriginAccessControl.Id
+        Enabled: true
+        DefaultRootObject: index.html
+        DefaultCacheBehavior:
+          TargetOriginId: S3Origin
+          ViewerProtocolPolicy: redirect-to-https
+          AllowedMethods:
+            - GET
+            - HEAD
+            - OPTIONS
+          CachedMethods:
+            - GET
+            - HEAD
+          ForwardedValues:
+            QueryString: false
+            Cookies:
+              Forward: none
+          Compress: true
+          ResponseHeadersPolicyId: !Ref SecurityHeadersPolicy
+        PriceClass: PriceClass_100
+        CustomErrorResponses:
+          - ErrorCode: 404
+            ResponseCode: 200
+            ResponsePagePath: /index.html
+        WebACLId: !GetAtt WebACL.Arn
+        Logging:
+          Bucket: !GetAtt AccessLogsBucket.DomainName
+          Prefix: cloudfront-logs/
+          IncludeCookies: false
+
+  # CloudFront Security Headers Policy
+  SecurityHeadersPolicy:
+    Type: AWS::CloudFront::ResponseHeadersPolicy
+    Properties:
+      ResponseHeadersPolicyConfig:
+        Name: !Sub '${ProjectName}-security-headers-${Environment}'
+        SecurityHeadersConfig:
+          StrictTransportSecurity:
+            AccessControlMaxAgeSec: 31536000
+            IncludeSubdomains: true
+            Override: false
+          ContentTypeOptions:
+            Override: false
+          FrameOptions:
+            FrameOption: DENY
+            Override: false
+          ReferrerPolicy:
+            ReferrerPolicy: strict-origin-when-cross-origin
+            Override: false
+
+  # WAF Web ACL for CloudFront
+  WebACL:
+    Type: AWS::WAFv2::WebACL
+    Properties:
+      Name: !Sub '${ProjectName}-web-acl-${Environment}'
+      Scope: CLOUDFRONT
+      DefaultAction:
+        Allow: {}
+      Rules:
+        - Name: AWSManagedRulesCommonRuleSet
+          Priority: 1
+          OverrideAction:
+            None: {}
+          Statement:
+            ManagedRuleGroupStatement:
+              VendorName: AWS
+              Name: AWSManagedRulesCommonRuleSet
+          VisibilityConfig:
+            SampledRequestsEnabled: true
+            CloudWatchMetricsEnabled: true
+            MetricName: CommonRuleSetMetric
+        - Name: AWSManagedRulesKnownBadInputsRuleSet
+          Priority: 2
+          OverrideAction:
+            None: {}
+          Statement:
+            ManagedRuleGroupStatement:
+              VendorName: AWS
+              Name: AWSManagedRulesKnownBadInputsRuleSet
+          VisibilityConfig:
+            SampledRequestsEnabled: true
+            CloudWatchMetricsEnabled: true
+            MetricName: KnownBadInputsRuleSetMetric
+      VisibilityConfig:
+        SampledRequestsEnabled: true
+        CloudWatchMetricsEnabled: true
+        MetricName: !Sub '${ProjectName}WebACL'
+
+  # Bucket Policy for CloudFront
+  BucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref DashboardBucket
+      PolicyDocument:
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: cloudfront.amazonaws.com
+            Action: s3:GetObject
+            Resource: !Sub '${DashboardBucket.Arn}/*'
+            Condition:
+              StringEquals:
+                'AWS:SourceArn': !Sub 'arn:aws:cloudfront::${AWS::AccountId}:distribution/${CloudFrontDistribution}'
+
+  # Bucket Policy for CloudFront Logs
+  LogsBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref AccessLogsBucket
+      PolicyDocument:
+        Statement:
+          - Effect: Allow
+            Principal:
+              AWS: !Sub 'arn:aws:iam::${AWS::AccountId}:root'
+            Action: 
+              - s3:PutBucketAcl
+              - s3:GetBucketAcl
+            Resource: !GetAtt AccessLogsBucket.Arn
+          - Effect: Allow
+            Principal:
+              Service: delivery.logs.amazonaws.com
+            Action: s3:PutObject
+            Resource: !Sub '${AccessLogsBucket.Arn}/cloudfront-logs/*'
+            Condition:
+              StringEquals:
+                's3:x-amz-acl': bucket-owner-full-control
+
+  # Cognito User Pool
+  UserPool:
+    Type: AWS::Cognito::UserPool
+    Properties:
+      UserPoolName: !Sub '${ProjectName}-users-${Environment}'
+      AutoVerifiedAttributes:
+        - email
+      UsernameAttributes:
+        - email
+      Policies:
+        PasswordPolicy:
+          MinimumLength: 8
+          RequireUppercase: true
+          RequireLowercase: true
+          RequireNumbers: true
+          RequireSymbols: false
+      Schema:
+        - Name: email
+          AttributeDataType: String
+          Required: true
+          Mutable: true
+        - Name: name
+          AttributeDataType: String
+          Required: true
+          Mutable: true
+      UserPoolTags:
+        Project: !Ref ProjectName
+        Environment: !Ref Environment
+
+  # User Pool Client
+  UserPoolClient:
+    Type: AWS::Cognito::UserPoolClient
+    Properties:
+      ClientName: !Sub '${ProjectName}-web-client-${Environment}'
+      UserPoolId: !Ref UserPool
+      GenerateSecret: false
+      ExplicitAuthFlows:
+        - ALLOW_USER_SRP_AUTH
+        - ALLOW_REFRESH_TOKEN_AUTH
+      SupportedIdentityProviders:
+        - COGNITO
+      CallbackURLs:
+        - https://localhost:3000
+        - !Sub 'https://${CloudFrontDistribution.DomainName}'
+      LogoutURLs:
+        - https://localhost:3000
+        - !Sub 'https://${CloudFrontDistribution.DomainName}'
+      AllowedOAuthFlows:
+        - code
+      AllowedOAuthScopes:
+        - email
+        - openid
+        - profile
+      AllowedOAuthFlowsUserPoolClient: true
+
+  # Identity Pool
+  IdentityPool:
+    Type: AWS::Cognito::IdentityPool
+    Properties:
+      IdentityPoolName: !Sub '${ProjectName}_identity_pool_${Environment}'
+      AllowUnauthenticatedIdentities: false
+      CognitoIdentityProviders:
+        - ClientId: !Ref UserPoolClient
+          ProviderName: !GetAtt UserPool.ProviderName
+
+  # IAM Role for authenticated users
+  AuthenticatedRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub '${ProjectName}-authenticated-role-${Environment}'
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Federated: cognito-identity.amazonaws.com
+            Action: sts:AssumeRoleWithWebIdentity
+            Condition:
+              StringEquals:
+                'cognito-identity.amazonaws.com:aud': !Ref IdentityPool
+              'ForAnyValue:StringLike':
+                'cognito-identity.amazonaws.com:amr': authenticated
+      Policies:
+        - PolicyName: CognitoAuthorizedPolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - cognito-sync:ListRecords
+                  - cognito-sync:GetRecords
+                  - cognito-identity:GetCredentialsForIdentity
+                  - cognito-identity:GetId
+                Resource: 
+                  - !Sub 'arn:aws:cognito-sync:${AWS::Region}:${AWS::AccountId}:identitypool/${IdentityPool}/*'
+                  - !Sub 'arn:aws:cognito-identity:${AWS::Region}:${AWS::AccountId}:identitypool/${IdentityPool}'
+                Condition:
+                  StringEquals:
+                    'aws:RequestedRegion': !Ref 'AWS::Region'
+
+  # Identity Pool Role Attachment
+  IdentityPoolRoleAttachment:
+    Type: AWS::Cognito::IdentityPoolRoleAttachment
+    Properties:
+      IdentityPoolId: !Ref IdentityPool
+      Roles:
+        authenticated: !GetAtt AuthenticatedRole.Arn
+
+Outputs:
+  # DynamoDB Outputs
+  RestaurantDataTable:
+    Value: !Ref RestaurantDataTable
+    Export:
+      Name: !Sub '${ProjectName}-restaurants-table-${Environment}'
+  
+  EquipmentReadingsTable:
+    Value: !Ref EquipmentReadingsTable
+    Export:
+      Name: !Sub '${ProjectName}-equipment-table-${Environment}'
+  
+  TicketsTable:
+    Value: !Ref TicketsTable
+    Export:
+      Name: !Sub '${ProjectName}-tickets-table-${Environment}'
+  
+  ChatHistoryTable:
+    Value: !Ref ChatHistoryTable
+    Export:
+      Name: !Sub '${ProjectName}-chat-history-table-${Environment}'
+
+  # API Gateway Outputs
+  RestApiId:
+    Description: API Gateway REST API ID
+    Value: !Ref RestApi
+    Export:
+      Name: !Sub '${ProjectName}-rest-api-id-${Environment}'
+  
+  RestApiRootResourceId:
+    Description: API Gateway root resource ID
+    Value: !GetAtt RestApi.RootResourceId
+    Export:
+      Name: !Sub '${ProjectName}-rest-resource-id-${Environment}'
+  
+  ApiUrl:
+    Description: API Gateway URL
+    Value: !Sub 'https://${RestApi}.execute-api.${AWS::Region}.amazonaws.com/prod'
+    Export:
+      Name: !Sub '${ProjectName}-api-url-${Environment}'
+
+  # Dashboard Outputs
+  BucketName:
+    Description: S3 Bucket Name
+    Value: !Ref DashboardBucket
+    Export:
+      Name: !Sub '${ProjectName}-dashboard-bucket-${Environment}'
+  
+  CloudFrontURL:
+    Description: CloudFront Distribution URL
+    Value: !Sub 'https://${CloudFrontDistribution.DomainName}'
+    Export:
+      Name: !Sub '${ProjectName}-dashboard-url-${Environment}'
+  
+  DistributionId:
+    Description: CloudFront Distribution ID
+    Value: !Ref CloudFrontDistribution
+    Export:
+      Name: !Sub '${ProjectName}-distribution-id-${Environment}'
+
+  # Cognito Outputs
+  UserPoolId:
+    Description: 'Cognito User Pool ID'
+    Value: !Ref UserPool
+    Export:
+      Name: !Sub '${ProjectName}-UserPoolId-${Environment}'
+
+  UserPoolClientId:
+    Description: 'Cognito User Pool Client ID'
+    Value: !Ref UserPoolClient
+    Export:
+      Name: !Sub '${ProjectName}-UserPoolClientId-${Environment}'
+
+  IdentityPoolId:
+    Description: 'Cognito Identity Pool ID'
+    Value: !Ref IdentityPool
+    Export:
+      Name: !Sub '${ProjectName}-IdentityPoolId-${Environment}'
+
+  Region:
+    Description: 'AWS Region'
+    Value: !Ref 'AWS::Region'
+    Export:
+      Name: !Sub '${ProjectName}-Region-${Environment}'
