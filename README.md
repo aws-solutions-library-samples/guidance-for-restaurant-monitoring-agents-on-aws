@@ -33,7 +33,7 @@ This guidance is designed for:
 
 ## Architecture
 
-![Architecture Diagram](docs/architecture-diagram.png)
+![Architecture Diagram](assets/architecture-diagram.png)
 
 ### Core Components
 
@@ -84,7 +84,7 @@ The deployment requires permissions for:
 Use the automated deployment script for complete setup:
 
 ```bash
-./utils/deploy.sh
+./deployment/deploy.sh
 ```
 
 This script will:
@@ -100,7 +100,7 @@ If you prefer manual deployment:
 1. **Deploy base infrastructure**
    ```bash
    aws cloudformation deploy \
-     --template-file infrastructure/restaurant-monitoring-base-template.yaml \
+     --template-file deployment/restaurant-monitoring-base-template.yaml \
      --stack-name restaurant-monitoring-agents-base-infrastructure-production \
      --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM
    ```
@@ -108,26 +108,26 @@ If you prefer manual deployment:
 2. **Deploy agent workflows**
    ```bash
    aws cloudformation deploy \
-     --template-file infrastructure/strands-agent-chat-workflow.yaml \
+     --template-file deployment/strands-agent-chat-workflow.yaml \
      --stack-name restaurant-monitoring-agents-workflow-production \
      --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM
    ```
 
 3. **Update website configuration**
    ```bash
-   ./utils/refresh-website.sh
+   ./deployment/refresh-website.sh
    ```
 
 ### Post-Deployment Steps
 
 1. **Start equipment simulator**
    ```bash
-   python utils/simple_simulator.py
+   python deployment/simple_simulator.py
    ```
 
 2. **Test API endpoints**
    ```bash
-   python utils/test_strands_api.py
+   python deployment/test_strands_api.py
    ```
 
 3. **Access the dashboard** using the CloudFront URL from deployment output
@@ -163,7 +163,7 @@ The system covers 10 Georgia restaurant locations:
 To remove all deployed resources and avoid ongoing charges:
 
 ```bash
-./utils/cleanup.sh
+./deployment/cleanup.sh
 ```
 
 **⚠️ WARNING: This will permanently delete ALL resources and data!**
