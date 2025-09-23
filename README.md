@@ -6,8 +6,12 @@
 - [Architecture](#architecture)
 - [Prerequisites](#prerequisites)
 - [Deployment Steps](#deployment-steps)
+- [Post-deployment Steps](#post-deployment-steps)
 - [Usage](#usage)
+- [Next Steps](#next-steps)
 - [Cleanup](#cleanup)
+- [Notices](#notices)
+- [Authors](#authors)
 - [Security](#security)
 - [Cost](#cost)
 - [License](#license)
@@ -95,14 +99,15 @@ This script will:
 
 ### Manual Deployment Steps
 
-If you prefer manual deployment:
+If you prefer manual deployment or need to customize the deployment:
 
 1. **Deploy base infrastructure**
    ```bash
    aws cloudformation deploy \
      --template-file deployment/restaurant-monitoring-base-template.yaml \
      --stack-name restaurant-monitoring-agents-base-infrastructure-production \
-     --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM
+     --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM \
+     --region us-east-1
    ```
 
 2. **Deploy agent workflows**
@@ -110,27 +115,44 @@ If you prefer manual deployment:
    aws cloudformation deploy \
      --template-file deployment/strands-agent-chat-workflow.yaml \
      --stack-name restaurant-monitoring-agents-workflow-production \
-     --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM
+     --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM \
+     --region us-east-1
    ```
 
 3. **Update website configuration**
    ```bash
-   ./deployment/refresh-website.sh
+   ./source/lambda/refresh-website.sh
    ```
 
-### Post-Deployment Steps
+### Deployment Validation
 
-1. **Start equipment simulator**
+After deployment, verify the following resources were created:
+- CloudFormation stacks in `CREATE_COMPLETE` status
+- DynamoDB tables with proper encryption
+- API Gateway with correct endpoints
+- S3 bucket with website content
+- CloudFront distribution with valid domain
+- Cognito User Pool and Identity Pool
+
+## Post-deployment Steps
+
+After successful deployment, complete these steps to initialize the system:
+
+1. **Start equipment simulator to populate data**
    ```bash
-   python deployment/simple_simulator.py
+   python source/lambda/simple_simulator.py
    ```
 
-2. **Test API endpoints**
+2. **Verify API endpoints are working**
    ```bash
-   python deployment/test_strands_api.py
+   python source/lambda/test_strands_api.py
    ```
 
 3. **Access the dashboard** using the CloudFront URL from deployment output
+
+4. **Create user account** through the self-registration interface
+
+5. **Verify monitoring agents** are creating tickets for equipment anomalies
 
 ## Usage
 
@@ -158,12 +180,36 @@ The system covers 10 Georgia restaurant locations:
 - Brunswick (AFC-007), Albany (AFC-008), Valdosta (AFC-009)
 - Cumming (AFC-010)
 
+## Next Steps
+
+After deploying this guidance, consider these enhancements:
+
+### Extend Monitoring Capabilities
+- Add more equipment types (HVAC, lighting, security systems)
+- Implement predictive maintenance using Amazon Forecast
+- Integrate with IoT sensors for real-time data collection
+
+### Enhance AI Agents
+- Train custom models using Amazon SageMaker
+- Implement multi-modal agents with image analysis
+- Add voice interaction capabilities with Amazon Polly
+
+### Scale the Solution
+- Deploy across multiple regions for disaster recovery
+- Implement multi-tenant architecture for franchise operations
+- Add mobile applications for field technicians
+
+### Integrate with Enterprise Systems
+- Connect to existing ERP/CRM systems
+- Implement workflow automation with AWS Step Functions
+- Add reporting and analytics with Amazon QuickSight
+
 ## Cleanup
 
 To remove all deployed resources and avoid ongoing charges:
 
 ```bash
-./deployment/cleanup.sh
+./source/lambda/cleanup.sh
 ```
 
 **⚠️ WARNING: This will permanently delete ALL resources and data!**
@@ -173,6 +219,38 @@ The cleanup script will:
 2. Delete CloudFormation stacks
 3. Clean up orphaned resources
 4. Provide cleanup summary
+
+## Notices
+
+This guidance is provided as sample code and is intended for educational and demonstration purposes. Before using in production:
+
+- Review and customize security settings for your environment
+- Implement proper monitoring and alerting
+- Conduct thorough testing with your data and use cases
+- Follow your organization's deployment and security policies
+
+### Third-party Dependencies
+
+This solution uses the following third-party libraries:
+- Python standard libraries (included with Python)
+- AWS SDK for Python (Boto3)
+- HTML/CSS/JavaScript for frontend
+
+### Data Privacy
+
+This guidance processes simulated restaurant equipment data. When implementing with real data:
+- Ensure compliance with applicable data protection regulations
+- Implement appropriate data retention policies
+- Consider data residency requirements
+- Review and configure encryption settings
+
+## Authors
+
+This guidance was created by the AWS Solutions Library team.
+
+For questions or feedback, please open an issue in this repository.
+
+
 
 ## Security
 
