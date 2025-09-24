@@ -280,24 +280,42 @@ This implementation follows AWS security best practices:
 
 ## Cost
 
-This guidance uses the following billable AWS services:
+This guidance uses the following billable AWS services with cost for two months in the US East (N. Virginia) Region. We recommend creating a [Budget](https://docs.aws.amazon.com/cost-management/latest/userguide/budgets-managing-costs.html) through [AWS Cost Management](https://aws.amazon.com/aws-cost-management/) to help manage costs. Prices are subject to change. For full details, refer to the pricing webpage for each AWS service used in this guidance.
 
-- Amazon DynamoDB (on-demand pricing)
-- Amazon API Gateway (per request)
-- AWS Lambda (per invocation)
-- Amazon S3 (storage and requests)
-- Amazon CloudFront (data transfer)
-- Amazon Cognito (monthly active users)
-- Amazon Bedrock (per token for AI features)
+### Cost table
 
-For cost estimation, use the [AWS Pricing Calculator](https://calculator.aws).
+The following table provides a sample cost breakdown for deploying this guidance with the default parameters in the US East (N. Virginia) Region for two months.
 
-### Cost Optimization Tips
+| AWS service  | Dimensions | Cost [USD] |
+| ----------- | ------------ | ------------ |
+| Amazon DynamoDB | 4 tables, on-demand pricing, 20,000 read/write requests per month | $5.00 |
+| Amazon API Gateway | 60,000 REST API requests per month | $0.21 |
+| AWS Lambda | 2,000 invocations per month, 512 MB memory, 5-second average duration | $0.83 |
+| Amazon S3 | 5 GB storage, 10,000 PUT requests, 50,000 GET requests per month | $0.46 |
+| Amazon CloudFront | 20 GB data transfer out per month | $1.70 |
+| Amazon Cognito | 200 monthly active users | $1.10 |
+| Amazon Bedrock | 100,000 input tokens, 50,000 output tokens per month (Claude 3 Haiku) | $1.50 |
+| **Total two-month cost** | | **$10.80** |
+| **Monthly cost** | | **$5.40** |
 
-- Use DynamoDB on-demand pricing for variable workloads
-- Enable CloudFront caching to reduce origin requests
-- Monitor Lambda function duration and memory usage
-- Use S3 lifecycle policies for log retention
+The costs above are estimates based on the following assumptions:
+- 10 restaurant locations with 7 equipment readings per location daily
+- 100 monthly active users accessing the dashboard
+- 1,000 API calls per day for monitoring and chat interactions
+- Moderate usage of AI agents for anomaly detection and chat responses
+
+### Cost optimization
+
+You can optimize costs by implementing the following:
+
+- **Use DynamoDB provisioned capacity** for predictable workloads instead of on-demand pricing
+- **Enable CloudFront caching** to reduce API Gateway and Lambda invocations
+- **Optimize Lambda functions** by right-sizing memory allocation and reducing execution time
+- **Implement S3 lifecycle policies** to automatically transition logs to cheaper storage classes
+- **Cache AI responses** to reduce Amazon Bedrock token consumption for common queries
+- **Use AWS Free Tier** benefits where applicable (Lambda, DynamoDB, S3, CloudFront)
+
+For cost estimation based on your specific usage patterns, use the [AWS Pricing Calculator](https://calculator.aws).
 
 ## License
 
