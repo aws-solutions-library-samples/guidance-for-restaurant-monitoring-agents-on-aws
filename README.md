@@ -148,26 +148,21 @@ After successful deployment, complete these steps to initialize the system:
    python source/lambda/simple_simulator.py
    ```
 
-2. **Verify API endpoints are working**
-   ```bash
-   python source/lambda/test_strands_api.py
-   ```
+2. **Access the dashboard** using the CloudFront URL from deployment output
 
-3. **Access the dashboard** using the CloudFront URL from deployment output
-
-4. **Update Cognito configuration** (if not done automatically)
+3. **Update Cognito configuration** (if not done automatically)
    ```bash
    ./source/lambda/update-cognito-config.sh
    ```
 
-5. **Refresh website content** (if not done automatically)
+4. **Refresh website content** (if not done automatically)
    ```bash
    ./source/lambda/refresh-website.sh
    ```
 
-6. **Create user account** through the self-registration interface
+5. **Create user account** through the self-registration interface
 
-7. **Verify monitoring agents** are creating tickets for equipment anomalies
+6. **Verify monitoring agents** are creating tickets for equipment anomalies
 
 ## Usage
 
