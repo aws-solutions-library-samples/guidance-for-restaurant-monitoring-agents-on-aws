@@ -143,24 +143,24 @@ After deployment, verify the following resources were created:
 
 After successful deployment, complete these steps to initialize the system:
 
-1. **Start equipment simulator to populate data**
-   ```bash
-   python source/lambda/simple_simulator.py
-   ```
+1. **Access the dashboard** using the CloudFront URL from deployment output
 
-2. **Access the dashboard** using the CloudFront URL from deployment output
-
-3. **Update Cognito configuration** (if not done automatically)
+2. **Update Cognito configuration** (if not done automatically)
    ```bash
    ./source/lambda/update-cognito-config.sh
    ```
 
-4. **Refresh website content** (if not done automatically)
+3. **Refresh website content** (if not done automatically)
    ```bash
    ./source/lambda/refresh-website.sh
    ```
 
-5. **Create user account** through the self-registration interface
+4. **Create user account** through the self-registration interface
+
+5. **Start equipment simulator to populate data**
+   ```bash
+   python source/lambda/simple_simulator.py
+   ```
 
 6. **Verify monitoring agents** are creating tickets for equipment anomalies
 
