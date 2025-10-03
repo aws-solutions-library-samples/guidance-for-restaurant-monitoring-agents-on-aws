@@ -94,8 +94,7 @@ Use the automated deployment script for complete setup:
 This script will:
 1. Deploy Restaurant Monitoring Agent Base Infrastructure
 2. Deploy Restaurant Monitoring Agent Workflow Lambda functions
-3. Automatically update Cognito configuration using `update-cognito-config.sh`
-4. Refresh website content using `refresh-website.sh`
+3. Deploy website content and load initial data using `deploy-loaddata.sh`
 
 ### Manual Deployment Steps
 
@@ -119,14 +118,9 @@ If you prefer manual deployment or need to customize the deployment:
      --region us-east-1
    ```
 
-3. **Update Cognito configuration**
+3. **Deploy website content and load initial data**
    ```bash
-   ./source/lambda/update-cognito-config.sh
-   ```
-
-4. **Refresh website content**
-   ```bash
-   ./source/lambda/refresh-website.sh
+   ./deployment/deploy-loaddata.sh
    ```
 
 ### Deployment Validation
@@ -145,24 +139,14 @@ After successful deployment, complete these steps to initialize the system:
 
 1. **Access the dashboard** using the CloudFront URL from deployment output
 
-2. **Update Cognito configuration** (if not done automatically)
+2. **Deploy website and load data** (if not done automatically)
    ```bash
-   ./source/lambda/update-cognito-config.sh
+   ./deployment/deploy-loaddata.sh
    ```
 
-3. **Refresh website content** (if not done automatically)
-   ```bash
-   ./source/lambda/refresh-website.sh
-   ```
+3. **Create user account** through the self-registration interface
 
-4. **Create user account** through the self-registration interface
-
-5. **Start equipment simulator to populate data**
-   ```bash
-   python source/lambda/simple_simulator.py
-   ```
-
-6. **Verify monitoring agents** are creating tickets for equipment anomalies
+4. **Verify monitoring agents** are creating tickets for equipment anomalies
 
 ## Usage
 
@@ -196,30 +180,14 @@ After deploying this guidance, consider these enhancements:
 
 ### Extend Monitoring Capabilities
 - Add more equipment types (HVAC, lighting, security systems)
-- Implement predictive maintenance using Amazon Forecast
 - Integrate with IoT sensors for real-time data collection
-
-### Enhance AI Agents
-- Train custom models using Amazon SageMaker
-- Implement multi-modal agents with image analysis
-- Add voice interaction capabilities with Amazon Polly
-
-### Scale the Solution
-- Deploy across multiple regions for disaster recovery
-- Implement multi-tenant architecture for franchise operations
-- Add mobile applications for field technicians
-
-### Integrate with Enterprise Systems
-- Connect to existing ERP/CRM systems
-- Implement workflow automation with AWS Step Functions
-- Add reporting and analytics with Amazon QuickSight
 
 ## Cleanup
 
 To remove all deployed resources and avoid ongoing charges:
 
 ```bash
-./source/lambda/cleanup.sh
+./deployment/cleanup.sh
 ```
 
 **⚠️ WARNING: This will permanently delete ALL resources and data!**

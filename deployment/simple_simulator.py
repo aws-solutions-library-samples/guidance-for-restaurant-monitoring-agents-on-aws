@@ -293,10 +293,9 @@ class SimpleEquipmentSimulator:
             print("✅ API Gateway endpoints should now return data!")
             print("🔄 Strands workflow has been notified of equipment anomalies and will create tickets")
             
-            # Optional: Run Strands API test
-            test_strands = input("\n🧪 Run Strands API test? (y/n): ").lower().strip()
-            if test_strands == 'y':
-                self.run_strands_test()
+            # Automatically run Strands API test (no user prompt)
+            print("\n🧪 Running Strands API test automatically...")
+            self.run_strands_test()
             
         except Exception as e:
             print(f"❌ Error: {e}")
@@ -310,6 +309,12 @@ class SimpleEquipmentSimulator:
             import os
             
             test_script = os.path.join(os.path.dirname(__file__), 'test_strands_api.py')
+            
+            # Check if test script exists
+            if not os.path.exists(test_script):
+                print("ℹ️ Strands API test script not found - skipping test")
+                print("💡 System is ready for manual testing via dashboard")
+                return
             
             print("\n🧪 Running Strands API Test...")
             print("=" * 50)
@@ -325,7 +330,7 @@ class SimpleEquipmentSimulator:
                 
         except Exception as e:
             print(f"\n❌ Could not run Strands API test: {e}")
-            print("💡 You can run it manually: python test_strands_api.py")
+            print("💡 System is ready for manual testing via dashboard")
 
 if __name__ == "__main__":
     simulator = SimpleEquipmentSimulator()

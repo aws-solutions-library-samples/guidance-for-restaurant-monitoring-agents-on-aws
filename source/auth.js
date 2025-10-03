@@ -1,9 +1,9 @@
 // Cognito Authentication Configuration
 const cognitoConfig = {
     region: 'us-east-1',
-    userPoolId: 'us-east-1_2U2AHiHNV', // Replace with actual User Pool ID
-    userPoolWebClientId: '5bbbp1hnbamv3pirmonfj7or84', // Replace with actual Client ID
-    identityPoolId: 'us-east-1:4cfa450d-59a1-4da5-9af1-1820e1916716' // Replace with actual Identity Pool ID
+    userPoolId: 'us-east-1_vGq6Bk4sg', // Replace with actual User Pool ID
+    userPoolWebClientId: 'md6og1ql2tc9mmlgt4pfp9mhf', // Replace with actual Client ID
+    identityPoolId: 'us-east-1:b782a93d-e24e-4294-9cd4-5aca44f82968' // Replace with actual Identity Pool ID
 };
 
 // AWS Cognito SDK
