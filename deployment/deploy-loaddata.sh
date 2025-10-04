@@ -49,28 +49,36 @@ API_URL=$(aws cloudformation describe-stacks \
   --output text)
 
 # Update website files with API Gateway URL
+echo "🔧 Updating API Gateway URLs..."
+echo "   API URL: $API_URL"
 sed -i "" "s|API_GATEWAY_URL_PLACEHOLDER|$API_URL|g" source/index.html
 sed -i "" "s|API_GATEWAY_URL_PLACEHOLDER|$API_URL|g" source/3d-twin.html
 sed -i "" "s|API_GATEWAY_URL_PLACEHOLDER|$API_URL|g" source/tickets.html
 
+# Update all files with AWS region
+echo "🌍 Updating AWS region configuration..."
+sed -i "" "s|AWS_REGION_PLACEHOLDER|us-east-1|g" source/index.html
+sed -i "" "s|AWS_REGION_PLACEHOLDER|us-east-1|g" source/login.html
+sed -i "" "s|AWS_REGION_PLACEHOLDER|us-east-1|g" source/auth.js
+
 # Update auth.js with current Cognito configuration
-echo "🔧 Updating Cognito configuration in auth.js..."
+echo "🔧 Updating Cognito configuration..."
 echo "   User Pool ID: $USER_POOL_ID"
 echo "   Client ID: $CLIENT_ID"
 echo "   Identity Pool ID: $IDENTITY_POOL_ID"
 
-# Replace any existing Cognito IDs with current ones
-sed -i "" "s/userPoolId: '[^']*'/userPoolId: '$USER_POOL_ID'/g" source/auth.js
-sed -i "" "s/userPoolWebClientId: '[^']*'/userPoolWebClientId: '$CLIENT_ID'/g" source/auth.js
-sed -i "" "s/identityPoolId: '[^']*'/identityPoolId: '$IDENTITY_POOL_ID'/g" source/auth.js
+# Replace placeholders with actual values
+sed -i "" "s|USER_POOL_ID_PLACEHOLDER|$USER_POOL_ID|g" source/auth.js
+sed -i "" "s|USER_POOL_CLIENT_ID_PLACEHOLDER|$CLIENT_ID|g" source/auth.js
+sed -i "" "s|IDENTITY_POOL_ID_PLACEHOLDER|$IDENTITY_POOL_ID|g" source/auth.js
 
 # Update index.html with current Cognito configuration
-sed -i "" "s/us-east-1_Y1bnUq9j6/$USER_POOL_ID/g" source/index.html
-sed -i "" "s/4a3vljujtpmq3g3r5hg3lnb7e0/$CLIENT_ID/g" source/index.html
+sed -i "" "s|USER_POOL_ID_PLACEHOLDER|$USER_POOL_ID|g" source/index.html
+sed -i "" "s|USER_POOL_CLIENT_ID_PLACEHOLDER|$CLIENT_ID|g" source/index.html
 
 # Update login.html with current Cognito configuration
-sed -i "" "s/us-east-1_XXXXXXXXX/$USER_POOL_ID/g" source/login.html
-sed -i "" "s/XXXXXXXXXXXXXXXXXXXXXXXXXX/$CLIENT_ID/g" source/login.html
+sed -i "" "s|USER_POOL_ID_PLACEHOLDER|$USER_POOL_ID|g" source/login.html
+sed -i "" "s|USER_POOL_CLIENT_ID_PLACEHOLDER|$CLIENT_ID|g" source/login.html
 
 echo "🚀 AnyCompany Restaurant Monitoring System - Deploy and Load Data"
 echo "================================================================="

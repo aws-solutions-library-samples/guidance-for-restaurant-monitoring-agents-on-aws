@@ -96,6 +96,24 @@ This script will:
 2. Deploy Restaurant Monitoring Agent Workflow Lambda functions
 3. Deploy website content and load initial data using `deploy-loaddata.sh`
 
+### Clean Deployment System
+
+The system now uses a clean deployment approach with placeholder-based configuration:
+
+```bash
+# For clean deployment (recommended):
+./deployment/reset-source-to-placeholders.sh
+./deployment/deploy.sh
+
+# Or direct deployment:
+./deployment/deploy.sh
+```
+
+The deployment system automatically:
+- Replaces all placeholders with actual AWS resource IDs
+- Ensures no hardcoded values remain in source files
+- Provides consistent, repeatable deployments
+
 ### Manual Deployment Steps
 
 If you prefer manual deployment or need to customize the deployment:
@@ -123,15 +141,46 @@ If you prefer manual deployment or need to customize the deployment:
    ./deployment/deploy-loaddata.sh
    ```
 
+### Deployment Scripts
+
+The deployment system includes several automated scripts:
+
+- **`deploy.sh`** - Complete system deployment
+- **`deploy-loaddata.sh`** - Website deployment and data population  
+- **`reset-source-to-placeholders.sh`** - Reset source files to clean state
+- **`cleanup.sh`** - Complete system cleanup and resource removal
+- **`simple_simulator.py`** - Equipment data simulation and Strands agent triggering
+
+### File Structure
+
+```
+├── deployment/
+│   ├── deploy.sh                           # Main deployment script
+│   ├── deploy-loaddata.sh                  # Website and data deployment
+│   ├── reset-source-to-placeholders.sh    # Source file reset utility
+│   ├── cleanup.sh                          # Complete cleanup script
+│   ├── simple_simulator.py                # Data simulator
+│   ├── restaurant-monitoring-base-template.yaml  # Infrastructure template
+│   └── strands-agent-chat-workflow.yaml   # Agent workflow template
+├── source/                                 # Website source files (with placeholders)
+│   ├── index.html                         # Main dashboard
+│   ├── 3d-twin.html                      # 3D visualization
+│   ├── tickets.html                      # Tickets management
+│   ├── login.html                        # Authentication
+│   └── auth.js                           # Authentication logic
+└── assets/                                # Documentation assets
+```
+
 ### Deployment Validation
 
 After deployment, verify the following resources were created:
 - CloudFormation stacks in `CREATE_COMPLETE` status
-- DynamoDB tables with proper encryption
-- API Gateway with correct endpoints
-- S3 bucket with website content
-- CloudFront distribution with valid domain
-- Cognito User Pool and Identity Pool
+- DynamoDB tables with proper encryption and data
+- API Gateway with correct endpoints returning data
+- S3 bucket with website content and proper configuration
+- CloudFront distribution with valid domain and cache invalidation
+- Cognito User Pool and Identity Pool with proper configuration
+- Lambda functions for Strands agent workflows
 
 ## Post-deployment Steps
 
@@ -139,14 +188,32 @@ After successful deployment, complete these steps to initialize the system:
 
 1. **Access the dashboard** using the CloudFront URL from deployment output
 
-2. **Deploy website and load data** (if not done automatically)
-   ```bash
-   ./deployment/deploy-loaddata.sh
-   ```
+2. **Verify data population** - The deployment automatically:
+   - Populates 10 Georgia restaurant locations
+   - Creates 70 equipment readings (7 per location)
+   - Generates equipment anomalies and tickets via Strands agents
+   - Configures all API endpoints with correct URLs
 
 3. **Create user account** through the self-registration interface
 
-4. **Verify monitoring agents** are creating tickets for equipment anomalies
+4. **Test the system**:
+   - Verify dashboard loads restaurant data
+   - Check that equipment anomalies show critical/warning status
+   - Test the AI chat interface with Strands agents
+   - Confirm tickets are automatically created for equipment issues
+
+### Verification Commands
+
+```bash
+# Test API endpoints
+curl "https://YOUR-API-URL/restaurants"
+curl "https://YOUR-API-URL/tickets"
+curl "https://YOUR-API-URL/equipment"
+
+# Check DynamoDB data
+aws dynamodb scan --table-name restaurant-kitchen-assistant-restaurants-production --select COUNT
+aws dynamodb scan --table-name restaurant-kitchen-assistant-tickets-production --select COUNT
+```
 
 ## Usage
 
@@ -162,17 +229,44 @@ After successful deployment, complete these steps to initialize the system:
 The system provides the following REST API endpoints:
 
 - `GET /restaurants` - List all restaurant locations with agent-analyzed status
-- `GET /equipment` - Get equipment readings processed by monitoring agents
+- `GET /equipment` - Get equipment readings processed by monitoring agents  
 - `GET /tickets` - Get maintenance tickets created by restaurant monitoring agents
 - `POST /strands-agent-chat` - Direct interface to restaurant monitoring agents
 
+### Dashboard Features
+
+- **Real-time Status**: View all 10 Georgia locations with color-coded status
+- **3D Digital Twin**: Interactive 3D visualization of restaurant equipment
+- **Equipment Monitoring**: Live temperature data from 7 appliances per location
+- **Automated Ticketing**: Strands agents automatically create tickets for anomalies
+- **AI Chat Interface**: Conversational AI for restaurant operations queries
+- **Secure Authentication**: Cognito-based user registration and management
+
 ### Geographic Coverage
 
-The system covers 10 Georgia restaurant locations:
-- Atlanta (AFC-001), Savannah (AFC-002), Augusta (AFC-003)
-- Macon (AFC-004), Athens (AFC-005), Columbus (AFC-006)
-- Brunswick (AFC-007), Albany (AFC-008), Valdosta (AFC-009)
-- Cumming (AFC-010)
+The system covers 10 Georgia restaurant locations with full equipment monitoring:
+
+| Location | ID | Equipment Count | Monitoring |
+|----------|----|-----------------|-----------| 
+| Atlanta Kitchen | AFC-001 | 7 appliances | ✅ Active |
+| Savannah Kitchen | AFC-002 | 7 appliances | ✅ Active |
+| Augusta Kitchen | AFC-003 | 7 appliances | ✅ Active |
+| Macon Kitchen | AFC-004 | 7 appliances | ✅ Active |
+| Athens Kitchen | AFC-005 | 7 appliances | ✅ Active |
+| Columbus Kitchen | AFC-006 | 7 appliances | ✅ Active |
+| Brunswick Kitchen | AFC-007 | 7 appliances | ✅ Active |
+| Albany Kitchen | AFC-008 | 7 appliances | ✅ Active |
+| Valdosta Kitchen | AFC-009 | 7 appliances | ✅ Active |
+| Cumming Kitchen | AFC-010 | 7 appliances | ✅ Active |
+
+**Equipment Types Monitored:**
+- Walk-in Cooler (38°F target)
+- Beverage Cooler (35°F target)  
+- Freezer Unit (-5°F target)
+- Burger Grill (450°F target)
+- French Fry Station (375°F target)
+- Chicken Fryer (375°F target)
+- Ice Cream Freezer (-10°F target)
 
 ## Next Steps
 
@@ -181,6 +275,30 @@ After deploying this guidance, consider these enhancements:
 ### Extend Monitoring Capabilities
 - Add more equipment types (HVAC, lighting, security systems)
 - Integrate with IoT sensors for real-time data collection
+- Implement predictive maintenance using historical data
+- Add mobile app support for field technicians
+
+### Enhance AI Capabilities
+- Train custom models on restaurant-specific data
+- Implement advanced anomaly detection algorithms
+- Add natural language processing for maintenance reports
+- Integrate with external maintenance management systems
+
+### Scale the Solution
+- Deploy across multiple regions
+- Add support for different restaurant chains
+- Implement multi-tenant architecture
+- Add advanced analytics and reporting dashboards
+
+### Current System Status
+
+✅ **Fully Deployed and Operational**
+- 10 Georgia restaurant locations monitored
+- 70 equipment sensors providing real-time data
+- Strands agents actively creating maintenance tickets
+- Interactive dashboard with 3D visualization
+- AI chat interface for operations support
+- Secure user authentication and session management
 
 ## Cleanup
 

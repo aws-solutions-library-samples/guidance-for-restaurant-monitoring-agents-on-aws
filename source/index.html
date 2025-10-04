@@ -91,7 +91,7 @@
         class ApiGatewayClient {
             constructor() {
                 // Replace with your API Gateway URL after deployment
-                this.apiUrl = 'https://r5bdnzlo61.execute-api.us-east-1.amazonaws.com/prod';
+                this.apiUrl = 'https://rzltaip8g7.execute-api.us-east-1.amazonaws.com/prod';
             }
             
             async makeRequest(endpoint) {
@@ -443,8 +443,8 @@
         // Cognito Configuration
         const cognitoConfig = {
             region: 'us-east-1',
-            userPoolId: 'us-east-1_vGq6Bk4sg', // Replace with actual User Pool ID
-            userPoolWebClientId: 'md6og1ql2tc9mmlgt4pfp9mhf' // Replace with actual Client ID
+            userPoolId: 'us-east-1_h40WL9SuJ', // Replace with actual User Pool ID
+            userPoolWebClientId: '3200j26lsko02f3bhhitasi7io' // Replace with actual Client ID
         };
 
         const userPool = new AmazonCognitoIdentity.CognitoUserPool({
