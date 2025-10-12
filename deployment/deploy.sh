@@ -2,8 +2,8 @@
 # Restaurant Kitchen Assistant - Linux Deployment Script
 # Deploys all infrastructure components in correct order
 
-PROJECT_NAME="restaurant-kitchen-assistant"
-ENVIRONMENT="production"
+PROJECT_NAME="rest-monitor"
+ENVIRONMENT="prod"
 REGION="us-east-1"
 
 echo "🚀 Starting Restaurant Kitchen Assistant Deployment"
@@ -30,17 +30,7 @@ if ! aws cloudformation validate-template --template-body file://deployment/stra
 fi
 
 echo "✅ All templates validated successfully"
-echo
 
-# Step 0.5: Clean up existing S3 bucket if it exists
-echo "🧹 Step 0.5: Cleaning up existing S3 bucket..."
-BUCKET_NAME="$PROJECT_NAME-dashboard-$ENVIRONMENT-986635652628"
-if aws s3api head-bucket --bucket "$BUCKET_NAME" 2>/dev/null; then
-    echo "Found existing bucket $BUCKET_NAME, deleting..."
-    aws s3 rm s3://$BUCKET_NAME --recursive 2>/dev/null || true
-    aws s3api delete-bucket --bucket $BUCKET_NAME 2>/dev/null || true
-    echo "✅ Bucket cleanup attempted"
-fi
 echo
 
 # Step 1: Deploy Restaurant Monitoring Base Infrastructure

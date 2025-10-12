@@ -18,9 +18,9 @@ except ImportError:
 class SimpleEquipmentSimulator:
     def __init__(self, api_url=None):
         self.dynamodb = boto3.resource('dynamodb', region_name='us-east-1')
-        self.restaurants_table = self.dynamodb.Table('restaurant-kitchen-assistant-restaurants-production')
-        self.equipment_table = self.dynamodb.Table('restaurant-kitchen-assistant-equipment-readings-production')
-        self.tickets_table = self.dynamodb.Table('restaurant-kitchen-assistant-tickets-production')
+        self.restaurants_table = self.dynamodb.Table('rest-monitor-restaurants-prod')
+        self.equipment_table = self.dynamodb.Table('rest-monitor-equipment-readings-prod')
+        self.tickets_table = self.dynamodb.Table('rest-monitor-tickets-prod')
         self.manual_api_url = api_url  # Allow manual API URL override
         
         self.locations = {
@@ -154,6 +154,7 @@ class SimpleEquipmentSimulator:
             
             # Try multiple possible stack names
             stack_names = [
+                'rest-monitor-base-infrastructure-prod',
                 'restaurant-kitchen-assistant-base-infrastructure-production',
                 'restaurant-kitchen-assistant-base-production',
                 'restaurant-kitchen-assistant-production',

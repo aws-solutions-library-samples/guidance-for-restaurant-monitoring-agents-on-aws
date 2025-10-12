@@ -6,8 +6,8 @@
 set -e
 
 # Configuration
-BASE_STACK_NAME="restaurant-kitchen-assistant-base-infrastructure-production"
-STRANDS_STACK_NAME="restaurant-kitchen-assistant-strands-agent-chat-production"
+BASE_STACK_NAME="rest-monitor-base-infrastructure-prod"
+STRANDS_STACK_NAME="rest-monitor-strands-agent-chat-prod"
 REGION="us-east-1"
 
 # Colors for output
@@ -166,7 +166,7 @@ echo -e "${BLUE}📋 Step 6: Checking for orphaned resources...${NC}"
 
 # Check for any remaining Lambda functions
 echo "🔍 Checking for Lambda functions..."
-LAMBDA_FUNCTIONS=$(aws lambda list-functions --region "$REGION" --query 'Functions[?contains(FunctionName, `restaurant-kitchen-assistant`)].FunctionName' --output text 2>/dev/null || echo "")
+LAMBDA_FUNCTIONS=$(aws lambda list-functions --region "$REGION" --query 'Functions[?contains(FunctionName, `rest-monitor`)].FunctionName' --output text 2>/dev/null || echo "")
 if [ -n "$LAMBDA_FUNCTIONS" ]; then
     echo -e "${YELLOW}⚠️  Found orphaned Lambda functions: $LAMBDA_FUNCTIONS${NC}"
     echo "   You may want to delete these manually if they're not needed."
@@ -174,7 +174,7 @@ fi
 
 # Check for any remaining DynamoDB tables
 echo "🔍 Checking for DynamoDB tables..."
-DYNAMO_TABLES=$(aws dynamodb list-tables --region "$REGION" --query 'TableNames[?contains(@, `restaurant-kitchen-assistant`)]' --output text 2>/dev/null || echo "")
+DYNAMO_TABLES=$(aws dynamodb list-tables --region "$REGION" --query 'TableNames[?contains(@, `rest-monitor`)]' --output text 2>/dev/null || echo "")
 if [ -n "$DYNAMO_TABLES" ]; then
     echo -e "${YELLOW}⚠️  Found orphaned DynamoDB tables: $DYNAMO_TABLES${NC}"
     echo "   You may want to delete these manually if they're not needed."
@@ -182,7 +182,7 @@ fi
 
 # Check for any remaining IAM roles
 echo "🔍 Checking for IAM roles..."
-IAM_ROLES=$(aws iam list-roles --query 'Roles[?contains(RoleName, `restaurant-kitchen-assistant`)].RoleName' --output text 2>/dev/null || echo "")
+IAM_ROLES=$(aws iam list-roles --query 'Roles[?contains(RoleName, `rest-monitor`)].RoleName' --output text 2>/dev/null || echo "")
 if [ -n "$IAM_ROLES" ]; then
     echo -e "${YELLOW}⚠️  Found orphaned IAM roles: $IAM_ROLES${NC}"
     echo "   You may want to delete these manually if they're not needed."

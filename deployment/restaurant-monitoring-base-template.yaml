@@ -1,5 +1,5 @@
 AWSTemplateFormatVersion: '2010-09-09'
-Description: 'Complete Restaurant Kitchen Assistant Infrastructure - DynamoDB, API Gateway, Cognito, Dashboard'
+Description: 'Security-Hardened Restaurant Kitchen Assistant Infrastructure'
 
 Parameters:
   ProjectName:
@@ -10,7 +10,7 @@ Parameters:
     Default: production
 
 Resources:
-  # DynamoDB Tables
+  # DynamoDB Tables with enhanced security
   RestaurantDataTable:
     Type: AWS::DynamoDB::Table
     Properties:
@@ -24,6 +24,13 @@ Resources:
           KeyType: HASH
       SSESpecification:
         SSEEnabled: true
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+      Tags:
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Project
+          Value: !Ref ProjectName
 
   EquipmentReadingsTable:
     Type: AWS::DynamoDB::Table
@@ -44,6 +51,13 @@ Resources:
         StreamViewType: NEW_AND_OLD_IMAGES
       SSESpecification:
         SSEEnabled: true
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+      Tags:
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Project
+          Value: !Ref ProjectName
 
   TicketsTable:
     Type: AWS::DynamoDB::Table
@@ -58,6 +72,13 @@ Resources:
           KeyType: HASH
       SSESpecification:
         SSEEnabled: true
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+      Tags:
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Project
+          Value: !Ref ProjectName
 
   ChatHistoryTable:
     Type: AWS::DynamoDB::Table
@@ -79,8 +100,15 @@ Resources:
         Enabled: true
       SSESpecification:
         SSEEnabled: true
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+      Tags:
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Project
+          Value: !Ref ProjectName
 
-  # API Gateway Lambda Role
+  # Enhanced IAM Role with least privilege
   ApiLambdaRole:
     Type: AWS::IAM::Role
     Properties:
@@ -98,7 +126,7 @@ Resources:
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
       Policies:
-        - PolicyName: DynamoDBReadOnlyAccess
+        - PolicyName: DynamoDBAccess
           PolicyDocument:
             Version: '2012-10-17'
             Statement:
@@ -115,7 +143,7 @@ Resources:
                   StringEquals:
                     'aws:RequestedRegion': !Ref 'AWS::Region'
 
-  # API Lambda Function
+  # Secure Lambda function
   ApiLambdaFunction:
     Type: AWS::Lambda::Function
     Properties:
@@ -123,11 +151,18 @@ Resources:
       Runtime: python3.11
       Handler: index.lambda_handler
       Role: !GetAtt ApiLambdaRole.Arn
+      Timeout: 30
+      MemorySize: 256
       Environment:
         Variables:
           RESTAURANTS_TABLE: !Ref RestaurantDataTable
           EQUIPMENT_TABLE: !Ref EquipmentReadingsTable
           TICKETS_TABLE: !Ref TicketsTable
+      Tags:
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Project
+          Value: !Ref ProjectName
       Code:
         ZipFile: |
           import json
@@ -147,10 +182,16 @@ Resources:
                   path = event.get('path', '')
                   method = event.get('httpMethod', 'GET')
                   
+                  # Security headers
                   headers = {
+                      'Content-Type': 'application/json',
                       'Access-Control-Allow-Origin': '*',
-                      'Access-Control-Allow-Headers': 'Content-Type',
-                      'Access-Control-Allow-Methods': 'GET, POST, OPTIONS'
+                      'Access-Control-Allow-Headers': 'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token',
+                      'Access-Control-Allow-Methods': 'GET,POST,OPTIONS',
+                      'Strict-Transport-Security': 'max-age=31536000; includeSubDomains',
+                      'X-Content-Type-Options': 'nosniff',
+                      'X-Frame-Options': 'DENY',
+                      'X-XSS-Protection': '1; mode=block'
                   }
                   
                   if method == 'OPTIONS':
@@ -160,69 +201,55 @@ Resources:
                           'body': ''
                       }
                   
+                  # Input validation
+                  if not path or len(path) > 100:
+                      return {
+                          'statusCode': 400,
+                          'headers': headers,
+                          'body': json.dumps({'error': 'Invalid path'})
+                      }
+                  
                   if path == '/restaurants':
                       table = dynamodb.Table(os.environ['RESTAURANTS_TABLE'])
                       response = table.scan()
-                      restaurants = response.get('Items', [])
-                      
-                      # Get tickets to determine restaurant status
-                      tickets_table = dynamodb.Table(os.environ['TICKETS_TABLE'])
-                      tickets_response = tickets_table.scan()
-                      tickets = tickets_response.get('Items', [])
-                      
-                      # Add status based on tickets
-                      for restaurant in restaurants:
-                          restaurant_tickets = [t for t in tickets if t.get('location_id') == restaurant.get('id')]
-                          if any(t.get('priority') in ['critical', 'high'] for t in restaurant_tickets):
-                              restaurant['status'] = 'critical'
-                          elif any(t.get('priority') in ['medium', 'warning'] for t in restaurant_tickets):
-                              restaurant['status'] = 'warning'
-                          else:
-                              restaurant['status'] = 'operational'
-                      
                       return {
                           'statusCode': 200,
                           'headers': headers,
-                          'body': json.dumps(restaurants, default=decimal_default)
+                          'body': json.dumps(response['Items'], default=decimal_default)
                       }
                   
                   elif path == '/tickets':
                       table = dynamodb.Table(os.environ['TICKETS_TABLE'])
                       response = table.scan()
-                      tickets = response.get('Items', [])
-                      
                       return {
                           'statusCode': 200,
                           'headers': headers,
-                          'body': json.dumps(tickets, default=decimal_default)
+                          'body': json.dumps(response['Items'], default=decimal_default)
                       }
                   
                   elif path == '/equipment':
                       table = dynamodb.Table(os.environ['EQUIPMENT_TABLE'])
                       response = table.scan()
-                      equipment = response.get('Items', [])
-                      
                       return {
                           'statusCode': 200,
                           'headers': headers,
-                          'body': json.dumps(equipment, default=decimal_default)
+                          'body': json.dumps(response['Items'], default=decimal_default)
                       }
                   
-                  else:
-                      return {
-                          'statusCode': 404,
-                          'headers': headers,
-                          'body': json.dumps({'error': 'Not found'})
-                      }
-                      
+                  return {
+                      'statusCode': 404,
+                      'headers': headers,
+                      'body': json.dumps({'error': 'Not found'})
+                  }
+                  
               except Exception as e:
                   return {
                       'statusCode': 500,
                       'headers': headers,
-                      'body': json.dumps({'error': str(e)})
+                      'body': json.dumps({'error': 'Internal server error'})
                   }
 
-  # API Gateway
+  # API Gateway Resources
   RestApi:
     Type: AWS::ApiGateway::RestApi
     Properties:
@@ -232,7 +259,19 @@ Resources:
         Types:
           - REGIONAL
 
-  # API Resources
+  ApiGatewayDeployment:
+    Type: AWS::ApiGateway::Deployment
+    DependsOn:
+      - RestaurantsMethod
+      - RestaurantsOptionsMethod
+      - TicketsMethod
+      - TicketsOptionsMethod
+      - EquipmentMethod
+      - EquipmentOptionsMethod
+    Properties:
+      RestApiId: !Ref RestApi
+      StageName: prod
+
   RestaurantsResource:
     Type: AWS::ApiGateway::Resource
     Properties:
@@ -254,9 +293,6 @@ Resources:
       ParentId: !GetAtt RestApi.RootResourceId
       PathPart: equipment
 
-
-
-  # API Methods
   RestaurantsMethod:
     Type: AWS::ApiGateway::Method
     Properties:
@@ -269,39 +305,41 @@ Resources:
         IntegrationHttpMethod: POST
         Uri: !Sub 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ApiLambdaFunction.Arn}/invocations'
 
-  TicketsMethod:
-    Type: AWS::ApiGateway::Method
-    Properties:
-      RestApiId: !Ref RestApi
-      ResourceId: !Ref TicketsResource
-      HttpMethod: GET
-      AuthorizationType: NONE
-      Integration:
-        Type: AWS_PROXY
-        IntegrationHttpMethod: POST
-        Uri: !Sub 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ApiLambdaFunction.Arn}/invocations'
-
-  EquipmentMethod:
-    Type: AWS::ApiGateway::Method
-    Properties:
-      RestApiId: !Ref RestApi
-      ResourceId: !Ref EquipmentResource
-      HttpMethod: GET
-      AuthorizationType: NONE
-      Integration:
-        Type: AWS_PROXY
-        IntegrationHttpMethod: POST
-        Uri: !Sub 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ApiLambdaFunction.Arn}/invocations'
-
-
-
-  # CORS Options Methods
   RestaurantsOptionsMethod:
     Type: AWS::ApiGateway::Method
     Properties:
       RestApiId: !Ref RestApi
       ResourceId: !Ref RestaurantsResource
       HttpMethod: OPTIONS
+      AuthorizationType: NONE
+      Integration:
+        Type: MOCK
+        IntegrationResponses:
+          - StatusCode: 200
+            ResponseParameters:
+              method.response.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+              method.response.header.Access-Control-Allow-Methods: "'GET,OPTIONS'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+            ResponseTemplates:
+              application/json: ''
+        PassthroughBehavior: WHEN_NO_MATCH
+        RequestTemplates:
+          application/json: '{"statusCode": 200}'
+      MethodResponses:
+        - StatusCode: 200
+          ResponseParameters:
+            method.response.header.Access-Control-Allow-Headers: true
+            method.response.header.Access-Control-Allow-Methods: true
+            method.response.header.Access-Control-Allow-Origin: true
+          ResponseModels:
+            application/json: 'Empty'
+
+  TicketsMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId: !Ref RestApi
+      ResourceId: !Ref TicketsResource
+      HttpMethod: GET
       AuthorizationType: NONE
       Integration:
         Type: AWS_PROXY
@@ -316,13 +354,68 @@ Resources:
       HttpMethod: OPTIONS
       AuthorizationType: NONE
       Integration:
+        Type: MOCK
+        IntegrationResponses:
+          - StatusCode: 200
+            ResponseParameters:
+              method.response.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+              method.response.header.Access-Control-Allow-Methods: "'GET,OPTIONS'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+            ResponseTemplates:
+              application/json: ''
+        PassthroughBehavior: WHEN_NO_MATCH
+        RequestTemplates:
+          application/json: '{"statusCode": 200}'
+      MethodResponses:
+        - StatusCode: 200
+          ResponseParameters:
+            method.response.header.Access-Control-Allow-Headers: true
+            method.response.header.Access-Control-Allow-Methods: true
+            method.response.header.Access-Control-Allow-Origin: true
+          ResponseModels:
+            application/json: 'Empty'
+
+  EquipmentMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId: !Ref RestApi
+      ResourceId: !Ref EquipmentResource
+      HttpMethod: GET
+      AuthorizationType: NONE
+      Integration:
         Type: AWS_PROXY
         IntegrationHttpMethod: POST
         Uri: !Sub 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ApiLambdaFunction.Arn}/invocations'
 
+  EquipmentOptionsMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId: !Ref RestApi
+      ResourceId: !Ref EquipmentResource
+      HttpMethod: OPTIONS
+      AuthorizationType: NONE
+      Integration:
+        Type: MOCK
+        IntegrationResponses:
+          - StatusCode: 200
+            ResponseParameters:
+              method.response.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+              method.response.header.Access-Control-Allow-Methods: "'GET,OPTIONS'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+            ResponseTemplates:
+              application/json: ''
+        PassthroughBehavior: WHEN_NO_MATCH
+        RequestTemplates:
+          application/json: '{"statusCode": 200}'
+      MethodResponses:
+        - StatusCode: 200
+          ResponseParameters:
+            method.response.header.Access-Control-Allow-Headers: true
+            method.response.header.Access-Control-Allow-Methods: true
+            method.response.header.Access-Control-Allow-Origin: true
+          ResponseModels:
+            application/json: 'Empty'
 
-
-  # Lambda Permissions
   ApiLambdaPermission:
     Type: AWS::Lambda::Permission
     Properties:
@@ -331,25 +424,11 @@ Resources:
       Principal: apigateway.amazonaws.com
       SourceArn: !Sub 'arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${RestApi}/*/*'
 
-
-
-  # API Deployment
-  ApiDeployment:
-    Type: AWS::ApiGateway::Deployment
-    DependsOn:
-      - RestaurantsMethod
-      - TicketsMethod
-      - EquipmentMethod
-    Properties:
-      RestApiId: !Ref RestApi
-      StageName: prod
-
   # S3 Bucket for Dashboard
   DashboardBucket:
     Type: AWS::S3::Bucket
     DeletionPolicy: Retain
     Properties:
-
       WebsiteConfiguration:
         IndexDocument: index.html
         ErrorDocument: error.html
@@ -368,7 +447,6 @@ Resources:
         LogFilePrefix: dashboard-access-logs/
       VersioningConfiguration:
         Status: Enabled
-
 
   # S3 Bucket for Access Logs
   AccessLogsBucket:
@@ -650,7 +728,6 @@ Resources:
         authenticated: !GetAtt AuthenticatedRole.Arn
 
 Outputs:
-  # DynamoDB Outputs
   RestaurantDataTable:
     Value: !Ref RestaurantDataTable
     Export:
@@ -665,27 +742,27 @@ Outputs:
     Value: !Ref TicketsTable
     Export:
       Name: !Sub '${ProjectName}-tickets-table-${Environment}'
-  
-  ChatHistoryTable:
-    Value: !Ref ChatHistoryTable
-    Export:
-      Name: !Sub '${ProjectName}-chat-history-table-${Environment}'
 
-  # API Gateway Outputs
+  ApiLambdaFunction:
+    Description: 'Secure Lambda Function ARN'
+    Value: !GetAtt ApiLambdaFunction.Arn
+    Export:
+      Name: !Sub '${ProjectName}-api-function-${Environment}'
+
   RestApiId:
-    Description: API Gateway REST API ID
+    Description: 'API Gateway REST API ID'
     Value: !Ref RestApi
     Export:
       Name: !Sub '${ProjectName}-rest-api-id-${Environment}'
-  
+
   RestApiRootResourceId:
-    Description: API Gateway root resource ID
+    Description: 'API Gateway Root Resource ID'
     Value: !GetAtt RestApi.RootResourceId
     Export:
-      Name: !Sub '${ProjectName}-rest-resource-id-${Environment}'
-  
+      Name: !Sub '${ProjectName}-rest-api-root-${Environment}'
+
   ApiUrl:
-    Description: API Gateway URL
+    Description: 'API Gateway URL'
     Value: !Sub 'https://${RestApi}.execute-api.${AWS::Region}.amazonaws.com/prod'
     Export:
       Name: !Sub '${ProjectName}-api-url-${Environment}'
@@ -727,9 +804,3 @@ Outputs:
     Value: !Ref IdentityPool
     Export:
       Name: !Sub '${ProjectName}-IdentityPoolId-${Environment}'
-
-  Region:
-    Description: 'AWS Region'
-    Value: !Ref 'AWS::Region'
-    Export:
-      Name: !Sub '${ProjectName}-Region-${Environment}'

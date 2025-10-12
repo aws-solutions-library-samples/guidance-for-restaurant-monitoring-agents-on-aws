@@ -6,8 +6,8 @@
 set -e
 
 # Configuration - Get from CloudFormation stack
-PROJECT_NAME="restaurant-kitchen-assistant"
-ENVIRONMENT="production"
+PROJECT_NAME="rest-monitor"
+ENVIRONMENT="prod"
 STACK_NAME="$PROJECT_NAME-base-infrastructure-$ENVIRONMENT"
 
 # Get values from CloudFormation stack
