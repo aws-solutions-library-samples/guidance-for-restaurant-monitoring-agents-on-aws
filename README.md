@@ -98,7 +98,7 @@ This script will:
 - Deploy Restaurant Monitoring Agent Workflow Lambda functions  
 - Deploy website content and load initial data
 
-4. For clean deployment (recommended), run:
+4. For clean deployment (recommended when executed multiple times to reset the source code mapping for Cognito and API Gateway endpoint), run:
    ```bash
    ./deployment/reset-source-to-placeholders.sh
    ./deployment/deploy.sh
@@ -133,9 +133,10 @@ After deployment, verify the following resources were created:
 
 1. Navigate to the CloudFront URL provided in the deployment output
 2. Sign up for a new account or sign in with existing credentials
-3. View real-time restaurant status powered by monitoring agents by navigating across the table Dashboard, 3D Digital Twin and Tickets. 
-4. Click on each restaurant under 3D Digital Twin tab to see a 3D view of the store and its appliance status.
-4. Interact with Gen AI chat interface on the bottom right to know the status of the restaurants in natural language format.
+3. View real-time restaurant status powered by monitoring agents by navigating across the three Tabs onthe webapp named Dashboard, 3D Digital Twin and Tickets. 
+4. Dashboard screen displays overall status and Tickets screen displays summary of ticket status.
+5. 3D Digital Twin displays digital representation of the restaurants. Click on each restaurant location under 3D Digital Twin tab to see a 3D view of the store and its appliance status.
+6. Interact with Gen AI chat interface on the bottom right to know the status of the restaurants in natural language format.
 
 ### Expected Output
 
