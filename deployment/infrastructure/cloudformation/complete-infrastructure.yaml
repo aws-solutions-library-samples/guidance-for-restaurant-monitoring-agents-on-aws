@@ -1,0 +1,612 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'Complete Restaurant Monitoring Infrastructure (Base + Inventory + Staffing)'
+
+Parameters:
+  ProjectName:
+    Type: String
+    Default: rest-monitor
+  Environment:
+    Type: String
+    Default: prod
+
+Resources:
+  # ============================================================================
+  # BASE INFRASTRUCTURE - DynamoDB Tables
+  # ============================================================================
+  
+  RestaurantsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub '${ProjectName}-restaurants-${Environment}'
+      AttributeDefinitions:
+        - AttributeName: id
+          AttributeType: S
+      KeySchema:
+        - AttributeName: id
+          KeyType: HASH
+      BillingMode: PAY_PER_REQUEST
+      SSESpecification:
+        SSEEnabled: true
+        SSEType: KMS
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+
+  EquipmentReadingsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub '${ProjectName}-equipment-readings-${Environment}'
+      AttributeDefinitions:
+        - AttributeName: restaurant_id
+          AttributeType: S
+        - AttributeName: equipment_id
+          AttributeType: S
+      KeySchema:
+        - AttributeName: restaurant_id
+          KeyType: HASH
+        - AttributeName: equipment_id
+          KeyType: RANGE
+      BillingMode: PAY_PER_REQUEST
+      SSESpecification:
+        SSEEnabled: true
+        SSEType: KMS
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+
+  TicketsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub '${ProjectName}-tickets-${Environment}'
+      AttributeDefinitions:
+        - AttributeName: ticket_id
+          AttributeType: S
+      KeySchema:
+        - AttributeName: ticket_id
+          KeyType: HASH
+      BillingMode: PAY_PER_REQUEST
+      SSESpecification:
+        SSEEnabled: true
+        SSEType: KMS
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+
+  ChatHistoryTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub '${ProjectName}-chat-history-${Environment}'
+      AttributeDefinitions:
+        - AttributeName: session_id
+          AttributeType: S
+        - AttributeName: timestamp
+          AttributeType: N
+      KeySchema:
+        - AttributeName: session_id
+          KeyType: HASH
+        - AttributeName: timestamp
+          KeyType: RANGE
+      BillingMode: PAY_PER_REQUEST
+      SSESpecification:
+        SSEEnabled: true
+        SSEType: KMS
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+
+  # ============================================================================
+  # INVENTORY INFRASTRUCTURE - DynamoDB Tables
+  # ============================================================================
+
+  InventoryItemsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub '${ProjectName}-inventory-items-${Environment}'
+      AttributeDefinitions:
+        - AttributeName: restaurant_id
+          AttributeType: S
+        - AttributeName: item_id
+          AttributeType: S
+      KeySchema:
+        - AttributeName: restaurant_id
+          KeyType: HASH
+        - AttributeName: item_id
+          KeyType: RANGE
+      BillingMode: PAY_PER_REQUEST
+      SSESpecification:
+        SSEEnabled: true
+        SSEType: KMS
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+
+  InventoryHistoryTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub '${ProjectName}-inventory-history-${Environment}'
+      AttributeDefinitions:
+        - AttributeName: restaurant_id
+          AttributeType: S
+        - AttributeName: timestamp
+          AttributeType: N
+      KeySchema:
+        - AttributeName: restaurant_id
+          KeyType: HASH
+        - AttributeName: timestamp
+          KeyType: RANGE
+      BillingMode: PAY_PER_REQUEST
+      SSESpecification:
+        SSEEnabled: true
+        SSEType: KMS
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+
+  InventoryConfigTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub '${ProjectName}-inventory-config-${Environment}'
+      AttributeDefinitions:
+        - AttributeName: config_key
+          AttributeType: S
+      KeySchema:
+        - AttributeName: config_key
+          KeyType: HASH
+      BillingMode: PAY_PER_REQUEST
+      SSESpecification:
+        SSEEnabled: true
+        SSEType: KMS
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+
+  ReorderRecommendationsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub '${ProjectName}-reorder-recommendations-${Environment}'
+      AttributeDefinitions:
+        - AttributeName: restaurant_id
+          AttributeType: S
+        - AttributeName: item_id
+          AttributeType: S
+      KeySchema:
+        - AttributeName: restaurant_id
+          KeyType: HASH
+        - AttributeName: item_id
+          KeyType: RANGE
+      BillingMode: PAY_PER_REQUEST
+      SSESpecification:
+        SSEEnabled: true
+        SSEType: KMS
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+
+  ReorderApprovalsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub '${ProjectName}-reorder-approvals-${Environment}'
+      AttributeDefinitions:
+        - AttributeName: approval_id
+          AttributeType: S
+      KeySchema:
+        - AttributeName: approval_id
+          KeyType: HASH
+      BillingMode: PAY_PER_REQUEST
+      SSESpecification:
+        SSEEnabled: true
+        SSEType: KMS
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+
+  # ============================================================================
+  # STAFFING INFRASTRUCTURE - DynamoDB Tables
+  # ============================================================================
+
+  StaffingRequirementsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub '${ProjectName}-staffing-requirements-${Environment}'
+      AttributeDefinitions:
+        - AttributeName: restaurant_id
+          AttributeType: S
+        - AttributeName: date
+          AttributeType: S
+      KeySchema:
+        - AttributeName: restaurant_id
+          KeyType: HASH
+        - AttributeName: date
+          KeyType: RANGE
+      BillingMode: PAY_PER_REQUEST
+      SSESpecification:
+        SSEEnabled: true
+        SSEType: KMS
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+
+  StaffingScheduleTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub '${ProjectName}-staffing-schedule-${Environment}'
+      AttributeDefinitions:
+        - AttributeName: restaurant_id
+          AttributeType: S
+        - AttributeName: shift_id
+          AttributeType: S
+      KeySchema:
+        - AttributeName: restaurant_id
+          KeyType: HASH
+        - AttributeName: shift_id
+          KeyType: RANGE
+      BillingMode: PAY_PER_REQUEST
+      SSESpecification:
+        SSEEnabled: true
+        SSEType: KMS
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+
+  # ============================================================================
+  # API GATEWAY & LAMBDA
+  # ============================================================================
+
+  RestaurantMonitorAPI:
+    Type: AWS::ApiGateway::RestApi
+    Properties:
+      Name: !Sub '${ProjectName}-api-${Environment}'
+      Description: Restaurant Monitoring API
+      EndpointConfiguration:
+        Types:
+          - REGIONAL
+
+  # Lambda Execution Role
+  LambdaExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Policies:
+        - PolicyName: DynamoDBAccess
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - dynamodb:GetItem
+                  - dynamodb:PutItem
+                  - dynamodb:Query
+                  - dynamodb:Scan
+                  - dynamodb:UpdateItem
+                  - dynamodb:DeleteItem
+                Resource:
+                  - !GetAtt RestaurantsTable.Arn
+                  - !GetAtt EquipmentReadingsTable.Arn
+                  - !GetAtt TicketsTable.Arn
+                  - !GetAtt InventoryItemsTable.Arn
+                  - !GetAtt StaffingRequirementsTable.Arn
+                  - !GetAtt StaffingScheduleTable.Arn
+
+  # Lambda Function
+  APILambdaFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Sub '${ProjectName}-api-${Environment}'
+      Runtime: python3.13
+      Handler: index.lambda_handler
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Timeout: 30
+      Environment:
+        Variables:
+          RESTAURANTS_TABLE: !Ref RestaurantsTable
+          EQUIPMENT_TABLE: !Ref EquipmentReadingsTable
+          TICKETS_TABLE: !Ref TicketsTable
+      Code:
+        ZipFile: |
+          import json
+          import boto3
+          import os
+          from decimal import Decimal
+          
+          dynamodb = boto3.resource('dynamodb')
+          
+          class DecimalEncoder(json.JSONEncoder):
+              def default(self, obj):
+                  if isinstance(obj, Decimal):
+                      return float(obj)
+                  return super(DecimalEncoder, self).default(obj)
+          
+          def lambda_handler(event, context):
+              path = event.get('path', '')
+              method = event.get('httpMethod', 'GET')
+              
+              try:
+                  if path == '/restaurants':
+                      table = dynamodb.Table(os.environ['RESTAURANTS_TABLE'])
+                      response = table.scan()
+                      return {
+                          'statusCode': 200,
+                          'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                          'body': json.dumps({'restaurants': response['Items']}, cls=DecimalEncoder)
+                      }
+                  elif path == '/equipment':
+                      table = dynamodb.Table(os.environ['EQUIPMENT_TABLE'])
+                      response = table.scan()
+                      return {
+                          'statusCode': 200,
+                          'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                          'body': json.dumps(response['Items'], cls=DecimalEncoder)
+                      }
+                  elif path == '/tickets':
+                      table = dynamodb.Table(os.environ['TICKETS_TABLE'])
+                      response = table.scan()
+                      return {
+                          'statusCode': 200,
+                          'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                          'body': json.dumps({'tickets': response['Items']}, cls=DecimalEncoder)
+                      }
+                  elif path == '/chat':
+                      # Proxy to Bedrock AgentCore Runtime
+                      import boto3
+                      body_data = json.loads(event.get('body', '{}'))
+                      prompt = body_data.get('prompt', '')
+                      session_id = body_data.get('sessionId', '')
+                      agent_arn = body_data.get('agentArn', '')
+                      
+                      bedrock_client = boto3.client('bedrock-agent-runtime', region_name='us-east-1')
+                      agent_id = agent_arn.split('/')[-1]
+                      
+                      response = bedrock_client.invoke_agent(
+                          agentId=agent_id,
+                          agentAliasId='DEFAULT',
+                          sessionId=session_id,
+                          inputText=prompt
+                      )
+                      
+                      result_text = ''
+                      for event_chunk in response.get('completion', []):
+                          if 'chunk' in event_chunk:
+                              chunk_data = event_chunk['chunk']
+                              if 'bytes' in chunk_data:
+                                  result_text += chunk_data['bytes'].decode('utf-8')
+                      
+                      return {
+                          'statusCode': 200,
+                          'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                          'body': json.dumps({'response': result_text, 'sessionId': session_id})
+                      }
+                  else:
+                      return {
+                          'statusCode': 404,
+                          'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                          'body': json.dumps({'error': 'Not found'})
+                      }
+              except Exception as e:
+                  return {
+                      'statusCode': 500,
+                      'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                      'body': json.dumps({'error': str(e)})
+                  }
+
+  # API Gateway Resources and Methods
+  RestaurantsResource:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      RestApiId: !Ref RestaurantMonitorAPI
+      ParentId: !GetAtt RestaurantMonitorAPI.RootResourceId
+      PathPart: restaurants
+
+  RestaurantsMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId: !Ref RestaurantMonitorAPI
+      ResourceId: !Ref RestaurantsResource
+      HttpMethod: GET
+      AuthorizationType: NONE
+      Integration:
+        Type: AWS_PROXY
+        IntegrationHttpMethod: POST
+        Uri: !Sub 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${APILambdaFunction.Arn}/invocations'
+
+  EquipmentResource:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      RestApiId: !Ref RestaurantMonitorAPI
+      ParentId: !GetAtt RestaurantMonitorAPI.RootResourceId
+      PathPart: equipment
+
+  EquipmentMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId: !Ref RestaurantMonitorAPI
+      ResourceId: !Ref EquipmentResource
+      HttpMethod: GET
+      AuthorizationType: NONE
+      Integration:
+        Type: AWS_PROXY
+        IntegrationHttpMethod: POST
+        Uri: !Sub 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${APILambdaFunction.Arn}/invocations'
+
+  TicketsResource:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      RestApiId: !Ref RestaurantMonitorAPI
+      ParentId: !GetAtt RestaurantMonitorAPI.RootResourceId
+      PathPart: tickets
+
+  TicketsMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId: !Ref RestaurantMonitorAPI
+      ResourceId: !Ref TicketsResource
+      HttpMethod: GET
+      AuthorizationType: NONE
+      Integration:
+        Type: AWS_PROXY
+        IntegrationHttpMethod: POST
+        Uri: !Sub 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${APILambdaFunction.Arn}/invocations'
+
+  # Lambda Permissions
+  RestaurantsLambdaPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref APILambdaFunction
+      Action: lambda:InvokeFunction
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub 'arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${RestaurantMonitorAPI}/*'
+
+  # API Deployment
+  APIDeployment:
+    Type: AWS::ApiGateway::Deployment
+    DependsOn:
+      - RestaurantsMethod
+      - EquipmentMethod
+      - TicketsMethod
+    Properties:
+      RestApiId: !Ref RestaurantMonitorAPI
+      StageName: prod
+
+  # ============================================================================
+  # S3 & CLOUDFRONT
+  # ============================================================================
+
+  DashboardBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub '${ProjectName}-base-infrastructure-p-dashboardbucket-${AWS::AccountId}'
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      VersioningConfiguration:
+        Status: Enabled
+
+  CloudFrontOriginAccessIdentity:
+    Type: AWS::CloudFront::CloudFrontOriginAccessIdentity
+    Properties:
+      CloudFrontOriginAccessIdentityConfig:
+        Comment: !Sub 'OAI for ${ProjectName}'
+
+  DashboardBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref DashboardBucket
+      PolicyDocument:
+        Statement:
+          - Effect: Allow
+            Principal:
+              CanonicalUser: !GetAtt CloudFrontOriginAccessIdentity.S3CanonicalUserId
+            Action: 's3:GetObject'
+            Resource: !Sub '${DashboardBucket.Arn}/*'
+
+  CloudFrontDistribution:
+    Type: AWS::CloudFront::Distribution
+    Properties:
+      DistributionConfig:
+        Enabled: true
+        DefaultRootObject: index.html
+        Origins:
+          - DomainName: !GetAtt DashboardBucket.RegionalDomainName
+            Id: S3Origin
+            S3OriginConfig:
+              OriginAccessIdentity: !Sub 'origin-access-identity/cloudfront/${CloudFrontOriginAccessIdentity}'
+        DefaultCacheBehavior:
+          TargetOriginId: S3Origin
+          ViewerProtocolPolicy: redirect-to-https
+          AllowedMethods:
+            - GET
+            - HEAD
+            - OPTIONS
+          CachedMethods:
+            - GET
+            - HEAD
+          ForwardedValues:
+            QueryString: false
+            Cookies:
+              Forward: none
+          Compress: true
+        CustomErrorResponses:
+          - ErrorCode: 403
+            ResponseCode: 200
+            ResponsePagePath: /index.html
+          - ErrorCode: 404
+            ResponseCode: 200
+            ResponsePagePath: /index.html
+        ViewerCertificate:
+          CloudFrontDefaultCertificate: true
+
+  # ============================================================================
+  # COGNITO
+  # ============================================================================
+
+  UserPool:
+    Type: AWS::Cognito::UserPool
+    Properties:
+      UserPoolName: !Sub '${ProjectName}-users-${Environment}'
+      AutoVerifiedAttributes:
+        - email
+      UsernameAttributes:
+        - email
+      Policies:
+        PasswordPolicy:
+          MinimumLength: 8
+          RequireUppercase: true
+          RequireLowercase: true
+          RequireNumbers: true
+          RequireSymbols: true
+
+  UserPoolClient:
+    Type: AWS::Cognito::UserPoolClient
+    Properties:
+      ClientName: !Sub '${ProjectName}-client-${Environment}'
+      UserPoolId: !Ref UserPool
+      GenerateSecret: false
+      ExplicitAuthFlows:
+        - ALLOW_USER_SRP_AUTH
+        - ALLOW_REFRESH_TOKEN_AUTH
+
+  IdentityPool:
+    Type: AWS::Cognito::IdentityPool
+    Properties:
+      IdentityPoolName: !Sub '${ProjectName}Identity${Environment}'
+      AllowUnauthenticatedIdentities: false
+      CognitoIdentityProviders:
+        - ClientId: !Ref UserPoolClient
+          ProviderName: !GetAtt UserPool.ProviderName
+
+Outputs:
+  # DynamoDB Tables
+  RestaurantsTableName:
+    Value: !Ref RestaurantsTable
+  EquipmentTableName:
+    Value: !Ref EquipmentReadingsTable
+  TicketsTableName:
+    Value: !Ref TicketsTable
+  InventoryItemsTableName:
+    Value: !Ref InventoryItemsTable
+  StaffingRequirementsTableName:
+    Value: !Ref StaffingRequirementsTable
+  StaffingScheduleTableName:
+    Value: !Ref StaffingScheduleTable
+  
+  # API Gateway
+  APIEndpoint:
+    Value: !Sub 'https://${RestaurantMonitorAPI}.execute-api.${AWS::Region}.amazonaws.com/prod'
+  
+  # S3 & CloudFront
+  WebsiteBucket:
+    Value: !Ref DashboardBucket
+  CloudFrontURL:
+    Value: !Sub 'https://${CloudFrontDistribution.DomainName}'
+  CloudFrontDistributionId:
+    Value: !Ref CloudFrontDistribution
+  
+  # Cognito
+  UserPoolId:
+    Value: !Ref UserPool
+  UserPoolClientId:
+    Value: !Ref UserPoolClient
+  IdentityPoolId:
+    Value: !Ref IdentityPool

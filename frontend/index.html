@@ -278,20 +278,19 @@
             addChatMessage('Processing your request...', 'bot', true);
             
             try {
-                // Call NEW AgentCore Runtime API (Direct Code Deploy)
-                const agentArn = 'arn:aws:bedrock-agentcore:us-east-1:986635652628:runtime/restaurant_ops_full-Ni2asWG82Q';
-                const agentcoreUrl = `https://bedrock-agentcore-runtime.us-east-1.amazonaws.com/invoke`;
+                // Call existing API Gateway with /chat endpoint
+                const apiUrl = 'https://mojgf9gmfk.execute-api.us-east-1.amazonaws.com/prod';
+                const agentcoreUrl = `${apiUrl}/chat`;
                 
                 const response = await fetch(agentcoreUrl, {
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${apiClient.token || ''}`
+                        'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({ 
-                        agentArn: agentArn,
                         prompt: message,
-                        sessionId: chatSessionId
+                        sessionId: chatSessionId,
+                        agentArn: 'arn:aws:bedrock-agentcore:us-east-1:986635652628:runtime/restaurant_ops_full-Ni2asWG82Q'
                     })
                 });
                 

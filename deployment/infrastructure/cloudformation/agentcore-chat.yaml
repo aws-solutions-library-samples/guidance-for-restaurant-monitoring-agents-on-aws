@@ -1,0 +1,664 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'AgentCore Runtime for Restaurant Monitoring with Strands'
+
+Parameters:
+  AgentName:
+    Type: String
+    Default: 'RestaurantMonitor'
+    AllowedPattern: '^[a-zA-Z][a-zA-Z0-9_]{0,47}$'
+
+Resources:
+  # DynamoDB table for conversation history
+  ConversationHistoryTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: rest-monitor-chat-history-prod
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: session_id
+          AttributeType: S
+        - AttributeName: timestamp
+          AttributeType: S
+      KeySchema:
+        - AttributeName: session_id
+          KeyType: HASH
+        - AttributeName: timestamp
+          KeyType: RANGE
+      TimeToLiveSpecification:
+        AttributeName: ttl
+        Enabled: true
+
+  ECRRepository:
+    Type: AWS::ECR::Repository
+    Properties:
+      RepositoryName: !Sub '${AWS::StackName}-repo'
+      EmptyOnDelete: true
+
+  AgentExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: bedrock-agentcore.amazonaws.com
+            Action: sts:AssumeRole
+            Condition:
+              StringEquals:
+                aws:SourceAccount: !Ref AWS::AccountId
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/BedrockAgentCoreFullAccess
+      Policies:
+        - PolicyName: DynamoDBAccess
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - dynamodb:GetItem
+                  - dynamodb:Query
+                  - dynamodb:Scan
+                  - dynamodb:PutItem
+                  - dynamodb:UpdateItem
+                Resource:
+                  - !Sub 'arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/rest-monitor-*'
+                  - !Sub 'arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/rest-monitor-*/index/*'
+              - Effect: Allow
+                Action:
+                  - ecr:BatchGetImage
+                  - ecr:GetDownloadUrlForLayer
+                  - ecr:BatchCheckLayerAvailability
+                  - ecr:GetAuthorizationToken
+                Resource: '*'
+              - Effect: Allow
+                Action:
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Resource: '*'
+              - Effect: Allow
+                Action:
+                  - bedrock:InvokeModel
+                  - bedrock:InvokeModelWithResponseStream
+                Resource: '*'
+
+  CodeBuildRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: codebuild.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: CodeBuildPolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                  - ecr:*
+                Resource: '*'
+
+  BuildProject:
+    Type: AWS::CodeBuild::Project
+    DependsOn: CodeBuildRole
+    Properties:
+      ServiceRole: !GetAtt CodeBuildRole.Arn
+      Artifacts:
+        Type: NO_ARTIFACTS
+      Environment:
+        Type: ARM_CONTAINER
+        ComputeType: BUILD_GENERAL1_LARGE
+        Image: aws/codebuild/amazonlinux2-aarch64-standard:3.0
+        PrivilegedMode: true
+        EnvironmentVariables:
+          - Name: AWS_DEFAULT_REGION
+            Value: !Ref AWS::Region
+          - Name: AWS_ACCOUNT_ID
+            Value: !Ref AWS::AccountId
+          - Name: IMAGE_REPO_NAME
+            Value: !Ref ECRRepository
+          - Name: IMAGE_TAG
+            Value: latest
+      Source:
+        Type: NO_SOURCE
+        BuildSpec: |
+          version: 0.2
+          phases:
+            pre_build:
+              commands:
+                - aws ecr get-login-password --region $AWS_DEFAULT_REGION | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com
+            build:
+              commands:
+                - |
+                  cat > requirements.txt << 'EOF'
+                  strands-agents
+                  strands-agents-tools
+                  boto3
+                  bedrock-agentcore
+                  EOF
+                # Copy agent code from repository
+                - aws s3 cp s3://YOUR_DEPLOYMENT_BUCKET/agent.py agent.py || cat > agent.py << 'AGENT_EOF'
+                # Fallback: inline agent code with inventory tools
+                from strands import Agent, tool
+                from strands_tools import use_aws
+                import json
+                import os
+                from bedrock_agentcore.runtime import BedrockAgentCoreApp
+                from datetime import datetime
+                from decimal import Decimal
+                from typing import Optional
+                
+                app = BedrockAgentCoreApp()
+                
+                VALID_UNITS = ['count', 'pounds', 'ounces', 'gallons', 'liters', 'cases', 'kilograms']
+                VALID_CATEGORIES = ['proteins', 'buns_and_bread', 'produce', 'condiments', 'beverages', 'packaging', 'frozen_items']
+                
+                def decimal_default(obj):
+                    if isinstance(obj, Decimal):
+                        return float(obj)
+                    return str(obj)
+                
+                @tool
+                def get_restaurants() -> dict:
+                    """Get all restaurant locations"""
+                    import boto3
+                    dynamodb = boto3.resource('dynamodb', region_name='us-east-1')
+                    table = dynamodb.Table('rest-monitor-restaurants-prod')
+                    response = table.scan()
+                    return {"status": "success", "content": [{"text": json.dumps(response.get('Items', []), default=str)}]}
+                
+                @tool
+                def get_equipment(restaurant_id: str = None) -> dict:
+                    """Get equipment readings"""
+                    import boto3
+                    dynamodb = boto3.resource('dynamodb', region_name='us-east-1')
+                    table = dynamodb.Table('rest-monitor-equipment-readings-prod')
+                    if restaurant_id:
+                        response = table.query(KeyConditionExpression='restaurant_id = :rid', ExpressionAttributeValues={':rid': restaurant_id})
+                    else:
+                        response = table.scan()
+                    return {"status": "success", "content": [{"text": json.dumps(response.get('Items', []), default=str)}]}
+                
+                @tool
+                def get_tickets(status: str = None) -> dict:
+                    """Get maintenance tickets"""
+                    import boto3
+                    dynamodb = boto3.resource('dynamodb', region_name='us-east-1')
+                    table = dynamodb.Table('rest-monitor-tickets-prod')
+                    if status:
+                        response = table.scan(FilterExpression='#s = :status', ExpressionAttributeNames={'#s': 'status'}, ExpressionAttributeValues={':status': status})
+                    else:
+                        response = table.scan()
+                    return {"status": "success", "content": [{"text": json.dumps(response.get('Items', []), default=str)}]}
+                
+                @tool
+                def create_ticket(restaurant_id: str, equipment_id: str, issue: str, priority: str = "medium") -> dict:
+                    """Create a maintenance ticket for equipment issues. Check for existing open tickets first."""
+                    import boto3
+                    import uuid
+                    from boto3.dynamodb.conditions import Attr
+                    dynamodb = boto3.resource('dynamodb', region_name='us-east-1')
+                    table = dynamodb.Table('rest-monitor-tickets-prod')
+                    existing = table.scan(FilterExpression=Attr('equipment_id').eq(equipment_id) & Attr('status').eq('open'))
+                    if existing.get('Items'):
+                        return {"status": "success", "content": [{"text": f"Open ticket already exists for {equipment_id}: {existing['Items'][0]['ticket_id']}"}]}
+                    ticket_id = f"TKT-{uuid.uuid4().hex[:8].upper()}"
+                    ticket = {'ticket_id': ticket_id, 'restaurant_id': restaurant_id, 'equipment_id': equipment_id, 'issue': issue, 'priority': priority, 'status': 'open', 'created_at': datetime.now().isoformat(), 'updated_at': datetime.now().isoformat()}
+                    table.put_item(Item=ticket)
+                    return {"status": "success", "content": [{"text": f"Ticket {ticket_id} created successfully"}]}
+                
+                @tool
+                def get_inventory_status(restaurant_id: Optional[str] = None, item_id: Optional[str] = None, category: Optional[str] = None, status: Optional[str] = None) -> dict:
+                    """Get current inventory status. Filter by restaurant_id, item_id, category (proteins/buns_and_bread/produce/condiments/beverages/packaging/frozen_items), or status (adequate/low/critical/out_of_stock)"""
+                    import boto3
+                    from boto3.dynamodb.conditions import Key
+                    dynamodb = boto3.resource('dynamodb', region_name='us-east-1')
+                    table = dynamodb.Table('rest-monitor-inventory-items-prod')
+                    try:
+                        if restaurant_id and item_id:
+                            response = table.get_item(Key={'restaurant_id': restaurant_id, 'item_id': item_id})
+                            items = [response['Item']] if 'Item' in response else []
+                        elif restaurant_id:
+                            response = table.query(KeyConditionExpression=Key('restaurant_id').eq(restaurant_id))
+                            items = response.get('Items', [])
+                        elif category:
+                            response = table.query(IndexName='category-index', KeyConditionExpression=Key('category').eq(category))
+                            items = response.get('Items', [])
+                        elif status:
+                            response = table.query(IndexName='status-index', KeyConditionExpression=Key('status').eq(status))
+                            items = response.get('Items', [])
+                        else:
+                            response = table.scan()
+                            items = response.get('Items', [])
+                        formatted = [{'restaurant_id': i.get('restaurant_id'), 'item_id': i.get('item_id'), 'item_name': i.get('item_name'), 'category': i.get('category'), 'quantity': float(i.get('quantity', 0)), 'unit_of_measure': i.get('unit_of_measure'), 'reorder_point': float(i.get('reorder_point', 0)), 'consumption_rate': float(i.get('consumption_rate', 0)), 'status': i.get('status', 'unknown'), 'days_until_stockout': int(i['days_until_stockout']) if 'days_until_stockout' in i else None} for i in items]
+                        return {"status": "success", "content": [{"text": json.dumps(formatted, default=decimal_default)}]}
+                    except Exception as e:
+                        return {"status": "error", "content": [{"text": f"Error: {str(e)}"}]}
+                
+                @tool
+                def update_inventory(restaurant_id: str, item_id: str, item_name: str, category: str, quantity: float, unit_of_measure: str, reorder_point: float = 100, safety_stock: float = 50, lead_time_days: int = 2, unit_cost: float = 0, supplier_id: str = "", change_reason: str = "manual_update") -> dict:
+                    """Update inventory. category must be: proteins/buns_and_bread/produce/condiments/beverages/packaging/frozen_items. unit_of_measure must be: count/pounds/ounces/gallons/liters/cases/kilograms. quantity must be non-negative."""
+                    import boto3
+                    if quantity < 0:
+                        return {"status": "error", "content": [{"text": "Quantity must be non-negative"}]}
+                    if unit_of_measure not in VALID_UNITS:
+                        return {"status": "error", "content": [{"text": f"Invalid unit. Must be: {', '.join(VALID_UNITS)}"}]}
+                    if category not in VALID_CATEGORIES:
+                        return {"status": "error", "content": [{"text": f"Invalid category. Must be: {', '.join(VALID_CATEGORIES)}"}]}
+                    dynamodb = boto3.resource('dynamodb', region_name='us-east-1')
+                    items_table = dynamodb.Table('rest-monitor-inventory-items-prod')
+                    history_table = dynamodb.Table('rest-monitor-inventory-history-prod')
+                    try:
+                        response = items_table.get_item(Key={'restaurant_id': restaurant_id, 'item_id': item_id})
+                        previous_item = response.get('Item')
+                        previous_quantity = float(previous_item.get('quantity', 0)) if previous_item else 0
+                        change_amount = quantity - previous_quantity
+                        consumption_rate = float(previous_item.get('consumption_rate', 0)) if previous_item else 0
+                        status = 'out_of_stock' if quantity == 0 else 'critical' if quantity < (reorder_point * 0.5) else 'low' if quantity < reorder_point else 'adequate'
+                        days_until_stockout = int(quantity / consumption_rate) if consumption_rate > 0 else None
+                        timestamp = datetime.now().isoformat()
+                        item_data = {'restaurant_id': restaurant_id, 'item_id': item_id, 'item_name': item_name, 'category': category, 'quantity': Decimal(str(quantity)), 'unit_of_measure': unit_of_measure, 'reorder_point': Decimal(str(reorder_point)), 'safety_stock': Decimal(str(safety_stock)), 'lead_time_days': lead_time_days, 'consumption_rate': Decimal(str(consumption_rate)), 'unit_cost': Decimal(str(unit_cost)), 'supplier_id': supplier_id, 'status': status, 'last_updated': timestamp}
+                        if days_until_stockout is not None:
+                            item_data['days_until_stockout'] = days_until_stockout
+                        items_table.put_item(Item=item_data)
+                        history_table.put_item(Item={'restaurant_id': restaurant_id, 'timestamp_item_id': f"{timestamp}#{item_id}", 'item_id': item_id, 'quantity': Decimal(str(quantity)), 'change_amount': Decimal(str(change_amount)), 'change_reason': change_reason, 'unit_of_measure': unit_of_measure})
+                        result = {'item_id': item_id, 'item_name': item_name, 'previous_quantity': previous_quantity, 'new_quantity': quantity, 'change_amount': change_amount, 'status': status, 'timestamp': timestamp}
+                        return {"status": "success", "content": [{"text": json.dumps(result, default=decimal_default)}]}
+                    except Exception as e:
+                        return {"status": "error", "content": [{"text": f"Error: {str(e)}"}]}
+                
+                @tool
+                def get_inventory_alerts(restaurant_id: Optional[str] = None, severity: Optional[str] = None) -> dict:
+                    """Get inventory alerts for critical stock situations. Filter by restaurant_id or severity (low/medium/high/critical)"""
+                    import boto3
+                    from boto3.dynamodb.conditions import Key
+                    dynamodb = boto3.resource('dynamodb', region_name='us-east-1')
+                    table = dynamodb.Table('rest-monitor-inventory-items-prod')
+                    try:
+                        if restaurant_id:
+                            response = table.query(KeyConditionExpression=Key('restaurant_id').eq(restaurant_id))
+                            items = response.get('Items', [])
+                        else:
+                            response = table.scan()
+                            items = response.get('Items', [])
+                        alerts = []
+                        for item in items:
+                            item_status = item.get('status')
+                            days_until_stockout = item.get('days_until_stockout')
+                            alert_severity = None
+                            message = None
+                            if item_status == 'out_of_stock':
+                                alert_severity = 'critical'
+                                message = f"{item.get('item_name')} is OUT OF STOCK at {item.get('restaurant_id')}"
+                            elif item_status == 'critical':
+                                alert_severity = 'critical'
+                                message = f"{item.get('item_name')} will stock out in less than 1 day at {item.get('restaurant_id')}" if days_until_stockout and days_until_stockout < 1 else f"{item.get('item_name')} is critically low at {item.get('restaurant_id')}"
+                            elif item_status == 'low':
+                                alert_severity = 'medium'
+                                message = f"{item.get('item_name')} is running low at {item.get('restaurant_id')}"
+                            if alert_severity and (not severity or alert_severity == severity):
+                                alert = {'restaurant_id': item.get('restaurant_id'), 'item_id': item.get('item_id'), 'item_name': item.get('item_name'), 'severity': alert_severity, 'current_quantity': float(item.get('quantity', 0)), 'reorder_point': float(item.get('reorder_point', 0)), 'status': item_status, 'message': message}
+                                if days_until_stockout is not None:
+                                    alert['days_until_stockout'] = int(days_until_stockout)
+                                alerts.append(alert)
+                        return {"status": "success", "content": [{"text": json.dumps(alerts, default=decimal_default)}]}
+                    except Exception as e:
+                        return {"status": "error", "content": [{"text": f"Error: {str(e)}"}]}
+                
+                def create_agent():
+                    return Agent(tools=[get_restaurants, get_equipment, get_tickets, create_ticket, get_inventory_status, update_inventory, get_inventory_alerts, use_aws], system_prompt="You are a restaurant monitoring assistant with inventory management. ONLY create tickets when explicitly asked. When asked about status, just report - do NOT create tickets automatically. Use tools to check database. For inventory: use get_inventory_status, update_inventory, get_inventory_alerts. Alert about critical inventory (out of stock, low stock, reorder needed).", name="RestaurantMonitor", model="us.anthropic.claude-3-5-haiku-20241022-v1:0")
+                
+                @app.entrypoint
+                async def invoke(payload=None):
+                    try:
+                        query = payload.get("prompt", "What's the status?")
+                        agent = create_agent()
+                        os.environ["BYPASS_TOOL_CONSENT"] = "True"
+                        result = agent(query)
+                        return {"status": "completed", "result": result.message['content'][0]['text']}
+                    except Exception as e:
+                        return {"status": "error", "error": str(e)}
+                
+                if __name__ == "__main__":
+                    app.run()
+                AGENT_EOF
+                - |
+                  cat > Dockerfile << 'EOF'
+                  FROM public.ecr.aws/docker/library/python:3.11-slim
+                  WORKDIR /app
+                  COPY requirements.txt .
+                  RUN pip install -r requirements.txt
+                  RUN pip install aws-opentelemetry-distro>=0.10.1
+                  RUN useradd -m -u 1000 bedrock_agentcore
+                  USER bedrock_agentcore
+                  COPY agent.py .
+                  EXPOSE 8080
+                  CMD ["opentelemetry-instrument", "python", "-m", "agent"]
+                  EOF
+                - docker build -t $IMAGE_REPO_NAME:$IMAGE_TAG .
+                - docker tag $IMAGE_REPO_NAME:$IMAGE_TAG $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$IMAGE_REPO_NAME:$IMAGE_TAG
+            post_build:
+              commands:
+                - docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$IMAGE_REPO_NAME:$IMAGE_TAG
+
+  CustomResourceRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Policies:
+        - PolicyName: CustomResourcePolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - codebuild:StartBuild
+                  - codebuild:BatchGetBuilds
+                Resource: !GetAtt BuildProject.Arn
+
+  TriggerFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      Runtime: python3.9
+      Handler: index.handler
+      Role: !GetAtt CustomResourceRole.Arn
+      Timeout: 900
+      Code:
+        ZipFile: |
+          import boto3, json, urllib3, time
+          http = urllib3.PoolManager()
+          def send(e, c, s, d=None):
+              http.request('PUT', e['ResponseURL'], body=json.dumps({'Status': s, 'PhysicalResourceId': c.log_stream_name, 'StackId': e['StackId'], 'RequestId': e['RequestId'], 'LogicalResourceId': e['LogicalResourceId'], 'Data': d or {}}).encode())
+          def handler(e, c):
+              try:
+                  if e['RequestType'] == 'Delete':
+                      send(e, c, 'SUCCESS')
+                      return
+                  cb = boto3.client('codebuild')
+                  r = cb.start_build(projectName=e['ResourceProperties']['ProjectName'])
+                  bid = r['build']['id']
+                  while True:
+                      b = cb.batch_get_builds(ids=[bid])['builds'][0]
+                      if b['buildStatus'] == 'SUCCEEDED':
+                          send(e, c, 'SUCCESS', {'BuildId': bid})
+                          return
+                      elif b['buildStatus'] in ['FAILED', 'FAULT', 'STOPPED', 'TIMED_OUT']:
+                          send(e, c, 'FAILED', {'Error': b['buildStatus']})
+                          return
+                      time.sleep(30)
+              except Exception as ex:
+                  send(e, c, 'FAILED', {'Error': str(ex)})
+
+  TriggerBuild:
+    Type: Custom::BuildTrigger
+    Properties:
+      ServiceToken: !GetAtt TriggerFunction.Arn
+      ProjectName: !Ref BuildProject
+
+  AgentRuntime:
+    Type: AWS::BedrockAgentCore::Runtime
+    DependsOn: TriggerBuild
+    Properties:
+      AgentRuntimeName: !Sub 
+        - '${StackName}_${AgentName}_v5'
+        - StackName: !Join ['_', !Split ['-', !Ref 'AWS::StackName']]
+      AgentRuntimeArtifact:
+        ContainerConfiguration:
+          ContainerUri: !Sub '${ECRRepository.RepositoryUri}:latest'
+      RoleArn: !GetAtt AgentExecutionRole.Arn
+      NetworkConfiguration:
+        NetworkMode: PUBLIC
+      Description: 'Restaurant monitoring agent with inference profile'
+
+  # Lambda Execution Role
+  ChatLambdaRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Policies:
+        - PolicyName: InvokeAgentCore
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - bedrock-agentcore:InvokeAgentRuntime
+                Resource: 
+                  - !Sub 'arn:aws:bedrock-agentcore:${AWS::Region}:${AWS::AccountId}:runtime/${AgentRuntime.AgentRuntimeId}'
+                  - !Sub 'arn:aws:bedrock-agentcore:${AWS::Region}:${AWS::AccountId}:runtime/${AgentRuntime.AgentRuntimeId}/*'
+
+  # Lambda Function for Chat
+  ChatLambdaFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Sub '${AWS::StackName}-chat'
+      Runtime: python3.13
+      Handler: index.handler
+      Role: !GetAtt ChatLambdaRole.Arn
+      Timeout: 60
+      MemorySize: 1024
+      Environment:
+        Variables:
+          AGENT_RUNTIME_ARN: !Sub 'arn:aws:bedrock-agentcore:${AWS::Region}:${AWS::AccountId}:runtime/${AgentRuntime.AgentRuntimeId}'
+      Code:
+        ZipFile: |
+          import json
+          import boto3
+          import os
+          from datetime import datetime, timedelta
+          
+          client = boto3.client('bedrock-agentcore')
+          dynamodb = boto3.resource('dynamodb')
+          history_table = dynamodb.Table('rest-monitor-chat-history-prod')
+          
+          def get_history(session_id, limit=5):
+              try:
+                  response = history_table.query(
+                      KeyConditionExpression='session_id = :sid',
+                      ExpressionAttributeValues={':sid': session_id},
+                      ScanIndexForward=False,
+                      Limit=limit
+                  )
+                  items = response.get('Items', [])
+                  history = []
+                  for item in reversed(items):
+                      history.append(f"User: {item.get('user_message', '')}")
+                      history.append(f"Assistant: {item.get('assistant_message', '')}")
+                  return "\n".join(history) if history else ""
+              except:
+                  return ""
+          
+          def save_history(session_id, user_msg, assistant_msg):
+              try:
+                  timestamp = datetime.utcnow().isoformat()
+                  ttl = int((datetime.utcnow() + timedelta(days=7)).timestamp())
+                  history_table.put_item(Item={
+                      'session_id': session_id,
+                      'timestamp': timestamp,
+                      'user_message': user_msg,
+                      'assistant_message': assistant_msg,
+                      'ttl': ttl
+                  })
+              except:
+                  pass
+          
+          def handler(event, context):
+              try:
+                  body = json.loads(event.get('body', '{}'))
+                  prompt = body.get('prompt', '')
+                  session_id = body.get('sessionId', None)
+                  
+                  if not prompt:
+                      return {
+                          'statusCode': 400,
+                          'headers': {
+                              'Content-Type': 'application/json',
+                              'Access-Control-Allow-Origin': '*'
+                          },
+                          'body': json.dumps({'error': 'prompt is required'})
+                      }
+                  
+                  # Get conversation history
+                  history = ""
+                  if session_id:
+                      history = get_history(session_id, limit=5)
+                  
+                  # Build payload with history context
+                  enhanced_prompt = prompt
+                  if history:
+                      enhanced_prompt = f"Previous conversation:\n{history}\n\nCurrent question: {prompt}"
+                  
+                  payload = {'prompt': enhanced_prompt}
+                  if session_id:
+                      payload['sessionId'] = session_id
+                  
+                  # Invoke AgentCore Runtime
+                  print(f"Invoking runtime with payload: {payload}")
+                  response = client.invoke_agent_runtime(
+                      agentRuntimeArn=os.environ['AGENT_RUNTIME_ARN'],
+                      payload=json.dumps(payload).encode('utf-8')
+                  )
+                  
+                  print(f"Response keys: {response.keys()}")
+                  
+                  # Read response - key is 'response' not 'payload'
+                  result_text = ''
+                  if 'response' in response:
+                      response_bytes = response['response'].read()
+                      print(f"Response bytes: {response_bytes[:200]}")
+                      result_data = json.loads(response_bytes.decode('utf-8'))
+                      print(f"Result data: {result_data}")
+                      result_text = result_data.get('result', '')
+                  else:
+                      print(f"No 'response' key in response: {response}")
+                  
+                  # Save conversation to history
+                  if session_id and result_text:
+                      save_history(session_id, prompt, result_text)
+                  
+                  # Preserve client's session ID, or use AgentCore's if none provided
+                  response_session_id = session_id if session_id else response.get('runtimeSessionId', '')
+                  
+                  return {
+                      'statusCode': 200,
+                      'headers': {
+                          'Content-Type': 'application/json',
+                          'Access-Control-Allow-Origin': '*'
+                      },
+                      'body': json.dumps({
+                          'result': result_text,
+                          'sessionId': response_session_id
+                      })
+                  }
+                  
+              except Exception as e:
+                  import traceback
+                  return {
+                      'statusCode': 500,
+                      'headers': {
+                          'Content-Type': 'application/json',
+                          'Access-Control-Allow-Origin': '*'
+                      },
+                      'body': json.dumps({
+                          'error': str(e),
+                          'trace': traceback.format_exc()
+                      })
+                  }
+
+  # API Gateway
+  ChatApi:
+    Type: AWS::ApiGatewayV2::Api
+    Properties:
+      Name: !Sub '${AWS::StackName}-chat-api'
+      ProtocolType: HTTP
+      CorsConfiguration:
+        AllowOrigins:
+          - '*'
+        AllowMethods:
+          - POST
+          - OPTIONS
+        AllowHeaders:
+          - '*'
+
+  ChatApiIntegration:
+    Type: AWS::ApiGatewayV2::Integration
+    Properties:
+      ApiId: !Ref ChatApi
+      IntegrationType: AWS_PROXY
+      IntegrationUri: !GetAtt ChatLambdaFunction.Arn
+      PayloadFormatVersion: '2.0'
+
+  ChatApiRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref ChatApi
+      RouteKey: 'POST /chat'
+      Target: !Sub 'integrations/${ChatApiIntegration}'
+
+  ChatApiStage:
+    Type: AWS::ApiGatewayV2::Stage
+    Properties:
+      ApiId: !Ref ChatApi
+      StageName: '$default'
+      AutoDeploy: true
+
+  ChatLambdaPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref ChatLambdaFunction
+      Action: lambda:InvokeFunction
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub 'arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${ChatApi}/*'
+
+  # Keep Lambda warm with scheduled pings
+  WarmUpRule:
+    Type: AWS::Events::Rule
+    Properties:
+      Description: Keep AgentCore Lambda warm
+      ScheduleExpression: rate(5 minutes)
+      State: ENABLED
+      Targets:
+        - Arn: !GetAtt ChatLambdaFunction.Arn
+          Id: WarmUpTarget
+          Input: '{"prompt": "ping"}'
+
+  WarmUpPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref ChatLambdaFunction
+      Action: lambda:InvokeFunction
+      Principal: events.amazonaws.com
+      SourceArn: !GetAtt WarmUpRule.Arn
+
+Outputs:
+  AgentRuntimeId:
+    Value: !GetAtt AgentRuntime.AgentRuntimeId
+  ECRRepository:
+    Value: !GetAtt ECRRepository.RepositoryUri
+  ChatApiEndpoint:
+    Description: 'Chat API Endpoint'
+    Value: !Sub 'https://${ChatApi}.execute-api.${AWS::Region}.amazonaws.com/chat'
