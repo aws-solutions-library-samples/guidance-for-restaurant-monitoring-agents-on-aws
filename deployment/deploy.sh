@@ -1,156 +1,87 @@
 #!/bin/bash
-# Restaurant Kitchen Assistant - Linux Deployment Script
-# Deploys all infrastructure components in correct order
 
-PROJECT_NAME="rest-monitor"
-ENVIRONMENT="prod"
-REGION="us-east-1"
+echo "🚀 Restaurant Monitoring System - Direct Code Deploy"
+echo "===================================================="
+echo ""
 
-echo "🚀 Starting Restaurant Kitchen Assistant Deployment"
-echo "Project: $PROJECT_NAME"
-echo "Environment: $ENVIRONMENT"
-echo "Region: $REGION"
-echo
+# Step 1: Deploy infrastructure
+echo "📦 Step 1: Deploying infrastructure..."
+aws cloudformation deploy \
+  --template-file infrastructure/cloudformation/complete-infrastructure.yaml \
+  --stack-name rest-monitor-base-infrastructure-prod \
+  --capabilities CAPABILITY_IAM \
+  --parameter-overrides Environment=production
 
-# Change to project root directory
-cd "$(dirname "$0")/.."
+if [ $? -ne 0 ]; then
+    echo "❌ Infrastructure deployment failed"
+    exit 1
+fi
+echo "✅ Infrastructure deployed"
+echo ""
 
-# Step 0: Validate Templates
-echo "🔍 Step 0: Validating CloudFormation Templates..."
-echo "Validating Restaurant Monitoring Base Template..."
-if ! aws cloudformation validate-template --template-body file://deployment/restaurant-monitoring-base-template.yaml > /dev/null; then
-    echo "❌ Restaurant Monitoring Base Template validation failed"
+# Step 2: Deploy AgentCore agent
+echo "🤖 Step 2: Deploying AgentCore agent (direct code)..."
+cd ../src/agentcore-direct/
+if [ ! -d "venv" ]; then
+    python3 -m venv venv
+    source venv/bin/activate
+    pip install bedrock-agentcore-starter-toolkit --quiet
+else
+    source venv/bin/activate
+fi
+
+./venv/bin/agentcore launch --agent restaurant_ops_full --auto-update-on-conflict
+
+if [ $? -ne 0 ]; then
+    echo "❌ AgentCore deployment failed"
+    exit 1
+fi
+echo "✅ AgentCore agent deployed"
+cd ../../deployment
+echo ""
+
+# Step 3: Deploy frontend
+echo "🌐 Step 3: Deploying frontend..."
+BUCKET_NAME=$(aws cloudformation describe-stacks \
+    --stack-name rest-monitor-base-infrastructure-prod \
+    --query 'Stacks[0].Outputs[?OutputKey==`WebsiteBucket`].OutputValue' \
+    --output text)
+
+if [ -z "$BUCKET_NAME" ]; then
+    echo "❌ Could not find S3 bucket"
     exit 1
 fi
 
-echo "Validating Strands Agent Chat Workflow template..."
-if ! aws cloudformation validate-template --template-body file://deployment/strands-agent-chat-workflow.yaml > /dev/null; then
-    echo "❌ Strands Agent Chat Workflow template validation failed"
-    exit 1
+aws s3 sync ../frontend/ s3://$BUCKET_NAME/ --exclude "*.DS_Store"
+
+DISTRIBUTION_ID=$(aws cloudfront list-distributions --query "DistributionList.Items[?Origins.Items[0].DomainName==\`${BUCKET_NAME}.s3.us-east-1.amazonaws.com\`].Id" --output text)
+if [ -n "$DISTRIBUTION_ID" ]; then
+    aws cloudfront create-invalidation --distribution-id $DISTRIBUTION_ID --paths "/*" > /dev/null
 fi
 
-echo "✅ All templates validated successfully"
+echo "✅ Frontend deployed"
+echo ""
 
-echo
+# Step 4: Load data
+echo "📊 Step 4: Loading data..."
+./scripts/data-loading/load-all-normal-data.sh
+python3 scripts/data-loading/simple_simulator.py
+echo "✅ Data loaded"
+echo ""
 
-# Step 1: Deploy Restaurant Monitoring Base Infrastructure
-echo "🏗️ Step 1: Deploying Restaurant Monitoring Base Infrastructure..."
-DEPLOY_OUTPUT=$(aws cloudformation deploy \
-  --template-file deployment/restaurant-monitoring-base-template.yaml \
-  --stack-name $PROJECT_NAME-base-infrastructure-$ENVIRONMENT \
-  --parameter-overrides ProjectName=$PROJECT_NAME Environment=$ENVIRONMENT \
-  --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM \
-  --region $REGION 2>&1)
+# Get CloudFront URL
+CLOUDFRONT_URL=$(aws cloudformation describe-stacks \
+    --stack-name rest-monitor-base-infrastructure-prod \
+    --query 'Stacks[0].Outputs[?OutputKey==`CloudFrontURL`].OutputValue' \
+    --output text)
 
-DEPLOY_STATUS=$?
-if [ $DEPLOY_STATUS -eq 0 ] || echo "$DEPLOY_OUTPUT" | grep -q "No changes to deploy"; then
-    echo "✅ Restaurant Monitoring Base Infrastructure deployed successfully (or already up to date)"
-    
-    # Get API Gateway URL
-    API_URL=$(aws cloudformation describe-stacks \
-      --stack-name $PROJECT_NAME-base-infrastructure-$ENVIRONMENT \
-      --query "Stacks[0].Outputs[?OutputKey=='ApiUrl'].OutputValue" \
-      --output text \
-      --region $REGION)
-    
-    # Get fresh Cognito details from CloudFormation
-    echo "🔑 Getting Cognito configuration from CloudFormation..."
-    USER_POOL_ID=$(aws cloudformation describe-stacks \
-      --stack-name $PROJECT_NAME-base-infrastructure-$ENVIRONMENT \
-      --query "Stacks[0].Outputs[?OutputKey=='UserPoolId'].OutputValue" \
-      --output text \
-      --region $REGION)
-    
-    CLIENT_ID=$(aws cloudformation describe-stacks \
-      --stack-name $PROJECT_NAME-base-infrastructure-$ENVIRONMENT \
-      --query "Stacks[0].Outputs[?OutputKey=='UserPoolClientId'].OutputValue" \
-      --output text \
-      --region $REGION)
-    
-    IDENTITY_POOL_ID=$(aws cloudformation describe-stacks \
-      --stack-name $PROJECT_NAME-base-infrastructure-$ENVIRONMENT \
-      --query "Stacks[0].Outputs[?OutputKey=='IdentityPoolId'].OutputValue" \
-      --output text \
-      --region $REGION)
-    
-    # Get CloudFront URL
-    DASHBOARD_URL=$(aws cloudformation describe-stacks \
-      --stack-name $PROJECT_NAME-base-infrastructure-$ENVIRONMENT \
-      --query "Stacks[0].Outputs[?OutputKey=='CloudFrontURL'].OutputValue" \
-      --output text \
-      --region $REGION)
-    
-    echo "   User Pool ID: $USER_POOL_ID"
-    echo "   Client ID: $CLIENT_ID"
-    echo "   Identity Pool ID: $IDENTITY_POOL_ID"
-    
-    # Update website files with current Cognito configuration
-    echo "🔧 Updating Cognito configuration in website files..."
-    
-    # Replace any existing Cognito IDs with current ones
-    sed -i "" "s/userPoolId: '[^']*'/userPoolId: '$USER_POOL_ID'/g" source/auth.js
-    sed -i "" "s/userPoolWebClientId: '[^']*'/userPoolWebClientId: '$CLIENT_ID'/g" source/auth.js
-    sed -i "" "s/identityPoolId: '[^']*'/identityPoolId: '$IDENTITY_POOL_ID'/g" source/auth.js
-    
-    # Update login.html with current Cognito configuration
-    sed -i "" "s/us-east-1_[A-Za-z0-9]*/$USER_POOL_ID/g" source/login.html
-    sed -i "" "s/[0-9a-z]\{26\}/$CLIENT_ID/g" source/login.html
-    
-    echo "📡 API Gateway URL: $API_URL"
-    echo "🌐 Dashboard URL: $DASHBOARD_URL"
-else
-    echo "❌ Failed to deploy Restaurant Monitoring Base Infrastructure"
-    echo "$DEPLOY_OUTPUT"
-    exit 1
-fi
-
-# Step 2: Deploy Strands Agent Chat Workflow
-echo
-echo "🤖 Step 2: Deploying Strands Agent Chat Workflow..."
-# Get API Gateway details from base stack
-API_GATEWAY_ID=$(aws cloudformation describe-stacks \
-  --stack-name $PROJECT_NAME-base-infrastructure-$ENVIRONMENT \
-  --query "Stacks[0].Outputs[?OutputKey=='RestApiId'].OutputValue" \
-  --output text \
-  --region $REGION)
-
-API_ROOT_RESOURCE_ID=$(aws cloudformation describe-stacks \
-  --stack-name $PROJECT_NAME-base-infrastructure-$ENVIRONMENT \
-  --query "Stacks[0].Outputs[?OutputKey=='RestApiRootResourceId'].OutputValue" \
-  --output text \
-  --region $REGION)
-
-DEPLOY_OUTPUT=$(aws cloudformation deploy \
-  --template-file deployment/strands-agent-chat-workflow.yaml \
-  --stack-name $PROJECT_NAME-strands-agent-chat-$ENVIRONMENT \
-  --parameter-overrides ProjectName=$PROJECT_NAME Environment=$ENVIRONMENT RestApiId=$API_GATEWAY_ID RestApiRootResourceId=$API_ROOT_RESOURCE_ID \
-  --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM \
-  --region $REGION 2>&1)
-
-DEPLOY_STATUS=$?
-if [ $DEPLOY_STATUS -eq 0 ] || echo "$DEPLOY_OUTPUT" | grep -q "No changes to deploy"; then
-    echo "✅ Strands Agent Chat Workflow deployed successfully (with DynamoDB conversation history)"
-else
-    echo "⚠️ Failed to deploy Strands Agent Chat Workflow"
-    echo "$DEPLOY_OUTPUT"
-fi
-
-# Step 3: Deploy website and load initial data
-echo
-echo "🌐 Step 3: Deploying website and loading initial data..."
-if [ -f "deployment/deploy-loaddata.sh" ]; then
-    bash deployment/deploy-loaddata.sh
-    echo "✅ Website deployed and initial data loaded"
-else
-    echo "⚠️ deploy-loaddata.sh not found, please run it manually"
-fi
-
-echo
-echo "📋 Next Steps:"
-echo "1. Initial data has been populated via deploy-loaddata.sh"
-echo "2. Test API endpoints: /restaurants, /tickets, /equipment"
-echo "3. Test strands-agent-chat: POST to /strands-agent-chat endpoint"
-echo "4. Access dashboard and test contextual chat with any location"
-echo "5. For continuous monitoring, restart simulator: python3 deployment/simple_simulator.py"
-echo
-echo "✅ Restaurant Kitchen Assistant with Strands Agent Chat Workflow is ready!"
+echo "===================================================="
+echo "✅ Deployment Complete!"
+echo "===================================================="
+echo ""
+echo "🌐 Frontend: $CLOUDFRONT_URL"
+echo "📊 Data: 10 restaurants, 70 equipment, 102 inventory, 140 staffing"
+echo "🤖 Agent: Direct code deploy (30 sec updates)"
+echo ""
+echo "🔐 Sign up at the dashboard to get started!"
+echo ""
