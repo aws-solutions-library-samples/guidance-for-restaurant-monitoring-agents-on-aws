@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Staffing</title>
+    <script src="https://unpkg.com/amazon-cognito-identity-js@6.3.12/dist/amazon-cognito-identity.min.js"></script>
+    <script src="auth.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: Arial, sans-serif; background: #f5f5f5; }
+        .header { background: #2c3e50; color: white; padding: 1rem; text-align: center; }
+        .nav { background: #34495e; padding: 0.5rem; text-align: center; }
+        .nav a { color: white; text-decoration: none; margin: 0 1rem; padding: 0.5rem 1rem; border-radius: 4px; }
+        .nav a:hover, .nav a.active { background: #3498db; }
+        .container { max-width: 1400px; margin: 2rem auto; padding: 0 1rem; }
+        .filters { background: white; padding: 1rem; border-radius: 8px; margin-bottom: 1rem; }
+        .filters select, .filters input { padding: 0.5rem; margin-right: 1rem; border: 1px solid #ddd; border-radius: 4px; }
+        .summary-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1rem; }
+        .summary-card { background: white; padding: 1rem; border-radius: 8px; text-align: center; }
+        .summary-card h3 { font-size: 2rem; margin: 0.5rem 0; }
+        .summary-card.critical { border-left: 4px solid #e74c3c; }
+        .summary-card.warning { border-left: 4px solid #f39c12; }
+        .summary-card.good { border-left: 4px solid #27ae60; }
+        .response-box { background: white; padding: 2rem; border-radius: 8px; white-space: pre-wrap; font-family: monospace; font-size: 0.9rem; line-height: 1.6; margin-top: 1rem; display: none; }
+        table { width: 100%; background: white; border-radius: 8px; overflow: hidden; }
+        th, td { padding: 1rem; text-align: left; border-bottom: 1px solid #eee; }
+        th { background: #34495e; color: white; }
+        .gap-critical { background: #f8d7da; }
+        .gap-warning { background: #fff3cd; }
+        .gap-good { background: #d4edda; }
+        .progress-bar { width: 100%; height: 20px; background: #eee; border-radius: 10px; overflow: hidden; }
+        .progress-fill { height: 100%; transition: width 0.3s; }
+        .progress-fill.good { background: #27ae60; }
+        .progress-fill.warning { background: #f39c12; }
+        .progress-fill.critical { background: #e74c3c; }
+    </style>
+</head>
+<body>
+    
+
+    <div class="container">
+        <div class="summary-cards" id="summary-cards">
+            <div class="summary-card">
+                <p>Total Locations</p>
+                <h3 id="total-locations">-</h3>
+            </div>
+            <div class="summary-card good">
+                <p>Fully Staffed</p>
+                <h3 id="fully-staffed">-</h3>
+            </div>
+            <div class="summary-card warning">
+                <p>Understaffed</p>
+                <h3 id="understaffed">-</h3>
+            </div>
+            <div class="summary-card critical">
+                <p>Critical Gaps</p>
+                <h3 id="critical-gaps">-</h3>
+            </div>
+        </div>
+
+        <div class="filters">
+            <select id="restaurant-filter" onchange="loadStaffing()">
+                <option value="">All Restaurants</option>
+            </select>
+            <input type="date" id="date-filter" onchange="loadStaffing()">
+        </div>
+
+        <div id="staffing-response" class="response-box">Loading staffing data...</div>
+
+        <table id="staffing-table">
+            <thead>
+                <tr>
+                    <th>Restaurant</th>
+                    <th>Date</th>
+                    <th>Role</th>
+                    <th>Required</th>
+                    <th>Scheduled</th>
+                    <th>Gap</th>
+                    <th>Coverage</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody id="staffing-body">
+                <tr><td colspan="8" style="text-align: center;">Loading...</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        // Inline API Client
+        class ApiGatewayClient {
+            constructor() {
+                this.baseUrl = 'https://mojgf9gmfk.execute-api.us-east-1.amazonaws.com/prod';
+                this.token = null;
+            }
+            
+            async getRestaurants() {
+                const response = await fetch(`${this.baseUrl}/restaurants`);
+                const data = await response.json();
+                return data.restaurants || data;
+            }
+        }
+        
+        let apiClient;
+        
+        async function init() {
+            apiClient = new ApiGatewayClient();
+            
+            // Set default date to today
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('date-filter').value = today;
+            
+            await loadRestaurants();
+            await loadStaffing();
+        }
+        
+        async function loadRestaurants() {
+            const restaurants = await apiClient.getRestaurants();
+            const select = document.getElementById('restaurant-filter');
+            restaurants.forEach(r => {
+                const option = document.createElement('option');
+                option.value = r.id;
+                option.textContent = r.name;
+                select.appendChild(option);
+            });
+        }
+        
+        async function loadStaffing() {
+            const restaurantFilter = document.getElementById('restaurant-filter').value;
+            const dateFilter = document.getElementById('date-filter').value;
+            const tbody = document.getElementById('staffing-body');
+            
+            tbody.innerHTML = '<tr><td colspan="8" style="text-align: center;">Loading...</td></tr>';
+            
+            try {
+                const agentArn = 'arn:aws:bedrock-agentcore:us-east-1:986635652628:runtime/restaurant_ops_full-Ni2asWG82Q';
+                const chatUrl = `https://bedrock-agentcore-runtime.us-east-1.amazonaws.com/invoke`;
+                let prompt = `Show staffing gaps for all restaurants today. Format each line as: RESTAURANT | DATE | ROLE | REQUIRED | SCHEDULED | GAP | COVERAGE% | STATUS`;
+                if (restaurantFilter) prompt = `Show staffing gaps for ${restaurantFilter} today. Format each line as: RESTAURANT | DATE | ROLE | REQUIRED | SCHEDULED | GAP | COVERAGE% | STATUS`;
+                
+                console.log('Fetching staffing data...');
+                const response = await fetch(chatUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        prompt: prompt,
+                        sessionId: 'staffing_' + Date.now()
+                    })
+                });
+                
+                console.log('Response status:', response.status);
+                if (response.ok) {
+                    const data = await response.json();
+                    console.log('Response data:', data);
+                    parseStaffingResponse(data.response || '');
+                } else {
+                    throw new Error('API error: ' + response.status);
+                }
+            } catch (error) {
+                console.error('Error loading staffing:', error);
+                tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; color: red;">Error: ' + error.message + '</td></tr>';
+            }
+        }
+        
+        function parseStaffingResponse(text) {
+            const tbody = document.getElementById('staffing-body');
+            
+            console.log('Parsing response, length:', text.length);
+            console.log('First 200 chars:', text.substring(0, 200));
+            
+            // Split by lines and filter for data rows (must have AFC- and multiple pipes)
+            const lines = text.split('\n').filter(l => 
+                l.includes('AFC-') && 
+                l.includes('|') && 
+                (l.match(/\|/g) || []).length >= 6
+            );
+            
+            console.log('Found', lines.length, 'data lines');
+            
+            if (lines.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="8" style="text-align: center;">No staffing data found. Response: ' + text.substring(0, 100) + '...</td></tr>';
+                return;
+            }
+            
+            tbody.innerHTML = lines.map(line => {
+                const parts = line.split('|').map(p => p.trim());
+                if (parts.length < 7) return '';
+                
+                // Extract coverage percentage from parts[6] (e.g., "50%")
+                const coverageStr = parts[6] || '100%';
+                const coverage = parseInt(coverageStr.replace('%', '')) || 100;
+                const gap = 100 - coverage; // Gap is inverse of coverage
+                const rowClass = gap > 50 ? 'gap-critical' : gap > 20 ? 'gap-warning' : 'gap-good';
+                
+                return `
+                    <tr class="${rowClass}">
+                        <td>${parts[0]}</td>
+                        <td>${parts[1]}</td>
+                        <td>${parts[2]}</td>
+                        <td>${parts[3]}</td>
+                        <td>${parts[4]}</td>
+                        <td>${parts[5]}</td>
+                        <td>${parts[6]}</td>
+                        <td><strong>${parts[7] || (gap > 50 ? 'Critical' : gap > 20 ? 'Warning' : 'OK')}</strong></td>
+                    </tr>
+                `;
+            }).filter(row => row).join('');
+            
+            if (!tbody.innerHTML) {
+                tbody.innerHTML = '<tr><td colspan="8" style="text-align: center;">Unable to parse staffing data</td></tr>';
+            }
+            
+            console.log('Table updated with', lines.length, 'rows');
+        }
+        
+        
+        window.onload = init;
+    </script>
+</body>
+</html>

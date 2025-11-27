@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inventory</title>
+    <script src="https://unpkg.com/amazon-cognito-identity-js@6.3.12/dist/amazon-cognito-identity.min.js"></script>
+    <script src="auth.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: Arial, sans-serif; background: #f5f5f5; }
+        .header { background: #2c3e50; color: white; padding: 1rem; text-align: center; }
+        .nav { background: #34495e; padding: 0.5rem; text-align: center; }
+        .nav a { color: white; text-decoration: none; margin: 0 1rem; padding: 0.5rem 1rem; border-radius: 4px; }
+        .nav a:hover, .nav a.active { background: #3498db; }
+        .container { max-width: 1400px; margin: 2rem auto; padding: 0 1rem; }
+        .filters { background: white; padding: 1rem; border-radius: 8px; margin-bottom: 1rem; }
+        .filters select { padding: 0.5rem; margin-right: 1rem; border: 1px solid #ddd; border-radius: 4px; }
+        .response-box { background: white; padding: 2rem; border-radius: 8px; white-space: pre-wrap; font-family: monospace; font-size: 0.9rem; line-height: 1.6; display: none; }
+        table { width: 100%; background: white; border-radius: 8px; overflow: hidden; }
+        th, td { padding: 1rem; text-align: left; border-bottom: 1px solid #eee; }
+        th { background: #34495e; color: white; }
+        .low-stock { background: #fff3cd; }
+        .critical-stock { background: #f8d7da; }
+        .good-stock { background: #d4edda; }
+        .progress-bar { width: 100%; height: 20px; background: #eee; border-radius: 10px; overflow: hidden; }
+        .progress-fill { height: 100%; transition: width 0.3s; }
+        .progress-fill.good { background: #27ae60; }
+        .progress-fill.warning { background: #f39c12; }
+        .progress-fill.critical { background: #e74c3c; }
+    </style>
+</head>
+<body>
+    
+
+    <div class="container">
+        <div class="filters">
+            <select id="restaurant-filter" onchange="loadInventory()">
+                <option value="">All Restaurants</option>
+            </select>
+            <select id="status-filter" onchange="loadInventory()">
+                <option value="">All Status</option>
+                <option value="critical">Critical</option>
+                <option value="low">Low Stock</option>
+                <option value="good">Good</option>
+            </select>
+        </div>
+
+        <div id="inventory-response" class="response-box">Loading inventory data...</div>
+
+        <table id="inventory-table">
+            <thead>
+                <tr>
+                    <th>Restaurant</th>
+                    <th>Item</th>
+                    <th>Category</th>
+                    <th>Current Qty</th>
+                    <th>Reorder Point</th>
+                    <th>Stock Level</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody id="inventory-body">
+                <tr><td colspan="7" style="text-align: center;">Loading...</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        // Inline API Client
+        class ApiGatewayClient {
+            constructor() {
+                this.baseUrl = 'https://mojgf9gmfk.execute-api.us-east-1.amazonaws.com/prod';
+                this.token = null;
+            }
+            
+            async getRestaurants() {
+                const response = await fetch(`${this.baseUrl}/restaurants`);
+                const data = await response.json();
+                return data.restaurants || data;
+            }
+        }
+        
+        let apiClient;
+        
+        async function init() {
+            apiClient = new ApiGatewayClient();
+            await loadRestaurants();
+            await loadInventory();
+        }
+        
+        async function loadRestaurants() {
+            const restaurants = await apiClient.getRestaurants();
+            const select = document.getElementById('restaurant-filter');
+            restaurants.forEach(r => {
+                const option = document.createElement('option');
+                option.value = r.id;
+                option.textContent = r.name;
+                select.appendChild(option);
+            });
+        }
+        
+        async function loadInventory() {
+            const restaurantFilter = document.getElementById('restaurant-filter').value;
+            const statusFilter = document.getElementById('status-filter').value;
+            const tbody = document.getElementById('inventory-body');
+            
+            tbody.innerHTML = '<tr><td colspan="7" style="text-align: center;">Loading...</td></tr>';
+            
+            try {
+                const agentArn = 'arn:aws:bedrock-agentcore:us-east-1:986635652628:runtime/restaurant_ops_full-Ni2asWG82Q';
+                const chatUrl = `https://bedrock-agentcore-runtime.us-east-1.amazonaws.com/invoke`;
+                let prompt = 'List all inventory items. Format each line as: RESTAURANT | ITEM | CATEGORY | QTY | UNIT | REORDER';
+                if (restaurantFilter) prompt = `List inventory for ${restaurantFilter}. Format each line as: RESTAURANT | ITEM | CATEGORY | QTY | UNIT | REORDER`;
+                
+                console.log('Fetching inventory data...');
+                const response = await fetch(chatUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        prompt: prompt,
+                        sessionId: 'inventory_' + Date.now()
+                    })
+                });
+                
+                console.log('Response status:', response.status);
+                if (response.ok) {
+                    const data = await response.json();
+                    console.log('Response data:', data);
+                    parseInventoryResponse(data.response || '');
+                } else {
+                    throw new Error('API error: ' + response.status);
+                }
+            } catch (error) {
+                console.error('Error loading inventory:', error);
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: red;">Error: ' + error.message + '</td></tr>';
+            }
+        }
+        
+        function parseInventoryResponse(text) {
+            const tbody = document.getElementById('inventory-body');
+            
+            // Split by lines and filter for data rows (must have AFC- and multiple pipes)
+            const lines = text.split('\n').filter(l => 
+                l.includes('AFC-') && 
+                l.includes('|') && 
+                (l.match(/\|/g) || []).length >= 5
+            );
+            
+            if (lines.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align: center;">No inventory data found. Try selecting a specific restaurant.</td></tr>';
+                return;
+            }
+            
+            tbody.innerHTML = lines.map(line => {
+                const parts = line.split('|').map(p => p.trim());
+                if (parts.length < 6) return '';
+                
+                const qty = parseFloat(parts[3]) || 0;
+                const reorder = parseFloat(parts[5]) || 1;
+                const pct = (qty / reorder) * 100;
+                const rowClass = pct < 50 ? 'critical-stock' : pct < 100 ? 'low-stock' : 'good-stock';
+                
+                return `
+                    <tr class="${rowClass}">
+                        <td>${parts[0]}</td>
+                        <td>${parts[1]}</td>
+                        <td>${parts[2]}</td>
+                        <td>${parts[3]} ${parts[4]}</td>
+                        <td>${parts[5]} ${parts[4]}</td>
+                        <td>
+                            <div class="progress-bar">
+                                <div class="progress-fill ${pct < 50 ? 'critical' : pct < 100 ? 'warning' : 'good'}" style="width: ${Math.min(pct, 100)}%"></div>
+                            </div>
+                            ${pct.toFixed(0)}%
+                        </td>
+                        <td><strong>${pct < 50 ? 'Critical' : pct < 100 ? 'Low' : 'Good'}</strong></td>
+                    </tr>
+                `;
+            }).filter(row => row).join('');
+            
+            if (!tbody.innerHTML) {
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align: center;">Unable to parse inventory data</td></tr>';
+            }
+        }
+        
+        function renderInventory(inventory) {
+            const tbody = document.getElementById('inventory-body');
+            
+            if (inventory.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align: center;">No inventory items found</td></tr>';
+                return;
+            }
+            
+            tbody.innerHTML = inventory.map(item => {
+                const pct = (item.quantity / item.reorder_point) * 100;
+                let statusClass = 'good-stock';
+                let statusText = 'Good';
+                let progressClass = 'good';
+                
+                if (pct < 50) {
+                    statusClass = 'critical-stock';
+                    statusText = 'Critical';
+                    progressClass = 'critical';
+                } else if (pct < 100) {
+                    statusClass = 'low-stock';
+                    statusText = 'Low';
+                    progressClass = 'warning';
+                }
+                
+                return `
+                    <tr class="${statusClass}">
+                        <td>${item.restaurant_id}</td>
+                        <td>${item.item_name}</td>
+                        <td>${item.category}</td>
+                        <td>${item.quantity} ${item.unit}</td>
+                        <td>${item.reorder_point} ${item.unit}</td>
+                        <td>
+                            <div class="progress-bar">
+                                <div class="progress-fill ${progressClass}" style="width: ${Math.min(pct, 100)}%"></div>
+                            </div>
+                            <small>${pct.toFixed(0)}%</small>
+                        </td>
+                        <td><strong>${statusText}</strong></td>
+                    </tr>
+                `;
+            }).join('');
+        }
+        
+        window.onload = init;
+    </script>
+</body>
+</html>

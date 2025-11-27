@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Maintenance Tickets - Restaurant Kitchen Assistant</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: #f5f5f5;
+        }
+
+        .header {
+            background: #2c3e50;
+            color: white;
+            padding: 1rem;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 1.8rem;
+            margin-bottom: 0.5rem;
+            font-weight: bold;
+        }
+
+        .header p {
+            font-size: 1rem;
+            opacity: 0.9;
+        }
+        .nav {
+            background: #34495e;
+            padding: 0.5rem;
+            text-align: center;
+        }
+
+        .nav a {
+            color: white;
+            text-decoration: none;
+            margin: 0 1rem;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+        }
+
+        .nav a:hover,
+        .nav a.active {
+            background: #3498db;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+
+        .card {
+            background: white;
+            border-radius: 8px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .loading {
+            text-align: center;
+            padding: 2rem;
+        }
+
+        .ticket-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+
+        .ticket-table th,
+        .ticket-table td {
+            padding: 0.75rem;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .ticket-table th {
+            background: #f8f9fa;
+            font-weight: bold;
+        }
+
+        .priority-critical,
+        .priority-high {
+            background: #ffebee;
+            color: #c62828;
+        }
+
+        .priority-warning,
+        .priority-medium {
+            background: #fff3e0;
+            color: #ef6c00;
+        }
+
+        .priority-low {
+            background: #e8f5e8;
+            color: #2e7d32;
+        }
+
+        .status.critical,
+        .status.high {
+            background: #c62828;
+            color: white;
+        }
+
+        .status.warning,
+        .status.medium {
+            background: #ef6c00;
+            color: white;
+        }
+
+        .status.low {
+            background: #2e7d32;
+            color: white;
+        }
+
+        .no-tickets {
+            color: #666;
+            font-style: italic;
+        }
+    </style>
+</head>
+
+<body>
+
+
+    <div class="container">
+        <div class="card">
+            <h2>🎫 Maintenance Tickets by Restaurant</h2>
+            <div class="loading" id="loading">Loading tickets...</div>
+            <div id="tickets-content" style="display: none;"></div>
+        </div>
+    </div>
+
+    <script>
+        class ApiGatewayClient {
+            constructor() {
+                this.apiUrl = 'https://mojgf9gmfk.execute-api.us-east-1.amazonaws.com/prod';
+            }
+
+            async makeRequest(endpoint) {
+                try {
+                    const response = await fetch(`${this.apiUrl}${endpoint}`, {
+                        method: 'GET',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json'
+                        }
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                    }
+
+                    return await response.json();
+                } catch (error) {
+                    console.error(`❌ API Error for ${endpoint}:`, error);
+                    throw error;
+                }
+            }
+
+            async getRestaurants() {
+                try {
+                    const data = await this.makeRequest('/restaurants');
+                    const restaurants = data.restaurants || data.Items || data;
+
+                    if (!Array.isArray(restaurants) || restaurants.length === 0) {
+                        return [];
+                    }
+
+                    return restaurants.map(restaurant => ({
+                        ...restaurant,
+                        equipment_count: restaurant.equipment_count || 7
+                    }));
+
+                } catch (error) {
+                    return [];
+                }
+            }
+
+            async getTickets() {
+                try {
+                    const data = await this.makeRequest('/tickets');
+                    const tickets = data.tickets || data.Items || data;
+
+                    if (!Array.isArray(tickets)) {
+                        return [];
+                    }
+
+                    return tickets;
+
+                } catch (error) {
+                    return [];
+                }
+            }
+
+
+
+
+        }
+
+        const apiClient = new ApiGatewayClient();
+
+        async function loadTickets() {
+            try {
+                const tickets = await apiClient.getTickets();
+                const restaurants = await apiClient.getRestaurants();
+
+                // Group tickets by restaurant
+                const ticketsByRestaurant = {};
+                restaurants.forEach(restaurant => {
+                    ticketsByRestaurant[restaurant.id] = {
+                        restaurant: restaurant,
+                        tickets: tickets.filter(t => t.restaurant_id === restaurant.id)
+                    };
+                });
+
+                document.getElementById('tickets-content').innerHTML = `
+                    <table class="ticket-table">
+                        <thead>
+                            <tr>
+                                <th>Restaurant</th>
+                                <th>Ticket ID</th>
+                                <th>Description</th>
+                                <th>Priority</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${Object.values(ticketsByRestaurant).map(group => {
+                    if (group.tickets.length === 0) {
+                        return `
+                                        <tr>
+                                            <td><strong>${group.restaurant.name}</strong><br><small>${group.restaurant.location}</small></td>
+                                            <td colspan="4" class="no-tickets">No active tickets</td>
+                                        </tr>
+                                    `;
+                    }
+                    return group.tickets.map((ticket, index) => `
+                                    <tr class="priority-${ticket.priority}">
+                                        ${index === 0 ? `<td rowspan="${group.tickets.length}"><strong>${group.restaurant.name}</strong><br><small>${group.restaurant.location}</small></td>` : ''}
+                                        <td>${ticket.ticket_id}</td>
+                                        <td>${ticket.description}</td>
+                                        <td><span class="status ${ticket.priority}">${ticket.priority.toUpperCase()}</span></td>
+                                        <td>${ticket.status}</td>
+                                    </tr>
+                                `).join('');
+                }).join('')}
+                        </tbody>
+                    </table>
+                `;
+
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('tickets-content').style.display = 'block';
+
+            } catch (error) {
+                console.error('Error loading tickets:', error);
+                document.getElementById('loading').innerHTML = '<div style="color: #e74c3c;">Error loading tickets. Please try again.</div>';
+            }
+        }
+
+        loadTickets();
+        setInterval(loadTickets, 15000); // Refresh every 15 seconds for real-time updates
+    </script>
+</body>
+
+</html>

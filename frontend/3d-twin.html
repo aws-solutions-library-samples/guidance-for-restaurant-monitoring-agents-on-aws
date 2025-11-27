@@ -1,0 +1,1163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self' https://*.amazonaws.com; font-src 'self';">
+    <meta http-equiv="X-Content-Type-Options" content="nosniff">
+    <meta http-equiv="X-Frame-Options" content="DENY">
+    <meta http-equiv="X-XSS-Protection" content="1; mode=block">
+    <meta http-equiv="Referrer-Policy" content="strict-origin-when-cross-origin">
+    <title>Equipment 3D Twin - Georgia Restaurant Network</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: Arial, sans-serif; background: #1a1a1a; color: white; overflow: hidden; }
+        
+        #container { position: relative; width: 100vw; height: 100vh; }
+        
+        .header { position: absolute; top: 0; left: 0; right: 0; background: rgba(44, 62, 80, 0.95); padding: 1rem; z-index: 100; }
+        .header h1 { font-size: 1.8rem; margin-bottom: 0.5rem; font-weight: bold; }
+        .header p { font-size: 1rem; opacity: 0.9; }
+        
+        .nav { position: absolute; top: 80px; left: 0; right: 0; background: rgba(52, 73, 94, 0.95); padding: 0.5rem; text-align: center; z-index: 100; }
+        .nav a { color: white; text-decoration: none; margin: 0 1rem; padding: 0.5rem 1rem; border-radius: 4px; }
+        .nav a:hover, .nav a.active { background: #3498db; }
+        
+        .info-panel { position: absolute; top: 200px; right: 20px; width: 350px; height: 500px; background: rgba(0,0,0,0.9); padding: 1.5rem; border-radius: 8px; z-index: 100; display: none; border: 2px solid #3498db; overflow-y: auto; }
+        .info-panel h3 { color: #3498db; margin-bottom: 1rem; font-size: 1.2rem; }
+        .info-panel .status { padding: 0.5rem 1rem; border-radius: 4px; color: white; font-weight: bold; display: inline-block; margin: 0.5rem 0; }
+        .info-panel .status.operational { background: #27ae60; }
+        .info-panel .status.warning { background: #f39c12; }
+        .info-panel .status.critical { background: #e74c3c; }
+        .info-panel .status.normal { background: #27ae60; }
+        .info-panel .tickets { margin-top: 1rem; }
+        .info-panel .ticket { background: rgba(231, 76, 60, 0.2); padding: 1rem; margin: 0.5rem 0; border-radius: 6px; border-left: 4px solid #e74c3c; }
+        .info-panel .ticket.warning { background: rgba(243, 156, 18, 0.2); border-left-color: #f39c12; }
+        .info-panel .ticket.critical { background: rgba(231, 76, 60, 0.2); border-left-color: #e74c3c; }
+        .info-panel .ticket.high { background: rgba(231, 76, 60, 0.2); border-left-color: #e74c3c; }
+        .info-panel .ticket.medium { background: rgba(243, 156, 18, 0.2); border-left-color: #f39c12; }
+        
+        .loading { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; z-index: 100; background: rgba(0,0,0,0.8); padding: 2rem; border-radius: 8px; }
+        
+        .stats { position: absolute; top: 50%; left: 20px; transform: translateY(-50%); background: rgba(0,0,0,0.9); padding: 1.5rem; border-radius: 8px; z-index: 100; min-width: 300px; }
+        .stats h3 { color: #3498db; margin-bottom: 1rem; }
+        
+        .controls { position: absolute; bottom: 20px; left: 20px; background: rgba(0,0,0,0.9); padding: 1rem; border-radius: 8px; z-index: 100; }
+        .controls h4 { color: #3498db; margin-bottom: 0.5rem; }
+        .controls p { font-size: 0.9rem; margin: 0.3rem 0; opacity: 0.9; }
+        .appliance-info { background: rgba(52, 152, 219, 0.2); padding: 0.5rem; margin: 0.5rem 0; border-radius: 4px; border-left: 3px solid #3498db; }
+        
+        .view-controls { position: absolute; top: 80px; left: 20px; background: rgba(0,0,0,0.9); padding: 1rem; border-radius: 8px; z-index: 100; }
+        .view-controls button { background: #3498db; color: white; border: none; padding: 0.5rem 1rem; margin: 0.2rem; border-radius: 4px; cursor: pointer; }
+        .view-controls button:hover { background: #2980b9; }
+        .view-controls button.active { background: #e74c3c; }
+        
+    </style>
+</head>
+<body>
+    <div id="container">
+        
+        
+        <div class="info-panel" id="info-panel">
+            <h3 id="restaurant-name">Restaurant Details</h3>
+            <div id="restaurant-details"></div>
+            <div class="tickets" id="restaurant-tickets"></div>
+        </div>
+        
+        <div class="loading" id="loading">
+            <h2>🔄 Loading Georgia Restaurant Network...</h2>
+            <p>Fetching real data from DynamoDB via API Gateway</p>
+        </div>
+        
+        <div class="stats" id="stats">
+            <h3>📊 Network Status</h3>
+            <div id="restaurant-count">Restaurants: Loading...</div>
+            <div id="status-summary">Status: Loading...</div>
+            <div id="ticket-count">Active Tickets: Loading...</div>
+        </div>
+        
+        <div class="view-controls">
+            <h4>🌍 View Mode</h4>
+            <button id="map-view-btn" class="active" onclick="showMapView()">Georgia Map</button>
+            <button id="restaurant-view-btn" onclick="showRestaurantView()">Restaurant Detail</button>
+        </div>
+        
+        <div class="controls">
+            <h4>🎮 Controls</h4>
+            <p id="control-text">🖱️ Click restaurants to view details</p>
+        </div>
+        
+        <div id="canvas-container"></div>
+        
+    </div>
+
+    <script>
+        // API Client
+        class ApiGatewayClient {
+            constructor() {
+                // API Gateway URL will be replaced during deployment
+                this.apiUrl = 'https://mojgf9gmfk.execute-api.us-east-1.amazonaws.com/prod';
+                console.log('🌐 API Client initialized with URL:', this.apiUrl);
+            }
+            
+            async makeRequest(endpoint) {
+                // If no API URL, skip API call
+                if (!this.apiUrl) {
+                    throw new Error('No API URL configured');
+                }
+                
+                try {
+                    console.log(`📡 Making request to: ${this.apiUrl}${endpoint}`);
+                    const response = await fetch(`${this.apiUrl}${endpoint}`, {
+                        method: 'GET',
+                        headers: { 
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json'
+                        },
+                        mode: 'cors'
+                    });
+                    
+                    console.log(`📊 Response status: ${response.status}`);
+                    
+                    // Handle authentication errors
+                    if (response.status === 403 || response.status === 401) {
+                        console.warn('⚠️ Authentication error - API Gateway not properly configured');
+                        throw new Error('API_AUTH_ERROR');
+                    }
+                    
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                    }
+                    
+                    const data = await response.json();
+                    console.log(`✅ API Response data:`, data);
+                    return data;
+                } catch (error) {
+                    console.error(`❌ API Error for ${endpoint}:`, error);
+                    
+                    // If authentication error, try next URL or use fallback
+                    if (error.message === 'API_AUTH_ERROR') {
+                        console.log('🔄 Trying fallback data due to API authentication issues');
+                    }
+                    
+                    throw error;
+                }
+            }
+            
+            async getRestaurants() {
+                try {
+                    console.log('🏪 Fetching restaurants data...');
+                    const data = await this.makeRequest('/restaurants');
+                    
+                    // Handle different response formats
+                    let restaurants = data;
+                    if (data.restaurants) restaurants = data.restaurants;
+                    if (data.Items) restaurants = data.Items;
+                    
+                    console.log('📋 Restaurants data received:', restaurants);
+                    
+                    if (!Array.isArray(restaurants) || restaurants.length === 0) {
+                        console.log('⚠️ No valid restaurants data, using fallback');
+                        return this.getFallbackData();
+                    }
+                    
+                    // Use restaurant data from DynamoDB with actual status
+                    return restaurants.map(r => {
+                        const restaurant = {
+                            id: r.id || r.restaurant_id,
+                            name: r.name || `Restaurant ${r.id}`,
+                            location: r.location || 'Georgia',
+                            manager: r.manager || 'Manager',
+                            status: r.status || 'operational', // Use actual status from DynamoDB
+                            status_color: r.status_color || 'green', // Use actual color from DynamoDB
+                            equipment_count: r.equipment_count || 7
+                        };
+                        
+                        console.log(`🏪 Loaded ${restaurant.id}: ${restaurant.status} (${restaurant.status_color})`);
+                        
+                        return restaurant;
+                    });
+                    
+                } catch (error) {
+                    console.error('❌ Error fetching restaurants:', error);
+                    console.log('🔄 Using fallback restaurant data');
+                    return this.getFallbackData();
+                }
+            }
+            
+            async getTickets() {
+                try {
+                    console.log('🎫 Fetching tickets data...');
+                    const data = await this.makeRequest('/tickets');
+                    
+                    // Handle different response formats
+                    let tickets = data;
+                    if (data.tickets) tickets = data.tickets;
+                    if (data.Items) tickets = data.Items;
+                    
+                    console.log('📋 Tickets data received:', tickets);
+                    
+                    if (!Array.isArray(tickets)) {
+                        console.log('⚠️ No valid tickets data, using fallback');
+                        return this.getFallbackTickets();
+                    }
+                    
+                    // Ensure each ticket has required fields with all properties
+                    return tickets.map(t => ({
+                        ticket_id: t.ticket_id,
+                        location_id: t.restaurant_id || t.location_id,
+                        restaurant_id: t.restaurant_id || t.location_id,
+                        appliance_id: t.equipment_id || t.appliance_id,
+                        equipment_id: t.equipment_id || t.appliance_id,
+                        appliance_name: t.appliance_name,
+                        priority: t.priority || 'medium',
+                        status: t.status || 'open',
+                        description: t.issue || t.description || 'Equipment issue',
+                        temperature: t.temperature,
+                        target_temperature: t.target_temperature,
+                        deviation: t.deviation,
+                        sla_hours: t.sla_hours,
+                        assigned_team: t.assigned_team,
+                        eta: t.eta,
+                        malfunction_active: t.malfunction_active,
+                        created_at: t.created_at
+                    }));
+                    
+                } catch (error) {
+                    console.error('❌ Error fetching tickets:', error);
+                    return [];
+                }
+            }
+            
+            async getEquipment() {
+                try {
+                    console.log('⚙️ Fetching equipment data...');
+                    const data = await this.makeRequest('/equipment');
+                    
+                    let equipment = data;
+                    if (data.equipment) equipment = data.equipment;
+                    if (data.Items) equipment = data.Items;
+                    
+                    console.log('📋 Equipment data received:', equipment);
+                    
+                    if (!Array.isArray(equipment)) {
+                        console.log('⚠️ No valid equipment data');
+                        return [];
+                    }
+                    
+                    return equipment.map(e => ({
+                        equipment_id: e.equipment_id,
+                        restaurant_id: e.restaurant_id,
+                        appliance_name: e.appliance_name,
+                        appliance_type: e.appliance_type,
+                        status: e.status || 'normal',
+                        temperature: e.temperature,
+                        target_temperature: e.target_temperature
+                    }));
+                    
+                } catch (error) {
+                    console.error('❌ Error fetching equipment:', error);
+                    return [];
+                }
+            }
+            
+
+            
+
+            
+
+        }
+
+        // Georgia coordinates - positioned within map outline (North=+Z, South=-Z)
+        const georgiaCoords = {
+            'AFC-010': { x: -1, z: 6, city: 'CUMMING', lat: 34.2070, lon: -84.1402 },         // North
+            'AFC-005': { x: 2, z: 5, city: 'ATHENS', lat: 33.9519, lon: -83.3576 },           // Northeast
+            'AFC-001': { x: -1, z: 3, city: 'ATLANTA', lat: 33.7490, lon: -84.3880 },         // North-central
+            'AFC-003': { x: 6, z: 4, city: 'AUGUSTA', lat: 33.4735, lon: -82.0105 },          // East
+            'AFC-006': { x: -5, z: 1, city: 'COLUMBUS', lat: 32.4609, lon: -84.9877 },        // West
+            'AFC-004': { x: 0, z: 0, city: 'MACON', lat: 32.8407, lon: -83.6324 },            // Central
+            'AFC-002': { x: 8, z: 1, city: 'SAVANNAH', lat: 32.0835, lon: -81.0998 },         // East coast
+            'AFC-008': { x: -4, z: -2, city: 'ALBANY', lat: 31.5804, lon: -84.1557 },         // Southwest
+            'AFC-007': { x: 7, z: -3, city: 'BRUNSWICK', lat: 31.1498, lon: -81.3912 },       // Southeast coast
+            'AFC-009': { x: 0, z: -6, city: 'VALDOSTA', lat: 30.8327, lon: -83.2785 }         // South
+        };
+
+        // 3D Scene
+        let scene, camera, renderer, controls;
+        let restaurants = [], tickets = [], equipment = [];
+        let restaurantMeshes = [], applianceMeshes = [];
+        let currentView = 'map'; // 'map' or 'restaurant'
+        let selectedRestaurant = null;
+        const apiClient = new ApiGatewayClient();
+        
+        // Appliance types and their 3D representations
+        const applianceTypes = {
+            'REF-001': { name: 'Walk-in Cooler', type: 'refrigerator', size: [2.0, 2.5, 1.5], color: 0x87ceeb },
+            'REF-002': { name: 'Beverage Cooler', type: 'refrigerator', size: [1.2, 1.8, 0.8], color: 0x87ceeb },
+            'FRZ-001': { name: 'Freezer Unit', type: 'freezer', size: [1.5, 2.0, 1.0], color: 0x4682b4 },
+            'GRL-001': { name: 'Burger Grill', type: 'grill', size: [2.0, 1.2, 1.0], color: 0x8b4513 },
+            'FRY-001': { name: 'French Fry Station', type: 'fryer', size: [1.2, 1.4, 0.8], color: 0xffd700 },
+            'FRY-002': { name: 'Chicken Fryer', type: 'fryer', size: [1.2, 1.4, 0.8], color: 0xffd700 },
+            'ICE-001': { name: 'Ice Cream Freezer', type: 'freezer', size: [1.0, 1.6, 0.8], color: 0xffc0cb }
+        };
+
+        function init() {
+            // Scene setup
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x0f1419);
+            
+            // Camera - positioned for enlarged map view
+            camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.set(0, 20, 15);
+            
+            // Renderer
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.shadowMap.enabled = true;
+            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+            document.getElementById('canvas-container').appendChild(renderer.domElement);
+            
+            // Controls
+            controls = new THREE.OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true;
+            controls.dampingFactor = 0.05;
+            controls.minDistance = 12;
+            controls.maxDistance = 40;
+            
+            // Lighting
+            const ambientLight = new THREE.AmbientLight(0x404040, 0.4);
+            scene.add(ambientLight);
+            
+            const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
+            directionalLight.position.set(15, 20, 10);
+            directionalLight.castShadow = true;
+            directionalLight.shadow.mapSize.width = 2048;
+            directionalLight.shadow.mapSize.height = 2048;
+            scene.add(directionalLight);
+            
+            // Create large Georgia map
+            createLargeGeorgiaMap();
+            
+            // Load real data
+            loadData();
+            
+            // Events
+            window.addEventListener('resize', onWindowResize);
+            renderer.domElement.addEventListener('click', onMouseClick);
+            
+            animate();
+        }
+        
+        function createLargeGeorgiaMap() {
+            // Georgia outline shape
+            const georgiaShape = new THREE.Shape();
+            georgiaShape.moveTo(-6, -8);
+            georgiaShape.lineTo(-6, 7);
+            georgiaShape.lineTo(-2, 8);
+            georgiaShape.lineTo(4, 7);
+            georgiaShape.lineTo(9, 2);
+            georgiaShape.lineTo(10, -2);
+            georgiaShape.lineTo(9, -8);
+            georgiaShape.lineTo(4, -9);
+            georgiaShape.lineTo(-2, -8);
+            georgiaShape.lineTo(-6, -8);
+            
+            // Map base
+            const geometry = new THREE.ShapeGeometry(georgiaShape);
+            const material = new THREE.MeshLambertMaterial({ 
+                color: 0x2c3e50, 
+                transparent: true, 
+                opacity: 0.8
+            });
+            
+            const georgiaMesh = new THREE.Mesh(geometry, material);
+            georgiaMesh.rotation.x = -Math.PI / 2;
+            georgiaMesh.position.y = -0.1;
+            georgiaMesh.receiveShadow = true;
+            scene.add(georgiaMesh);
+            
+            // Border
+            const borderGeometry = new THREE.EdgesGeometry(geometry);
+            const borderMaterial = new THREE.LineBasicMaterial({ color: 0x3498db, linewidth: 3 });
+            const border = new THREE.LineSegments(borderGeometry, borderMaterial);
+            border.rotation.x = -Math.PI / 2;
+            border.position.y = 0;
+            scene.add(border);
+            
+            // Enlarged grid for reference
+            const gridHelper = new THREE.GridHelper(30, 30, 0x444444, 0x222222);
+            gridHelper.position.y = -0.2;
+            scene.add(gridHelper);
+        }
+        
+        async function loadData() {
+            console.log('🔄 Loading data from DynamoDB via API Gateway...');
+            
+            // Load all data
+            tickets = await apiClient.getTickets();
+            console.log('✅ Tickets loaded:', tickets.length);
+            
+            equipment = await apiClient.getEquipment();
+            console.log('✅ Equipment loaded:', equipment.length);
+            
+            restaurants = await apiClient.getRestaurants();
+            console.log('✅ Restaurants loaded:', restaurants.length);
+            
+            // Use actual restaurant status from DynamoDB (don't override)
+            restaurants = restaurants.map(restaurant => {
+                console.log(`🏪 ${restaurant.id} (${restaurant.name}): ${restaurant.status} (from DynamoDB)`);
+                return restaurant; // Keep original status from API/DynamoDB
+            });
+            
+            // Start with map view
+            showMapView();
+            updateStats();
+            
+            // Hide loading screen
+            document.getElementById('loading').style.display = 'none';
+            
+            console.log('🎯 Equipment 3D Twin loaded - Map View');
+        }
+        
+        function showMapView() {
+            currentView = 'map';
+            selectedRestaurant = null;
+            
+            // Clear scene
+            clearScene();
+            
+            // Create Georgia map
+            createLargeGeorgiaMap();
+            
+            // Create restaurant markers
+            createRestaurantMarkers();
+            
+            // Reset camera
+            camera.position.set(0, 20, 15);
+            controls.target.set(0, 0, 0);
+            
+            // Update UI
+            document.getElementById('map-view-btn').classList.add('active');
+            document.getElementById('restaurant-view-btn').classList.remove('active');
+            document.getElementById('control-text').textContent = '🖱️ Click restaurants to view details';
+        }
+        
+        function showRestaurantView(restaurant = null) {
+            if (!restaurant && !selectedRestaurant) {
+                alert('Please select a restaurant from the map first');
+                return;
+            }
+            
+            currentView = 'restaurant';
+            selectedRestaurant = restaurant || selectedRestaurant;
+            
+            // Clear scene
+            clearScene();
+            
+            // Create restaurant interior
+            createRestaurantInterior(selectedRestaurant);
+            
+            // Position camera for restaurant view - zoomed out to see all appliances
+            camera.position.set(0, 12, 18);
+            controls.target.set(0, 0, 0);
+            
+            // Update UI
+            document.getElementById('map-view-btn').classList.remove('active');
+            document.getElementById('restaurant-view-btn').classList.add('active');
+            document.getElementById('control-text').textContent = '🖱️ Click appliances for details | Drag: Rotate | Scroll: Zoom';
+        }
+        
+        function clearScene() {
+            // Remove all meshes except lights
+            const objectsToRemove = [];
+            scene.traverse((child) => {
+                if (child.isMesh || child.isSprite || child.isLineSegments) {
+                    objectsToRemove.push(child);
+                }
+            });
+            objectsToRemove.forEach(obj => scene.remove(obj));
+            
+            // Clear arrays
+            restaurantMeshes.length = 0;
+            applianceMeshes.length = 0;
+        }
+        
+        function createRestaurantMarkers() {
+            restaurants.forEach(restaurant => {
+                const coords = georgiaCoords[restaurant.id];
+                if (!coords) return;
+                
+                // Get ticket-based status color
+                const statusColor = getTicketBasedColor(restaurant);
+                
+                // Restaurant building (enlarged)
+                const geometry = new THREE.BoxGeometry(1.2, 2, 1.2);
+                const material = new THREE.MeshLambertMaterial({ color: statusColor });
+                
+                const mesh = new THREE.Mesh(geometry, material);
+                mesh.position.set(coords.x, 1, coords.z);
+                mesh.castShadow = true;
+                mesh.userData = { restaurant: restaurant, type: 'restaurant' };
+                
+                scene.add(mesh);
+                restaurantMeshes.push(mesh);
+                
+                // Status indicator (enlarged glowing sphere)
+                const indicatorGeometry = new THREE.SphereGeometry(0.4, 16, 16);
+                const indicatorMaterial = new THREE.MeshBasicMaterial({ 
+                    color: statusColor,
+                    transparent: true,
+                    opacity: 0.8
+                });
+                
+                const indicator = new THREE.Mesh(indicatorGeometry, indicatorMaterial);
+                indicator.position.set(coords.x, 3, coords.z);
+                scene.add(indicator);
+                
+                // Much larger readable city labels - moved lower with white text
+                createWhiteTextLabel(coords.city, coords.x, 2.5, coords.z, 1.5);
+                createWhiteTextLabel(restaurant.id, coords.x, 1.7, coords.z, 1.0);
+            });
+        }
+        
+        function createRestaurantInterior(restaurant) {
+            // Create restaurant floor with tiles
+            const floorGeometry = new THREE.PlaneGeometry(24, 18);
+            const floorMaterial = new THREE.MeshLambertMaterial({ color: 0xf0f0f0 });
+            const floor = new THREE.Mesh(floorGeometry, floorMaterial);
+            floor.rotation.x = -Math.PI / 2;
+            floor.receiveShadow = true;
+            scene.add(floor);
+            
+            // Create walls with fast food colors
+            const wallMaterial = new THREE.MeshLambertMaterial({ color: 0xffffff });
+            const accentMaterial = new THREE.MeshLambertMaterial({ color: 0xff6b35 });
+            
+            // Back wall
+            const backWall = new THREE.Mesh(new THREE.PlaneGeometry(24, 8), wallMaterial);
+            backWall.position.set(0, 4, -9);
+            scene.add(backWall);
+            
+            // Side walls
+            const leftWall = new THREE.Mesh(new THREE.PlaneGeometry(18, 8), wallMaterial);
+            leftWall.position.set(-12, 4, 0);
+            leftWall.rotation.y = Math.PI / 2;
+            scene.add(leftWall);
+            
+            const rightWall = new THREE.Mesh(new THREE.PlaneGeometry(18, 8), wallMaterial);
+            rightWall.position.set(12, 4, 0);
+            rightWall.rotation.y = -Math.PI / 2;
+            scene.add(rightWall);
+            
+            // Add kitchen counter/prep area
+            const counterGeometry = new THREE.BoxGeometry(20, 1, 3);
+            const counterMaterial = new THREE.MeshLambertMaterial({ color: 0x8b4513 });
+            const counter = new THREE.Mesh(counterGeometry, counterMaterial);
+            counter.position.set(0, 0.5, -6);
+            scene.add(counter);
+            
+            // Add service counter
+            const serviceCounter = new THREE.Mesh(new THREE.BoxGeometry(16, 1.2, 1), counterMaterial);
+            serviceCounter.position.set(0, 0.6, 4);
+            scene.add(serviceCounter);
+            
+            // Get restaurant equipment
+            const restaurantEquipment = equipment.filter(e => e.restaurant_id === restaurant.id);
+            
+            console.log(`🏪 Creating restaurant interior for ${restaurant.id}`);
+            console.log(`⚙️ Found ${restaurantEquipment.length} equipment items:`, restaurantEquipment);
+            
+            // Always show all appliance types, but use real data when available
+            let appliancesToShow = Object.keys(applianceTypes).map(equipmentId => {
+                // Try to find real equipment data first
+                const realEquipment = restaurantEquipment.find(e => e.equipment_id === equipmentId);
+                
+                if (realEquipment) {
+                    console.log(`✅ Using real data for ${equipmentId}:`, realEquipment);
+                    return realEquipment;
+                } else {
+                    console.log(`⚠️ No real data for ${equipmentId}, using default`);
+                    return {
+                        equipment_id: equipmentId,
+                        restaurant_id: restaurant.id,
+                        appliance_name: applianceTypes[equipmentId].name,
+                        appliance_type: applianceTypes[equipmentId].type,
+                        status: 'normal',
+                        temperature: 38.0,
+                        target_temperature: 38.0
+                    };
+                }
+            });
+            
+            // Position appliances in realistic QSR layout
+            const positions = [
+                { x: -8, z: -6 },   // Walk-in cooler (back left)
+                { x: -4, z: -6 },   // Beverage cooler (back)
+                { x: -8, z: -2 },   // Freezer (left side)
+                { x: 0, z: -6 },    // Grill (back center)
+                { x: 4, z: -6 },    // Fryer 1 (back right)
+                { x: 8, z: -6 },    // Fryer 2 (back right)
+                { x: 8, z: -2 }     // Ice cream freezer (right side)
+            ];
+            
+            appliancesToShow.forEach((appliance, index) => {
+                const applianceConfig = applianceTypes[appliance.equipment_id];
+                if (!applianceConfig || !positions[index]) {
+                    console.log(`⚠️ Skipping appliance ${appliance.equipment_id} - no config or position`);
+                    return;
+                }
+                
+                const pos = positions[index];
+                const statusColor = getApplianceStatusColor(appliance);
+                
+                console.log(`🔧 Creating appliance ${appliance.equipment_id} at position (${pos.x}, ${pos.z}) with color ${statusColor.toString(16)}`);
+                
+                // Create realistic appliance model
+                const applianceGroup = createRealisticAppliance(applianceConfig, statusColor, appliance);
+                applianceGroup.position.set(pos.x, 0, pos.z);
+                applianceGroup.userData = { appliance: appliance, restaurant: restaurant, type: 'appliance' };
+                
+                scene.add(applianceGroup);
+                applianceMeshes.push(applianceGroup);
+                
+                // Status indicator
+                const indicatorGeometry = new THREE.SphereGeometry(0.3, 8, 8);
+                const indicatorMaterial = new THREE.MeshBasicMaterial({ 
+                    color: statusColor,
+                    transparent: true,
+                    opacity: 0.9
+                });
+                
+                const indicator = new THREE.Mesh(indicatorGeometry, indicatorMaterial);
+                indicator.position.set(pos.x, applianceConfig.size[1] + 0.5, pos.z);
+                scene.add(indicator);
+                
+                // Appliance labels - larger sizes for better visibility
+                createWhiteTextLabel(appliance.appliance_name, pos.x, applianceConfig.size[1] + 1.5, pos.z, 1.2);
+                createWhiteTextLabel(appliance.equipment_id, pos.x, applianceConfig.size[1] + 1.0, pos.z, 1.0);
+            });
+            
+            console.log(`✅ Created ${appliancesToShow.length} appliances in restaurant view`);
+            
+            // Restaurant branding removed to avoid blocking appliances view
+        }
+        
+        function createRealisticAppliance(config, statusColor, appliance) {
+            const group = new THREE.Group();
+            
+            switch(config.type) {
+                case 'refrigerator':
+                    // Main body
+                    const refBody = new THREE.Mesh(
+                        new THREE.BoxGeometry(...config.size),
+                        new THREE.MeshLambertMaterial({ color: 0xf5f5f5 })
+                    );
+                    refBody.position.y = config.size[1] / 2;
+                    group.add(refBody);
+                    
+                    // Door handle
+                    const handle = new THREE.Mesh(
+                        new THREE.BoxGeometry(0.1, 0.3, 0.05),
+                        new THREE.MeshLambertMaterial({ color: 0x333333 })
+                    );
+                    handle.position.set(config.size[0]/2 + 0.05, config.size[1]/2, 0);
+                    group.add(handle);
+                    
+                    // Status panel
+                    const panel = new THREE.Mesh(
+                        new THREE.BoxGeometry(0.3, 0.2, 0.05),
+                        new THREE.MeshLambertMaterial({ color: statusColor })
+                    );
+                    panel.position.set(config.size[0]/2 + 0.02, config.size[1] - 0.3, 0);
+                    group.add(panel);
+                    break;
+                    
+                case 'freezer':
+                    // Main body (more industrial look)
+                    const freezerBody = new THREE.Mesh(
+                        new THREE.BoxGeometry(...config.size),
+                        new THREE.MeshLambertMaterial({ color: 0xe0e0e0 })
+                    );
+                    freezerBody.position.y = config.size[1] / 2;
+                    group.add(freezerBody);
+                    
+                    // Insulation lines
+                    for(let i = 0; i < 3; i++) {
+                        const line = new THREE.Mesh(
+                            new THREE.BoxGeometry(config.size[0] + 0.1, 0.05, config.size[2] + 0.1),
+                            new THREE.MeshLambertMaterial({ color: 0x666666 })
+                        );
+                        line.position.y = (i + 1) * config.size[1] / 4;
+                        group.add(line);
+                    }
+                    break;
+                    
+                case 'grill':
+                    // Grill base
+                    const grillBase = new THREE.Mesh(
+                        new THREE.BoxGeometry(config.size[0], config.size[1] * 0.8, config.size[2]),
+                        new THREE.MeshLambertMaterial({ color: 0x444444 })
+                    );
+                    grillBase.position.y = config.size[1] * 0.4;
+                    group.add(grillBase);
+                    
+                    // Grill surface
+                    const grillSurface = new THREE.Mesh(
+                        new THREE.BoxGeometry(config.size[0] * 0.9, 0.1, config.size[2] * 0.9),
+                        new THREE.MeshLambertMaterial({ color: 0x222222 })
+                    );
+                    grillSurface.position.y = config.size[1] * 0.8 + 0.05;
+                    group.add(grillSurface);
+                    
+                    // Control knobs
+                    for(let i = 0; i < 4; i++) {
+                        const knob = new THREE.Mesh(
+                            new THREE.CylinderGeometry(0.05, 0.05, 0.1),
+                            new THREE.MeshLambertMaterial({ color: statusColor })
+                        );
+                        knob.position.set(-config.size[0]/2 + 0.2 + i * 0.3, config.size[1] * 0.6, config.size[2]/2 + 0.1);
+                        group.add(knob);
+                    }
+                    break;
+                    
+                case 'fryer':
+                    // Fryer body
+                    const fryerBody = new THREE.Mesh(
+                        new THREE.BoxGeometry(...config.size),
+                        new THREE.MeshLambertMaterial({ color: 0xc0c0c0 })
+                    );
+                    fryerBody.position.y = config.size[1] / 2;
+                    group.add(fryerBody);
+                    
+                    // Oil vat (darker top)
+                    const oilVat = new THREE.Mesh(
+                        new THREE.BoxGeometry(config.size[0] * 0.8, 0.2, config.size[2] * 0.8),
+                        new THREE.MeshLambertMaterial({ color: 0x8b4513 })
+                    );
+                    oilVat.position.y = config.size[1] - 0.1;
+                    group.add(oilVat);
+                    
+                    // Basket
+                    const basket = new THREE.Mesh(
+                        new THREE.BoxGeometry(config.size[0] * 0.6, 0.3, config.size[2] * 0.6),
+                        new THREE.MeshLambertMaterial({ color: 0x666666 })
+                    );
+                    basket.position.y = config.size[1] - 0.15;
+                    group.add(basket);
+                    break;
+                    
+                default:
+                    // Default appliance
+                    const defaultBody = new THREE.Mesh(
+                        new THREE.BoxGeometry(...config.size),
+                        new THREE.MeshLambertMaterial({ color: statusColor })
+                    );
+                    defaultBody.position.y = config.size[1] / 2;
+                    group.add(defaultBody);
+            }
+            
+            return group;
+        }
+        
+        function getApplianceStatusColor(appliance) {
+            console.log(`🎨 Getting color for ${appliance.equipment_id}: status=${appliance.status}`);
+            
+            // Find real equipment data from DynamoDB
+            const realEquipment = equipment.find(e => 
+                e.equipment_id === appliance.equipment_id && 
+                e.restaurant_id === appliance.restaurant_id
+            );
+            
+            if (realEquipment) {
+                console.log(`✅ Using real equipment data:`, realEquipment);
+                appliance = realEquipment; // Use real data
+            }
+            
+            // Check for tickets first - MULTIPLE MATCHING STRATEGIES
+            const applianceTickets = tickets.filter(t => {
+                const locationMatch = t.location_id === appliance.restaurant_id;
+                const applianceIdMatch = t.appliance_id === appliance.equipment_id;
+                const applianceNameMatch = t.appliance_name === appliance.appliance_name;
+                const isOpen = t.status === 'open';
+                
+                return locationMatch && (applianceIdMatch || applianceNameMatch) && isOpen;
+            });
+            
+            console.log(`🎫 Found ${applianceTickets.length} tickets for ${appliance.equipment_id}`);
+            
+            if (applianceTickets.length > 0) {
+                const highestPriority = applianceTickets.reduce((max, ticket) => {
+                    const priorities = { 'critical': 4, 'high': 3, 'medium': 2, 'warning': 2, 'low': 1 };
+                    const maxPriority = priorities[max.priority] || 0;
+                    const ticketPriority = priorities[ticket.priority] || 0;
+                    return ticketPriority > maxPriority ? ticket : max;
+                });
+                
+                console.log(`🔥 Highest priority: ${highestPriority.priority} for ${appliance.equipment_id}`);
+                
+                if (highestPriority.priority === 'critical' || highestPriority.priority === 'high') {
+                    return 0xff0000; // Red for critical/high
+                } else if (highestPriority.priority === 'medium' || highestPriority.priority === 'warning') {
+                    return 0xff8c00; // Orange for medium/warning
+                }
+            }
+            
+            // Fallback to equipment status from DynamoDB
+            if (appliance.status === 'critical') {
+                return 0xff0000; // Red for critical
+            } else if (appliance.status === 'warning') {
+                return 0xff8c00; // Orange for warning
+            }
+            return 0x00ff00; // Green for normal
+        }
+        
+        function createSmallTextLabel(text, x, y, z, scale = 0.5) {
+            const canvas = document.createElement('canvas');
+            const context = canvas.getContext('2d');
+            canvas.width = 512;
+            canvas.height = 128;
+            
+            // Black background
+            context.fillStyle = 'rgba(0, 0, 0, 0.8)';
+            context.fillRect(0, 0, canvas.width, canvas.height);
+            
+            context.fillStyle = '#FFFFFF';
+            context.font = 'bold 48px Arial';
+            context.textAlign = 'center';
+            context.strokeStyle = '#000000';
+            context.lineWidth = 4;
+            context.strokeText(text, canvas.width / 2, canvas.height / 2 + 10);
+            context.fillText(text, canvas.width / 2, canvas.height / 2 + 10);
+            
+            const texture = new THREE.CanvasTexture(canvas);
+            const material = new THREE.SpriteMaterial({ map: texture });
+            const sprite = new THREE.Sprite(material);
+            
+            sprite.position.set(x, y, z);
+            sprite.scale.set(2 * scale, 0.5 * scale, 1);
+            scene.add(sprite);
+        }
+        
+        function createLargeTextLabel(text, x, y, z, scale = 1) {
+            const canvas = document.createElement('canvas');
+            const context = canvas.getContext('2d');
+            canvas.width = 1024;
+            canvas.height = 256;
+            
+            // Black background
+            context.fillStyle = 'rgba(0, 0, 0, 0.8)';
+            context.fillRect(0, 0, canvas.width, canvas.height);
+            
+            context.fillStyle = '#FFFFFF';
+            context.font = 'bold 64px Arial';
+            context.textAlign = 'center';
+            context.strokeStyle = '#000000';
+            context.lineWidth = 4;
+            context.strokeText(text, canvas.width / 2, canvas.height / 2 + 20);
+            context.fillText(text, canvas.width / 2, canvas.height / 2 + 20);
+            
+            const texture = new THREE.CanvasTexture(canvas);
+            const material = new THREE.SpriteMaterial({ map: texture });
+            const sprite = new THREE.Sprite(material);
+            
+            sprite.position.set(x, y, z);
+            sprite.scale.set(4 * scale, 1 * scale, 1);
+            scene.add(sprite);
+        }
+        
+        function createWhiteTextLabel(text, x, y, z, scale = 1) {
+            const canvas = document.createElement('canvas');
+            const context = canvas.getContext('2d');
+            canvas.width = 1024;
+            canvas.height = 256;
+            
+            // Black background
+            context.fillStyle = 'rgba(0, 0, 0, 0.8)';
+            context.fillRect(0, 0, canvas.width, canvas.height);
+            
+            context.fillStyle = '#FFFFFF';
+            context.font = 'bold 64px Arial';
+            context.textAlign = 'center';
+            context.strokeStyle = '#000000';
+            context.lineWidth = 3;
+            context.strokeText(text, canvas.width / 2, canvas.height / 2 + 20);
+            context.fillText(text, canvas.width / 2, canvas.height / 2 + 20);
+            
+            const texture = new THREE.CanvasTexture(canvas);
+            const material = new THREE.SpriteMaterial({ map: texture });
+            const sprite = new THREE.Sprite(material);
+            
+            sprite.position.set(x, y, z);
+            sprite.scale.set(4 * scale, 1 * scale, 1);
+            scene.add(sprite);
+        }
+        
+        function getTicketBasedColor(restaurant) {
+            // Check actual tickets for this restaurant
+            const restaurantTickets = tickets.filter(t => t.restaurant_id === restaurant.id && t.status === 'open');
+            
+            if (restaurantTickets.length > 0) {
+                const highestPriority = restaurantTickets.reduce((max, ticket) => {
+                    const priorities = { 'critical': 4, 'high': 3, 'medium': 2, 'low': 1 };
+                    return priorities[ticket.priority] > priorities[max.priority] ? ticket : max;
+                });
+                
+                if (highestPriority.priority === 'critical' || highestPriority.priority === 'high') {
+                    return 0xff0000; // Red for critical/high priority tickets
+                } else if (highestPriority.priority === 'medium') {
+                    return 0xff8c00; // Orange for medium priority tickets
+                }
+            }
+            
+            // Fallback to restaurant status or default to green
+            if (restaurant.status === 'critical') {
+                return 0xff0000;
+            } else if (restaurant.status === 'warning') {
+                return 0xff8c00;
+            }
+            
+            return 0x00ff00; // Green for operational
+        }
+        
+        function onMouseClick(event) {
+            const mouse = new THREE.Vector2();
+            mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+            mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+            
+            const raycaster = new THREE.Raycaster();
+            raycaster.setFromCamera(mouse, camera);
+            
+            if (currentView === 'map') {
+                // In map view, click restaurants to enter restaurant view
+                const restaurantIntersects = raycaster.intersectObjects(restaurantMeshes);
+                if (restaurantIntersects.length > 0) {
+                    const restaurant = restaurantIntersects[0].object.userData.restaurant;
+                    selectedRestaurant = restaurant;
+                    showRestaurantView(restaurant);
+                    showRestaurantInfo(restaurant);
+                } else {
+                    hideRestaurantInfo();
+                }
+            } else if (currentView === 'restaurant') {
+                // In restaurant view, click appliances for details
+                const applianceIntersects = raycaster.intersectObjects(applianceMeshes);
+                if (applianceIntersects.length > 0) {
+                    const userData = applianceIntersects[0].object.userData;
+                    showApplianceInfo(userData.appliance, userData.restaurant);
+                }
+                // Don't hide info panel when clicking empty space in restaurant view
+            }
+        }
+        
+        function showRestaurantInfo(restaurant) {
+            const panel = document.getElementById('info-panel');
+            const restaurantTickets = tickets.filter(t => t.location_id === restaurant.id);
+            const restaurantEquipment = equipment.filter(e => e.restaurant_id === restaurant.id);
+            
+            document.getElementById('restaurant-name').textContent = restaurant.name;
+            document.getElementById('restaurant-details').innerHTML = `
+                <p><strong>📍 Location:</strong> ${restaurant.location}</p>
+                <p><strong>👤 Manager:</strong> ${restaurant.manager || 'N/A'}</p>
+                <p><strong>⚙️ Equipment:</strong> ${restaurantEquipment.length} units</p>
+                <div class="status ${restaurant.status}">${restaurant.status.toUpperCase()}</div>
+                <h4>🔧 Equipment Status:</h4>
+                ${Object.keys(applianceTypes).map(equipmentId => {
+                    const realEquipment = restaurantEquipment.find(e => e.equipment_id === equipmentId);
+                    const eq = realEquipment || {
+                        equipment_id: equipmentId,
+                        restaurant_id: restaurant.id,
+                        appliance_name: applianceTypes[equipmentId].name,
+                        status: 'normal'
+                    };
+                    const statusColor = getApplianceStatusColor(eq);
+                    const colorHex = statusColor === 0xff0000 ? '#ff0000' : statusColor === 0xff8c00 ? '#ff8c00' : '#00ff00';
+                    return `
+                    <div style="margin: 0.5rem 0; padding: 0.5rem; background: rgba(255,255,255,0.1); border-radius: 4px;">
+                        <strong>${eq.appliance_name}</strong> (${eq.equipment_id})<br>
+                        <small>Status: <span style="color: ${colorHex}">${eq.status.toUpperCase()}</span></small>
+                    </div>
+                    `;
+                }).join('')}
+            `;
+            
+            const ticketsHtml = restaurantTickets.length > 0 ? 
+                `<h4>🎫 Active Tickets (${restaurantTickets.length})</h4>
+                ${restaurantTickets.map(ticket => `
+                    <div class="ticket ${ticket.priority}">
+                        <strong>${ticket.ticket_id}</strong><br>
+                        <strong>🔧 ${ticket.appliance_name || 'Equipment'}</strong><br>
+                        <div style="margin: 0.5rem 0; padding: 0.5rem; background: rgba(255,255,255,0.1); border-radius: 4px; max-height: 100px; overflow-y: auto;">
+                            ${ticket.description}
+                        </div>
+                        ${ticket.temperature ? `<small>🌡️ Current: ${ticket.temperature}°F | Target: ${ticket.target_temperature || 'N/A'}°F</small><br>` : ''}
+                        ${ticket.deviation ? `<small>📊 Deviation: ${ticket.deviation.toFixed(1)}°F ${ticket.deviation > 10 ? '🚨' : '⚠️'}</small><br>` : ''}
+                        <small>⚡ Priority: ${ticket.priority.toUpperCase()} | Status: ${ticket.status.toUpperCase()}</small><br>
+                        ${ticket.sla_hours ? `<small>⏰ SLA: ${ticket.sla_hours} hours | ETA: ${ticket.eta || 'Calculating...'}</small><br>` : ''}
+                        ${ticket.assigned_team ? `<small>👥 Team: ${ticket.assigned_team}</small><br>` : ''}
+                        ${ticket.malfunction_active ? '<small>🔴 MALFUNCTION DETECTED</small><br>' : ''}
+                        ${ticket.created_at ? `<small>📅 Created: ${new Date(ticket.created_at).toLocaleString()}</small>` : ''}
+                    </div>
+                `).join('')}` : 
+                '<h4>✅ No Active Tickets</h4>';
+            
+            document.getElementById('restaurant-tickets').innerHTML = ticketsHtml;
+            panel.style.display = 'block';
+        }
+        
+        function showApplianceInfo(appliance, restaurant) {
+            const panel = document.getElementById('info-panel');
+            
+            // Filter tickets for this specific appliance - try multiple matching strategies
+            const applianceTickets = tickets.filter(t => {
+                const locationMatch = t.location_id === restaurant.id;
+                const applianceMatch = t.appliance_id === appliance.equipment_id || 
+                                     t.appliance_name === appliance.appliance_name;
+                return locationMatch && applianceMatch;
+            });
+            
+            // Don't show info panel for normal status appliances with no tickets
+            if (appliance.status === 'normal' && applianceTickets.length === 0) {
+                console.log(`ℹ️ Skipping info panel for normal status appliance ${appliance.equipment_id} with no tickets`);
+                return;
+            }
+            
+            console.log(`🔍 Filtering tickets for ${appliance.equipment_id} at ${restaurant.id}:`, applianceTickets);
+            
+            document.getElementById('restaurant-name').textContent = `${appliance.appliance_name} - ${restaurant.name}`;
+            document.getElementById('restaurant-details').innerHTML = `
+                <p><strong>🏪 Restaurant:</strong> ${restaurant.name}</p>
+                <p><strong>⚙️ Equipment ID:</strong> ${appliance.equipment_id}</p>
+                <p><strong>🌡️ Temperature:</strong> ${appliance.temperature || 'N/A'}°F (Target: ${appliance.target_temperature || 'N/A'}°F)</p>
+                <p><strong>📊 Type:</strong> ${appliance.appliance_type}</p>
+                <div class="status ${appliance.status}">${appliance.status.toUpperCase()}</div>
+                <div class="appliance-info">
+                    <strong>Visual Status Color:</strong> ${getApplianceStatusColor(appliance) === 0xff0000 ? 'RED (Critical)' : getApplianceStatusColor(appliance) === 0xff8c00 ? 'ORANGE (Warning)' : 'GREEN (Normal)'}<br>
+                </div>
+                <div class="appliance-info">
+                    <strong>Debug Info:</strong><br>
+                    Looking for tickets with location_id: ${restaurant.id} and appliance_id: ${appliance.equipment_id}<br>
+                    Total tickets in system: ${tickets.length}
+                </div>
+            `;
+            
+            const ticketsHtml = applianceTickets.length > 0 ? 
+                `<h4>🎫 Equipment Tickets (${applianceTickets.length})</h4>
+                ${applianceTickets.map(ticket => `
+                    <div class="ticket ${ticket.priority}">
+                        <strong>${ticket.ticket_id}</strong><br>
+                        <strong>🔧 ${ticket.appliance_name || appliance.appliance_name}</strong><br>
+                        <div style="margin: 0.5rem 0; padding: 0.8rem; background: rgba(255,255,255,0.1); border-radius: 4px; max-height: 120px; overflow-y: auto; font-size: 0.9rem; line-height: 1.4;">
+                            <strong>Issue Description:</strong><br>
+                            ${ticket.description}
+                        </div>
+                        ${ticket.temperature ? `<small>🌡️ Current: ${ticket.temperature}°F | Target: ${ticket.target_temperature || appliance.target_temperature || 'N/A'}°F</small><br>` : ''}
+                        ${ticket.deviation ? `<small>📊 Deviation: ${ticket.deviation.toFixed(1)}°F ${ticket.deviation > 10 ? '🚨' : '⚠️'}</small><br>` : ''}
+                        <small>⚡ Priority: ${ticket.priority.toUpperCase()} | Status: ${ticket.status.toUpperCase()}</small><br>
+                        ${ticket.sla_hours ? `<small>⏰ SLA: ${ticket.sla_hours} hours | ETA: ${ticket.eta || 'Calculating...'}</small><br>` : ''}
+                        ${ticket.assigned_team ? `<small>👥 Assigned: ${ticket.assigned_team}</small><br>` : ''}
+                        ${ticket.malfunction_active ? '<small>🔴 MALFUNCTION DETECTED</small><br>' : ''}
+                        ${ticket.created_at ? `<small>📅 Created: ${new Date(ticket.created_at).toLocaleString()}</small>` : ''}
+                    </div>
+                `).join('')}` : 
+                `<h4>✅ No Equipment Issues</h4>
+                <div class="appliance-info">
+                    <strong>Equipment Status:</strong> <span class="status ${appliance.status}">${appliance.status.toUpperCase()}</span><br>
+                    <strong>Current Temperature:</strong> ${appliance.temperature || 'N/A'}°F<br>
+                    <strong>Target Temperature:</strong> ${appliance.target_temperature || 'N/A'}°F<br>
+                    ${appliance.temperature && appliance.target_temperature ? `<strong>Deviation:</strong> ${Math.abs(appliance.temperature - appliance.target_temperature).toFixed(1)}°F` : ''}
+                </div>`;
+            
+            document.getElementById('restaurant-tickets').innerHTML = ticketsHtml;
+            panel.style.display = 'block';
+        }
+        
+        function hideRestaurantInfo() {
+            document.getElementById('info-panel').style.display = 'none';
+        }
+        
+        function updateStats() {
+            // Count by API status (already calculated with ticket priorities)
+            let operational = 0, warning = 0, critical = 0;
+            
+            restaurants.forEach(restaurant => {
+                if (restaurant.status === 'critical') {
+                    critical++;
+                } else if (restaurant.status === 'warning') {
+                    warning++;
+                } else {
+                    operational++;
+                }
+            });
+            
+            document.getElementById('restaurant-count').textContent = `Restaurants: ${restaurants.length}`;
+            document.getElementById('status-summary').innerHTML = `
+                Status: <span style="color: #00ff00">${operational} Operational</span> | 
+                <span style="color: #ff8c00">${warning} Warning</span> | 
+                <span style="color: #ff0000">${critical} Critical</span>
+            `;
+            document.getElementById('ticket-count').textContent = `Active Tickets: ${tickets.length}`;
+        }
+        
+        function animate() {
+            requestAnimationFrame(animate);
+            controls.update();
+            
+            const time = Date.now() * 0.001;
+            
+            // Animate restaurants in map view
+            if (currentView === 'map') {
+                restaurantMeshes.forEach((mesh, index) => {
+                    mesh.rotation.y = time * 0.3;
+                    
+                    const restaurant = mesh.userData.restaurant;
+                    if (restaurant.status === 'critical') {
+                        mesh.scale.y = 1 + Math.sin(time * 4) * 0.3;
+                    } else if (restaurant.status === 'warning') {
+                        mesh.scale.y = 1 + Math.sin(time * 2) * 0.15;
+                    }
+                });
+            }
+            
+            // Animate appliances in restaurant view
+            if (currentView === 'restaurant') {
+                applianceMeshes.forEach((mesh, index) => {
+                    const appliance = mesh.userData.appliance;
+                    
+                    mesh.rotation.y = time * 0.2 + index;
+                    
+                    if (appliance.status === 'critical') {
+                        mesh.scale.setScalar(1 + Math.sin(time * 6) * 0.2);
+                    } else if (appliance.status === 'warning') {
+                        mesh.scale.setScalar(1 + Math.sin(time * 3) * 0.1);
+                    }
+                });
+            }
+            
+            renderer.render(scene, camera);
+        }
+        
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+        
+        
+        // Global functions for view switching
+        window.showMapView = showMapView;
+        window.showRestaurantView = showRestaurantView;
+        
+        // Initialize everything
+        console.log('🚀 Initializing Equipment 3D Twin...');
+        init();
+        
+        // Add periodic data refresh for real-time updates
+        setInterval(() => {
+            console.log('🔄 Real-time data refresh...');
+            loadData();
+        }, 30000); // Refresh every 30 seconds for real-time updates
+    </script>
+</body>
+</html>
