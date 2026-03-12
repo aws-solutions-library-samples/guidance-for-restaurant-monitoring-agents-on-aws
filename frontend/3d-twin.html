@@ -3,29 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self' https://*.amazonaws.com; font-src 'self';">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://unpkg.com; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self' https://*.amazonaws.com; font-src 'self';">
     <meta http-equiv="X-Content-Type-Options" content="nosniff">
-    <meta http-equiv="X-Frame-Options" content="DENY">
     <meta http-equiv="X-XSS-Protection" content="1; mode=block">
     <meta http-equiv="Referrer-Policy" content="strict-origin-when-cross-origin">
     <title>Equipment 3D Twin - Georgia Restaurant Network</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <script src="shared.js?v=1773237403"></script>
+    <script src="api.js?v=1773237403"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: Arial, sans-serif; background: #1a1a1a; color: white; overflow: hidden; }
+        body { font-family: Arial, sans-serif; background: #f5f5f5; color: #333; overflow: hidden; }
         
         #container { position: relative; width: 100vw; height: 100vh; }
+        #canvas-container { width: 100%; height: 100%; }
         
-        .header { position: absolute; top: 0; left: 0; right: 0; background: rgba(44, 62, 80, 0.95); padding: 1rem; z-index: 100; }
-        .header h1 { font-size: 1.8rem; margin-bottom: 0.5rem; font-weight: bold; }
-        .header p { font-size: 1rem; opacity: 0.9; }
-        
-        .nav { position: absolute; top: 80px; left: 0; right: 0; background: rgba(52, 73, 94, 0.95); padding: 0.5rem; text-align: center; z-index: 100; }
-        .nav a { color: white; text-decoration: none; margin: 0 1rem; padding: 0.5rem 1rem; border-radius: 4px; }
-        .nav a:hover, .nav a.active { background: #3498db; }
-        
-        .info-panel { position: absolute; top: 200px; right: 20px; width: 350px; height: 500px; background: rgba(0,0,0,0.9); padding: 1.5rem; border-radius: 8px; z-index: 100; display: none; border: 2px solid #3498db; overflow-y: auto; }
+        .info-panel { position: absolute; top: 200px; right: 20px; width: 350px; height: 500px; background: rgba(255,255,255,0.95); padding: 1.5rem; border-radius: 8px; z-index: 100; display: none; border: 2px solid #3498db; overflow-y: auto; color: #333; }
         .info-panel h3 { color: #3498db; margin-bottom: 1rem; font-size: 1.2rem; }
         .info-panel .status { padding: 0.5rem 1rem; border-radius: 4px; color: white; font-weight: bold; display: inline-block; margin: 0.5rem 0; }
         .info-panel .status.operational { background: #27ae60; }
@@ -39,20 +33,29 @@
         .info-panel .ticket.high { background: rgba(231, 76, 60, 0.2); border-left-color: #e74c3c; }
         .info-panel .ticket.medium { background: rgba(243, 156, 18, 0.2); border-left-color: #f39c12; }
         
-        .loading { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; z-index: 100; background: rgba(0,0,0,0.8); padding: 2rem; border-radius: 8px; }
+        .loading { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; z-index: 100; background: rgba(255,255,255,0.9); padding: 2rem; border-radius: 8px; color: #333; }
         
-        .stats { position: absolute; top: 50%; left: 20px; transform: translateY(-50%); background: rgba(0,0,0,0.9); padding: 1.5rem; border-radius: 8px; z-index: 100; min-width: 300px; }
+        .stats { position: absolute; top: 50%; left: 20px; transform: translateY(-50%); background: rgba(255,255,255,0.95); padding: 1.5rem; border-radius: 8px; z-index: 100; min-width: 300px; color: #333; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
         .stats h3 { color: #3498db; margin-bottom: 1rem; }
         
-        .controls { position: absolute; bottom: 20px; left: 20px; background: rgba(0,0,0,0.9); padding: 1rem; border-radius: 8px; z-index: 100; }
+        .controls { position: absolute; bottom: 20px; left: 20px; background: rgba(255,255,255,0.95); padding: 1rem; border-radius: 8px; z-index: 100; color: #333; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
         .controls h4 { color: #3498db; margin-bottom: 0.5rem; }
         .controls p { font-size: 0.9rem; margin: 0.3rem 0; opacity: 0.9; }
         .appliance-info { background: rgba(52, 152, 219, 0.2); padding: 0.5rem; margin: 0.5rem 0; border-radius: 4px; border-left: 3px solid #3498db; }
         
-        .view-controls { position: absolute; top: 80px; left: 20px; background: rgba(0,0,0,0.9); padding: 1rem; border-radius: 8px; z-index: 100; }
+        .view-controls { position: absolute; top: 80px; left: 20px; background: rgba(255,255,255,0.95); padding: 1rem; border-radius: 8px; z-index: 100; color: #333; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
         .view-controls button { background: #3498db; color: white; border: none; padding: 0.5rem 1rem; margin: 0.2rem; border-radius: 4px; cursor: pointer; }
         .view-controls button:hover { background: #2980b9; }
         .view-controls button.active { background: #e74c3c; }
+        
+        /* HTML overlay labels for 3D scene */
+        .label-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 50; overflow: hidden; }
+        .map-label { position: absolute; transform: translate(-50%, -100%); text-align: center; pointer-events: none; white-space: nowrap; }
+        .map-label .city { font-size: 13px; font-weight: bold; color: #fff; text-shadow: 0 0 4px #000, 0 0 2px #000; letter-spacing: 0.5px; }
+        .map-label .rid { font-size: 10px; color: #87ceeb; text-shadow: 0 0 3px #000; }
+        
+        /* Hover tooltip */
+        .hover-tooltip { position: absolute; background: rgba(0,0,0,0.85); color: #fff; padding: 6px 12px; border-radius: 6px; font-size: 13px; pointer-events: none; z-index: 60; transform: translate(-50%, -120%); border: 1px solid #3498db; white-space: nowrap; display: none; }
         
     </style>
 </head>
@@ -89,185 +92,50 @@
             <p id="control-text">🖱️ Click restaurants to view details</p>
         </div>
         
+        <div class="label-overlay" id="label-overlay"></div>
+        <div class="hover-tooltip" id="hover-tooltip"></div>
         <div id="canvas-container"></div>
         
     </div>
 
     <script>
-        // API Client
-        class ApiGatewayClient {
-            constructor() {
-                // API Gateway URL will be replaced during deployment
-                this.apiUrl = 'https://mojgf9gmfk.execute-api.us-east-1.amazonaws.com/prod';
-                console.log('🌐 API Client initialized with URL:', this.apiUrl);
-            }
-            
-            async makeRequest(endpoint) {
-                // If no API URL, skip API call
-                if (!this.apiUrl) {
-                    throw new Error('No API URL configured');
-                }
-                
-                try {
-                    console.log(`📡 Making request to: ${this.apiUrl}${endpoint}`);
-                    const response = await fetch(`${this.apiUrl}${endpoint}`, {
-                        method: 'GET',
-                        headers: { 
-                            'Content-Type': 'application/json',
-                            'Accept': 'application/json'
-                        },
-                        mode: 'cors'
-                    });
-                    
-                    console.log(`📊 Response status: ${response.status}`);
-                    
-                    // Handle authentication errors
-                    if (response.status === 403 || response.status === 401) {
-                        console.warn('⚠️ Authentication error - API Gateway not properly configured');
-                        throw new Error('API_AUTH_ERROR');
-                    }
-                    
-                    if (!response.ok) {
-                        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-                    }
-                    
-                    const data = await response.json();
-                    console.log(`✅ API Response data:`, data);
-                    return data;
-                } catch (error) {
-                    console.error(`❌ API Error for ${endpoint}:`, error);
-                    
-                    // If authentication error, try next URL or use fallback
-                    if (error.message === 'API_AUTH_ERROR') {
-                        console.log('🔄 Trying fallback data due to API authentication issues');
-                    }
-                    
-                    throw error;
-                }
-            }
-            
-            async getRestaurants() {
-                try {
-                    console.log('🏪 Fetching restaurants data...');
-                    const data = await this.makeRequest('/restaurants');
-                    
-                    // Handle different response formats
-                    let restaurants = data;
-                    if (data.restaurants) restaurants = data.restaurants;
-                    if (data.Items) restaurants = data.Items;
-                    
-                    console.log('📋 Restaurants data received:', restaurants);
-                    
-                    if (!Array.isArray(restaurants) || restaurants.length === 0) {
-                        console.log('⚠️ No valid restaurants data, using fallback');
-                        return this.getFallbackData();
-                    }
-                    
-                    // Use restaurant data from DynamoDB with actual status
-                    return restaurants.map(r => {
-                        const restaurant = {
-                            id: r.id || r.restaurant_id,
-                            name: r.name || `Restaurant ${r.id}`,
-                            location: r.location || 'Georgia',
-                            manager: r.manager || 'Manager',
-                            status: r.status || 'operational', // Use actual status from DynamoDB
-                            status_color: r.status_color || 'green', // Use actual color from DynamoDB
-                            equipment_count: r.equipment_count || 7
-                        };
-                        
-                        console.log(`🏪 Loaded ${restaurant.id}: ${restaurant.status} (${restaurant.status_color})`);
-                        
-                        return restaurant;
-                    });
-                    
-                } catch (error) {
-                    console.error('❌ Error fetching restaurants:', error);
-                    console.log('🔄 Using fallback restaurant data');
-                    return this.getFallbackData();
-                }
-            }
-            
-            async getTickets() {
-                try {
-                    console.log('🎫 Fetching tickets data...');
-                    const data = await this.makeRequest('/tickets');
-                    
-                    // Handle different response formats
-                    let tickets = data;
-                    if (data.tickets) tickets = data.tickets;
-                    if (data.Items) tickets = data.Items;
-                    
-                    console.log('📋 Tickets data received:', tickets);
-                    
-                    if (!Array.isArray(tickets)) {
-                        console.log('⚠️ No valid tickets data, using fallback');
-                        return this.getFallbackTickets();
-                    }
-                    
-                    // Ensure each ticket has required fields with all properties
-                    return tickets.map(t => ({
-                        ticket_id: t.ticket_id,
-                        location_id: t.restaurant_id || t.location_id,
-                        restaurant_id: t.restaurant_id || t.location_id,
-                        appliance_id: t.equipment_id || t.appliance_id,
-                        equipment_id: t.equipment_id || t.appliance_id,
-                        appliance_name: t.appliance_name,
-                        priority: t.priority || 'medium',
-                        status: t.status || 'open',
-                        description: t.issue || t.description || 'Equipment issue',
-                        temperature: t.temperature,
-                        target_temperature: t.target_temperature,
-                        deviation: t.deviation,
-                        sla_hours: t.sla_hours,
-                        assigned_team: t.assigned_team,
-                        eta: t.eta,
-                        malfunction_active: t.malfunction_active,
-                        created_at: t.created_at
-                    }));
-                    
-                } catch (error) {
-                    console.error('❌ Error fetching tickets:', error);
-                    return [];
-                }
-            }
-            
-            async getEquipment() {
-                try {
-                    console.log('⚙️ Fetching equipment data...');
-                    const data = await this.makeRequest('/equipment');
-                    
-                    let equipment = data;
-                    if (data.equipment) equipment = data.equipment;
-                    if (data.Items) equipment = data.Items;
-                    
-                    console.log('📋 Equipment data received:', equipment);
-                    
-                    if (!Array.isArray(equipment)) {
-                        console.log('⚠️ No valid equipment data');
-                        return [];
-                    }
-                    
-                    return equipment.map(e => ({
-                        equipment_id: e.equipment_id,
-                        restaurant_id: e.restaurant_id,
-                        appliance_name: e.appliance_name,
-                        appliance_type: e.appliance_type,
-                        status: e.status || 'normal',
-                        temperature: e.temperature,
-                        target_temperature: e.target_temperature
-                    }));
-                    
-                } catch (error) {
-                    console.error('❌ Error fetching equipment:', error);
-                    return [];
-                }
-            }
-            
+        renderNav('equipment');
+        renderChatWidget();
 
-            
+        // Map tickets from global apiClient format to 3D twin format (adds location_id, appliance_id, etc.)
+        function mapTicketsFor3D(rawTickets) {
+            return rawTickets.map(t => ({
+                ticket_id: t.ticket_id,
+                location_id: t.restaurant_id || t.location_id,
+                restaurant_id: t.restaurant_id || t.location_id,
+                appliance_id: t.equipment_id || t.appliance_id,
+                equipment_id: t.equipment_id || t.appliance_id,
+                appliance_name: t.appliance_name,
+                priority: t.priority || 'medium',
+                status: t.status || 'open',
+                description: t.issue || t.description || 'Equipment issue',
+                temperature: t.temperature,
+                target_temperature: t.target_temperature,
+                deviation: t.deviation,
+                sla_hours: t.sla_hours,
+                assigned_team: t.assigned_team,
+                eta: t.eta,
+                malfunction_active: t.malfunction_active,
+                created_at: t.created_at
+            }));
+        }
 
-            
-
+        // Map restaurants from global apiClient format to 3D twin format (adds status_color, equipment_count)
+        function mapRestaurantsFor3D(rawRestaurants) {
+            return rawRestaurants.map(r => ({
+                id: r.id || r.restaurant_id,
+                name: r.name || `Restaurant ${r.id}`,
+                location: r.location || 'Georgia',
+                manager: r.manager || 'Manager',
+                status: r.status || 'operational',
+                status_color: r.status_color || 'green',
+                equipment_count: r.equipment_count || 7
+            }));
         }
 
         // Georgia coordinates - positioned within map outline (North=+Z, South=-Z)
@@ -277,7 +145,7 @@
             'AFC-001': { x: -1, z: 3, city: 'ATLANTA', lat: 33.7490, lon: -84.3880 },         // North-central
             'AFC-003': { x: 6, z: 4, city: 'AUGUSTA', lat: 33.4735, lon: -82.0105 },          // East
             'AFC-006': { x: -5, z: 1, city: 'COLUMBUS', lat: 32.4609, lon: -84.9877 },        // West
-            'AFC-004': { x: 0, z: 0, city: 'MACON', lat: 32.8407, lon: -83.6324 },            // Central
+            'AFC-004': { x: -4, z: 2, city: 'MACON', lat: 32.8407, lon: -83.6324 },            // Central-west (moved to avoid overlap)
             'AFC-002': { x: 8, z: 1, city: 'SAVANNAH', lat: 32.0835, lon: -81.0998 },         // East coast
             'AFC-008': { x: -4, z: -2, city: 'ALBANY', lat: 31.5804, lon: -84.1557 },         // Southwest
             'AFC-007': { x: 7, z: -3, city: 'BRUNSWICK', lat: 31.1498, lon: -81.3912 },       // Southeast coast
@@ -290,34 +158,43 @@
         let restaurantMeshes = [], applianceMeshes = [];
         let currentView = 'map'; // 'map' or 'restaurant'
         let selectedRestaurant = null;
-        const apiClient = new ApiGatewayClient();
         
-        // Appliance types and their 3D representations
+        // Click vs drag detection — OrbitControls consumes drag events
+        let mouseDownPos = { x: 0, y: 0 };
+        let isDragging = false;
+        
+        // HTML label tracking for map view
+        let labelData = [];
+        
+        // Appliance types matching actual DynamoDB equipment IDs
         const applianceTypes = {
             'REF-001': { name: 'Walk-in Cooler', type: 'refrigerator', size: [2.0, 2.5, 1.5], color: 0x87ceeb },
             'REF-002': { name: 'Beverage Cooler', type: 'refrigerator', size: [1.2, 1.8, 0.8], color: 0x87ceeb },
-            'FRZ-001': { name: 'Freezer Unit', type: 'freezer', size: [1.5, 2.0, 1.0], color: 0x4682b4 },
-            'GRL-001': { name: 'Burger Grill', type: 'grill', size: [2.0, 1.2, 1.0], color: 0x8b4513 },
-            'FRY-001': { name: 'French Fry Station', type: 'fryer', size: [1.2, 1.4, 0.8], color: 0xffd700 },
-            'FRY-002': { name: 'Chicken Fryer', type: 'fryer', size: [1.2, 1.4, 0.8], color: 0xffd700 },
-            'ICE-001': { name: 'Ice Cream Freezer', type: 'freezer', size: [1.0, 1.6, 0.8], color: 0xffc0cb }
+            'FRZ-001': { name: 'Walk-in Freezer', type: 'freezer', size: [1.5, 2.0, 1.0], color: 0x4682b4 },
+            'GRILL-001': { name: 'Main Grill', type: 'grill', size: [2.0, 1.2, 1.0], color: 0x8b4513 },
+            'FRYER-001': { name: 'Deep Fryer', type: 'fryer', size: [1.2, 1.4, 0.8], color: 0xffd700 }
         };
 
         function init() {
             // Scene setup
             scene = new THREE.Scene();
-            scene.background = new THREE.Color(0x0f1419);
+            scene.background = new THREE.Color(0xf5f5f5);
             
             // Camera - positioned for enlarged map view
             camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
             camera.position.set(0, 20, 15);
             
-            // Renderer
+            // Renderer — size to canvas container, not full window
             renderer = new THREE.WebGLRenderer({ antialias: true });
-            renderer.setSize(window.innerWidth, window.innerHeight);
+            const canvasContainer = document.getElementById('canvas-container');
+            const cw = canvasContainer.clientWidth || window.innerWidth;
+            const ch = canvasContainer.clientHeight || window.innerHeight;
+            renderer.setSize(cw, ch);
+            camera.aspect = cw / ch;
+            camera.updateProjectionMatrix();
             renderer.shadowMap.enabled = true;
             renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-            document.getElementById('canvas-container').appendChild(renderer.domElement);
+            canvasContainer.appendChild(renderer.domElement);
             
             // Controls
             controls = new THREE.OrbitControls(camera, renderer.domElement);
@@ -343,9 +220,24 @@
             // Load real data
             loadData();
             
-            // Events
+            // Events — track mousedown position to distinguish click from drag
             window.addEventListener('resize', onWindowResize);
+            let mouseIsDown = false;
+            renderer.domElement.addEventListener('mousedown', (e) => {
+                mouseDownPos.x = e.clientX;
+                mouseDownPos.y = e.clientY;
+                isDragging = false;
+                mouseIsDown = true;
+            });
+            renderer.domElement.addEventListener('mousemove', (e) => {
+                if (!mouseIsDown) return; // Only track drag when button is held
+                const dx = e.clientX - mouseDownPos.x;
+                const dy = e.clientY - mouseDownPos.y;
+                if (Math.sqrt(dx*dx + dy*dy) > 10) isDragging = true; // 10px threshold
+            });
+            renderer.domElement.addEventListener('mouseup', () => { mouseIsDown = false; });
             renderer.domElement.addEventListener('click', onMouseClick);
+            renderer.domElement.addEventListener('mousemove', onMouseMove);
             
             animate();
         }
@@ -387,38 +279,49 @@
             scene.add(border);
             
             // Enlarged grid for reference
-            const gridHelper = new THREE.GridHelper(30, 30, 0x444444, 0x222222);
+            const gridHelper = new THREE.GridHelper(30, 30, 0xdddddd, 0xeeeeee);
             gridHelper.position.y = -0.2;
             scene.add(gridHelper);
         }
         
+        let initialLoadDone = false;
+        
         async function loadData() {
             console.log('🔄 Loading data from DynamoDB via API Gateway...');
             
-            // Load all data
-            tickets = await apiClient.getTickets();
+            // Load all data using global apiClient, then map for 3D twin
+            const rawTickets = await apiClient.getTickets();
+            tickets = mapTicketsFor3D(rawTickets);
             console.log('✅ Tickets loaded:', tickets.length);
             
             equipment = await apiClient.getEquipment();
             console.log('✅ Equipment loaded:', equipment.length);
             
-            restaurants = await apiClient.getRestaurants();
+            const rawRestaurants = await apiClient.getRestaurants();
+            restaurants = mapRestaurantsFor3D(rawRestaurants);
             console.log('✅ Restaurants loaded:', restaurants.length);
             
             // Use actual restaurant status from DynamoDB (don't override)
             restaurants = restaurants.map(restaurant => {
                 console.log(`🏪 ${restaurant.id} (${restaurant.name}): ${restaurant.status} (from DynamoDB)`);
-                return restaurant; // Keep original status from API/DynamoDB
+                return restaurant;
             });
             
-            // Start with map view
-            showMapView();
+            // Only show map view on first load; on refresh, rebuild current view
+            if (!initialLoadDone) {
+                showMapView();
+                initialLoadDone = true;
+            } else if (currentView === 'map') {
+                showMapView();
+            } else if (currentView === 'restaurant' && selectedRestaurant) {
+                showRestaurantView(selectedRestaurant);
+            }
             updateStats();
             
             // Hide loading screen
             document.getElementById('loading').style.display = 'none';
             
-            console.log('🎯 Equipment 3D Twin loaded - Map View');
+            console.log('🎯 Equipment 3D Twin loaded');
         }
         
         function showMapView() {
@@ -470,18 +373,22 @@
         }
         
         function clearScene() {
-            // Remove all meshes except lights
+            // Remove everything except lights and camera
             const objectsToRemove = [];
             scene.traverse((child) => {
-                if (child.isMesh || child.isSprite || child.isLineSegments) {
-                    objectsToRemove.push(child);
-                }
+                if (child.isLight || child === camera) return;
+                if (child !== scene) objectsToRemove.push(child);
             });
-            objectsToRemove.forEach(obj => scene.remove(obj));
+            objectsToRemove.forEach(obj => {
+                if (obj.parent === scene) scene.remove(obj);
+            });
             
             // Clear arrays
             restaurantMeshes.length = 0;
             applianceMeshes.length = 0;
+            labelData.length = 0;
+            document.getElementById('label-overlay').innerHTML = '';
+            document.getElementById('hover-tooltip').style.display = 'none';
         }
         
         function createRestaurantMarkers() {
@@ -492,12 +399,12 @@
                 // Get ticket-based status color
                 const statusColor = getTicketBasedColor(restaurant);
                 
-                // Restaurant building (enlarged)
-                const geometry = new THREE.BoxGeometry(1.2, 2, 1.2);
+                // Restaurant building — larger for easier clicking
+                const geometry = new THREE.BoxGeometry(2, 2.5, 2);
                 const material = new THREE.MeshLambertMaterial({ color: statusColor });
                 
                 const mesh = new THREE.Mesh(geometry, material);
-                mesh.position.set(coords.x, 1, coords.z);
+                mesh.position.set(coords.x, 1.25, coords.z);
                 mesh.castShadow = true;
                 mesh.userData = { restaurant: restaurant, type: 'restaurant' };
                 
@@ -513,12 +420,15 @@
                 });
                 
                 const indicator = new THREE.Mesh(indicatorGeometry, indicatorMaterial);
-                indicator.position.set(coords.x, 3, coords.z);
+                indicator.position.set(coords.x, 3.5, coords.z);
                 scene.add(indicator);
                 
-                // Much larger readable city labels - moved lower with white text
-                createWhiteTextLabel(coords.city, coords.x, 2.5, coords.z, 1.5);
-                createWhiteTextLabel(restaurant.id, coords.x, 1.7, coords.z, 1.0);
+                // Store label data for HTML overlay — use actual restaurant name from DynamoDB
+                labelData.push({
+                    pos: new THREE.Vector3(coords.x, 4.2, coords.z),
+                    city: restaurant.name,
+                    id: restaurant.id
+                });
             });
         }
         
@@ -591,15 +501,35 @@
                 }
             });
             
-            // Position appliances in realistic QSR layout
+            // Enrich appliance status based on active tickets
+            appliancesToShow = appliancesToShow.map(appliance => {
+                const appTickets = tickets.filter(t => {
+                    const locMatch = t.location_id === restaurant.id;
+                    const isOpen = t.status === 'open' || t.status === 'in_progress';
+                    if (!locMatch || !isOpen) return false;
+                    if (t.appliance_id && t.appliance_id === appliance.equipment_id) return true;
+                    if (t.appliance_name && t.appliance_name === appliance.appliance_name) return true;
+                    if (!t.appliance_id && t.description) {
+                        const desc = t.description.toLowerCase();
+                        const name = (appliance.appliance_name || '').toLowerCase();
+                        if (name && name.split(' ').some(w => w.length > 3 && desc.includes(w))) return true;
+                    }
+                    return false;
+                });
+                if (appTickets.length > 0) {
+                    const worst = appTickets.some(t => t.priority === 'critical' || t.priority === 'high') ? 'critical' : 'warning';
+                    return { ...appliance, status: worst, _tickets: appTickets };
+                }
+                return appliance;
+            });
+            
+            // Position appliances in realistic QSR layout — 5 appliances spread across kitchen
             const positions = [
-                { x: -8, z: -6 },   // Walk-in cooler (back left)
-                { x: -4, z: -6 },   // Beverage cooler (back)
-                { x: -8, z: -2 },   // Freezer (left side)
-                { x: 0, z: -6 },    // Grill (back center)
-                { x: 4, z: -6 },    // Fryer 1 (back right)
-                { x: 8, z: -6 },    // Fryer 2 (back right)
-                { x: 8, z: -2 }     // Ice cream freezer (right side)
+                { x: -8, z: -6 },   // Walk-in Cooler (back left corner)
+                { x: -3, z: -6 },   // Beverage Cooler (back left-center)
+                { x: -8, z: 0 },    // Walk-in Freezer (left wall, mid)
+                { x: 3, z: -6 },    // Main Grill (back right-center)
+                { x: 8, z: -6 }     // Deep Fryer (back right corner)
             ];
             
             appliancesToShow.forEach((appliance, index) => {
@@ -778,11 +708,23 @@
             // Check for tickets first - MULTIPLE MATCHING STRATEGIES
             const applianceTickets = tickets.filter(t => {
                 const locationMatch = t.location_id === appliance.restaurant_id;
-                const applianceIdMatch = t.appliance_id === appliance.equipment_id;
-                const applianceNameMatch = t.appliance_name === appliance.appliance_name;
-                const isOpen = t.status === 'open';
+                const isOpen = t.status === 'open' || t.status === 'in_progress';
+                if (!locationMatch || !isOpen) return false;
                 
-                return locationMatch && (applianceIdMatch || applianceNameMatch) && isOpen;
+                // Direct ID match
+                if (t.appliance_id && t.appliance_id === appliance.equipment_id) return true;
+                // Name match
+                if (t.appliance_name && t.appliance_name === appliance.appliance_name) return true;
+                // Description keyword match for tickets without equipment_id
+                if (!t.appliance_id && t.description) {
+                    const desc = t.description.toLowerCase();
+                    const name = (appliance.appliance_name || '').toLowerCase();
+                    const type = (appliance.appliance_type || '').toLowerCase();
+                    // Match keywords: "cooler" in desc matches "Walk-in Cooler"
+                    if (name && name.split(' ').some(w => w.length > 3 && desc.includes(w))) return true;
+                    if (type && desc.includes(type)) return true;
+                }
+                return false;
             });
             
             console.log(`🎫 Found ${applianceTickets.length} tickets for ${appliance.equipment_id}`);
@@ -921,19 +863,85 @@
             return 0x00ff00; // Green for operational
         }
         
-        function onMouseClick(event) {
+        let hoveredMesh = null;
+        let hoveredOriginalColor = null;
+        
+        function onMouseMove(event) {
+            const rect = renderer.domElement.getBoundingClientRect();
             const mouse = new THREE.Vector2();
-            mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
-            mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+            mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+            mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+            
+            const raycaster = new THREE.Raycaster();
+            raycaster.setFromCamera(mouse, camera);
+            
+            const targets = currentView === 'map' ? restaurantMeshes : applianceMeshes;
+            const recursive = currentView === 'restaurant';
+            const intersects = raycaster.intersectObjects(targets, recursive);
+            
+            if (intersects.length > 0) {
+                let hit = intersects[0].object;
+                // For appliance groups, walk up to the group
+                if (currentView === 'restaurant') {
+                    while (hit && !hit.userData.appliance && hit.parent) hit = hit.parent;
+                }
+                
+                if (hoveredMesh !== hit) {
+                    // Restore previous
+                    if (hoveredMesh && hoveredMesh.material && hoveredOriginalColor !== null) {
+                        hoveredMesh.material.emissive.setHex(0x000000);
+                    }
+                    hoveredMesh = hit;
+                    if (hit.material) {
+                        hit.material.emissive.setHex(0x444444);
+                    }
+                }
+                renderer.domElement.style.cursor = 'pointer';
+                // Show tooltip near mouse, accounting for canvas offset
+                const tooltip = document.getElementById('hover-tooltip');
+                const ud = hit.userData;
+                if (ud.restaurant && currentView === 'map') {
+                    tooltip.textContent = `🏪 ${ud.restaurant.name} (${ud.restaurant.id}) — Click to enter`;
+                } else if (ud.appliance) {
+                    tooltip.textContent = `⚙️ ${ud.appliance.appliance_name} — ${ud.appliance.status.toUpperCase()}`;
+                }
+                const rect = renderer.domElement.getBoundingClientRect();
+                tooltip.style.left = (event.clientX - rect.left) + 'px';
+                tooltip.style.top = (event.clientY - rect.top) + 'px';
+                tooltip.style.display = 'block';
+            } else {
+                if (hoveredMesh && hoveredMesh.material) {
+                    hoveredMesh.material.emissive.setHex(0x000000);
+                }
+                hoveredMesh = null;
+                renderer.domElement.style.cursor = 'default';
+                document.getElementById('hover-tooltip').style.display = 'none';
+            }
+        }
+        
+        function onMouseClick(event) {
+            // Skip if user was dragging (OrbitControls rotation/pan)
+            if (isDragging) {
+                console.log('🚫 Click skipped — drag detected');
+                return;
+            }
+            
+            const rect = renderer.domElement.getBoundingClientRect();
+            const mouse = new THREE.Vector2();
+            mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+            mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
             
             const raycaster = new THREE.Raycaster();
             raycaster.setFromCamera(mouse, camera);
             
             if (currentView === 'map') {
                 // In map view, click restaurants to enter restaurant view
+                console.log(`🖱️ Map click at (${mouse.x.toFixed(2)}, ${mouse.y.toFixed(2)}), restaurantMeshes: ${restaurantMeshes.length}`);
                 const restaurantIntersects = raycaster.intersectObjects(restaurantMeshes);
+                console.log(`🎯 Intersections: ${restaurantIntersects.length}`);
                 if (restaurantIntersects.length > 0) {
                     const restaurant = restaurantIntersects[0].object.userData.restaurant;
+                    console.log(`✅ Clicked restaurant: ${restaurant.id} - ${restaurant.name}`);
                     selectedRestaurant = restaurant;
                     showRestaurantView(restaurant);
                     showRestaurantInfo(restaurant);
@@ -942,10 +950,17 @@
                 }
             } else if (currentView === 'restaurant') {
                 // In restaurant view, click appliances for details
-                const applianceIntersects = raycaster.intersectObjects(applianceMeshes);
+                // Use recursive=true since appliances are THREE.Group objects
+                const applianceIntersects = raycaster.intersectObjects(applianceMeshes, true);
                 if (applianceIntersects.length > 0) {
-                    const userData = applianceIntersects[0].object.userData;
-                    showApplianceInfo(userData.appliance, userData.restaurant);
+                    // Walk up to find the group with userData (child meshes don't have it)
+                    let hit = applianceIntersects[0].object;
+                    while (hit && !hit.userData.appliance && hit.parent) {
+                        hit = hit.parent;
+                    }
+                    if (hit && hit.userData.appliance) {
+                        showApplianceInfo(hit.userData.appliance, hit.userData.restaurant);
+                    }
                 }
                 // Don't hide info panel when clicking empty space in restaurant view
             }
@@ -956,12 +971,24 @@
             const restaurantTickets = tickets.filter(t => t.location_id === restaurant.id);
             const restaurantEquipment = equipment.filter(e => e.restaurant_id === restaurant.id);
             
+            // Derive effective status from tickets (overrides DynamoDB status)
+            let effectiveStatus = restaurant.status || 'operational';
+            const openTickets = restaurantTickets.filter(t => t.status === 'open' || t.status === 'in_progress');
+            if (openTickets.some(t => t.priority === 'critical' || t.priority === 'high')) {
+                effectiveStatus = 'critical';
+            } else if (openTickets.some(t => t.priority === 'medium')) {
+                effectiveStatus = 'warning';
+            } else if (openTickets.length > 0) {
+                effectiveStatus = 'warning';
+            }
+            
             document.getElementById('restaurant-name').textContent = restaurant.name;
             document.getElementById('restaurant-details').innerHTML = `
                 <p><strong>📍 Location:</strong> ${restaurant.location}</p>
                 <p><strong>👤 Manager:</strong> ${restaurant.manager || 'N/A'}</p>
                 <p><strong>⚙️ Equipment:</strong> ${restaurantEquipment.length} units</p>
-                <div class="status ${restaurant.status}">${restaurant.status.toUpperCase()}</div>
+                <p><strong>🎫 Open Tickets:</strong> ${openTickets.length}</p>
+                <div class="status ${effectiveStatus}">${effectiveStatus.toUpperCase()}</div>
                 <h4>🔧 Equipment Status:</h4>
                 ${Object.keys(applianceTypes).map(equipmentId => {
                     const realEquipment = restaurantEquipment.find(e => e.equipment_id === equipmentId);
@@ -1009,19 +1036,26 @@
         function showApplianceInfo(appliance, restaurant) {
             const panel = document.getElementById('info-panel');
             
-            // Filter tickets for this specific appliance - try multiple matching strategies
+            // Filter tickets for this specific appliance - multiple matching strategies
             const applianceTickets = tickets.filter(t => {
                 const locationMatch = t.location_id === restaurant.id;
-                const applianceMatch = t.appliance_id === appliance.equipment_id || 
-                                     t.appliance_name === appliance.appliance_name;
-                return locationMatch && applianceMatch;
+                const isOpen = t.status === 'open' || t.status === 'in_progress';
+                if (!locationMatch || !isOpen) return false;
+                
+                if (t.appliance_id && t.appliance_id === appliance.equipment_id) return true;
+                if (t.appliance_name && t.appliance_name === appliance.appliance_name) return true;
+                // Description keyword match for tickets without equipment_id
+                if (!t.appliance_id && t.description) {
+                    const desc = t.description.toLowerCase();
+                    const name = (appliance.appliance_name || '').toLowerCase();
+                    const type = (appliance.appliance_type || '').toLowerCase();
+                    if (name && name.split(' ').some(w => w.length > 3 && desc.includes(w))) return true;
+                    if (type && desc.includes(type)) return true;
+                }
+                return false;
             });
             
-            // Don't show info panel for normal status appliances with no tickets
-            if (appliance.status === 'normal' && applianceTickets.length === 0) {
-                console.log(`ℹ️ Skipping info panel for normal status appliance ${appliance.equipment_id} with no tickets`);
-                return;
-            }
+            // Always show info panel for any clicked appliance
             
             console.log(`🔍 Filtering tickets for ${appliance.equipment_id} at ${restaurant.id}:`, applianceTickets);
             
@@ -1100,17 +1134,35 @@
             document.getElementById('ticket-count').textContent = `Active Tickets: ${tickets.length}`;
         }
         
+        function updateLabels() {
+            const overlay = document.getElementById('label-overlay');
+            if (currentView !== 'map' || labelData.length === 0) {
+                overlay.innerHTML = '';
+                return;
+            }
+            const rect = renderer.domElement.getBoundingClientRect();
+            const w2 = rect.width / 2;
+            const h2 = rect.height / 2;
+            let html = '';
+            for (const lbl of labelData) {
+                const v = lbl.pos.clone().project(camera);
+                if (v.z > 1) continue;
+                const x = (v.x * w2) + w2;
+                const y = -(v.y * h2) + h2;
+                html += `<div class="map-label" style="left:${x}px;top:${y + rect.top}px"><div class="city">${lbl.city}</div><div class="rid">${lbl.id}</div></div>`;
+            }
+            overlay.innerHTML = html;
+        }
+        
         function animate() {
             requestAnimationFrame(animate);
             controls.update();
             
             const time = Date.now() * 0.001;
             
-            // Animate restaurants in map view
+            // Animate restaurants in map view — pulse only, no rotation for reliable clicking
             if (currentView === 'map') {
                 restaurantMeshes.forEach((mesh, index) => {
-                    mesh.rotation.y = time * 0.3;
-                    
                     const restaurant = mesh.userData.restaurant;
                     if (restaurant.status === 'critical') {
                         mesh.scale.y = 1 + Math.sin(time * 4) * 0.3;
@@ -1120,12 +1172,10 @@
                 });
             }
             
-            // Animate appliances in restaurant view
+            // Animate appliances in restaurant view (pulse only, no rotation for clickability)
             if (currentView === 'restaurant') {
                 applianceMeshes.forEach((mesh, index) => {
                     const appliance = mesh.userData.appliance;
-                    
-                    mesh.rotation.y = time * 0.2 + index;
                     
                     if (appliance.status === 'critical') {
                         mesh.scale.setScalar(1 + Math.sin(time * 6) * 0.2);
@@ -1135,13 +1185,17 @@
                 });
             }
             
+            updateLabels();
             renderer.render(scene, camera);
         }
         
         function onWindowResize() {
-            camera.aspect = window.innerWidth / window.innerHeight;
+            const canvasContainer = document.getElementById('canvas-container');
+            const cw = canvasContainer.clientWidth || window.innerWidth;
+            const ch = canvasContainer.clientHeight || window.innerHeight;
+            camera.aspect = cw / ch;
             camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setSize(cw, ch);
         }
         
         
@@ -1151,13 +1205,13 @@
         
         // Initialize everything
         console.log('🚀 Initializing Equipment 3D Twin...');
-        init();
-        
-        // Add periodic data refresh for real-time updates
-        setInterval(() => {
-            console.log('🔄 Real-time data refresh...');
-            loadData();
-        }, 30000); // Refresh every 30 seconds for real-time updates
+        authReady.then(function() {
+            init();
+            setInterval(() => {
+                console.log('🔄 Real-time data refresh...');
+                loadData();
+            }, 30000);
+        });
     </script>
 </body>
 </html>

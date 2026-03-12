@@ -3,76 +3,128 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Staffing</title>
-    <script src="https://unpkg.com/amazon-cognito-identity-js@6.3.12/dist/amazon-cognito-identity.min.js"></script>
-    <script src="auth.js"></script>
+    <title>Staffing Status</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: Arial, sans-serif; background: #f5f5f5; }
-        .header { background: #2c3e50; color: white; padding: 1rem; text-align: center; }
-        .nav { background: #34495e; padding: 0.5rem; text-align: center; }
-        .nav a { color: white; text-decoration: none; margin: 0 1rem; padding: 0.5rem 1rem; border-radius: 4px; }
-        .nav a:hover, .nav a.active { background: #3498db; }
-        .container { max-width: 1400px; margin: 2rem auto; padding: 0 1rem; }
-        .filters { background: white; padding: 1rem; border-radius: 8px; margin-bottom: 1rem; }
-        .filters select, .filters input { padding: 0.5rem; margin-right: 1rem; border: 1px solid #ddd; border-radius: 4px; }
-        .summary-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1rem; }
-        .summary-card { background: white; padding: 1rem; border-radius: 8px; text-align: center; }
-        .summary-card h3 { font-size: 2rem; margin: 0.5rem 0; }
+        .container { max-width: 1400px; margin: 1rem auto; padding: 0 1rem; }
+        
+        /* Summary Cards */
+        .summary-section { margin-bottom: 1.5rem; }
+        .summary-title { font-size: 1.2rem; color: #2c3e50; margin-bottom: 1rem; font-weight: bold; }
+        .summary-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; }
+        .summary-card { background: white; padding: 1.2rem; border-radius: 8px; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .summary-card h3 { font-size: 2.2rem; margin: 0.5rem 0; }
+        .summary-card p { color: #666; font-size: 0.9rem; }
         .summary-card.critical { border-left: 4px solid #e74c3c; }
         .summary-card.warning { border-left: 4px solid #f39c12; }
         .summary-card.good { border-left: 4px solid #27ae60; }
-        .response-box { background: white; padding: 2rem; border-radius: 8px; white-space: pre-wrap; font-family: monospace; font-size: 0.9rem; line-height: 1.6; margin-top: 1rem; display: none; }
-        table { width: 100%; background: white; border-radius: 8px; overflow: hidden; }
-        th, td { padding: 1rem; text-align: left; border-bottom: 1px solid #eee; }
-        th { background: #34495e; color: white; }
-        .gap-critical { background: #f8d7da; }
-        .gap-warning { background: #fff3cd; }
-        .gap-good { background: #d4edda; }
+        .summary-card.info { border-left: 4px solid #3498db; }
+        
+        /* Filters */
+        .filters { background: white; padding: 1rem; border-radius: 8px; margin-bottom: 1rem; display: flex; gap: 1rem; flex-wrap: wrap; align-items: center; }
+        .filters select, .filters input { padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px; min-width: 150px; }
+        .filters label { font-weight: bold; color: #555; }
+        
+        /* Table */
+        table { width: 100%; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        th, td { padding: 0.8rem 1rem; text-align: left; border-bottom: 1px solid #eee; }
+        th { background: #34495e; color: white; font-weight: 600; }
+        .gap-critical { background: #ffeaea; }
+        .gap-warning { background: #fff8e6; }
+        .gap-good { background: #eafff0; }
+        
+        /* Progress Bar */
         .progress-bar { width: 100%; height: 20px; background: #eee; border-radius: 10px; overflow: hidden; }
         .progress-fill { height: 100%; transition: width 0.3s; }
         .progress-fill.good { background: #27ae60; }
         .progress-fill.warning { background: #f39c12; }
         .progress-fill.critical { background: #e74c3c; }
+        
+        /* Status Badge */
+        .status-badge { padding: 0.3rem 0.6rem; border-radius: 4px; font-size: 0.8rem; font-weight: bold; }
+        .status-badge.critical { background: #e74c3c; color: white; }
+        .status-badge.warning { background: #f39c12; color: white; }
+        .status-badge.good { background: #27ae60; color: white; }
+        
+        .loading { text-align: center; padding: 2rem; color: #666; }
     </style>
 </head>
 <body>
-    
-
+    <script src="shared.js?v=1773237403"></script>
+    <script src="api.js?v=1773237403"></script>
     <div class="container">
-        <div class="summary-cards" id="summary-cards">
-            <div class="summary-card">
-                <p>Total Locations</p>
-                <h3 id="total-locations">-</h3>
-            </div>
-            <div class="summary-card good">
-                <p>Fully Staffed</p>
-                <h3 id="fully-staffed">-</h3>
-            </div>
-            <div class="summary-card warning">
-                <p>Understaffed</p>
-                <h3 id="understaffed">-</h3>
-            </div>
-            <div class="summary-card critical">
-                <p>Critical Gaps</p>
-                <h3 id="critical-gaps">-</h3>
+        <!-- High-Level Summary -->
+        <div class="summary-section">
+            <div class="summary-title">👥 Staffing Overview - Today</div>
+            <div class="summary-cards">
+                <div class="summary-card info">
+                    <p>Total Shifts</p>
+                    <h3 id="total-shifts">-</h3>
+                </div>
+                <div class="summary-card good">
+                    <p>Fully Staffed</p>
+                    <h3 id="fully-staffed">-</h3>
+                </div>
+                <div class="summary-card warning">
+                    <p>Understaffed</p>
+                    <h3 id="understaffed">-</h3>
+                </div>
+                <div class="summary-card critical">
+                    <p>Critical Gaps</p>
+                    <h3 id="critical-gaps">-</h3>
+                </div>
             </div>
         </div>
 
+        <!-- Restaurant Summary -->
+        <div class="summary-section">
+            <div class="summary-title">🏪 By Restaurant</div>
+            <div class="summary-cards" id="restaurant-summary"></div>
+        </div>
+
+        <!-- Coverage Summary -->
+        <div class="summary-section">
+            <div class="summary-title">📊 Overall Coverage</div>
+            <div class="summary-cards">
+                <div class="summary-card info" style="grid-column: span 2;">
+                    <p>Total Required vs Scheduled</p>
+                    <h3 id="coverage-ratio">-</h3>
+                    <div class="progress-bar" style="margin-top: 0.5rem;">
+                        <div class="progress-fill" id="coverage-bar" style="width: 0%"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filters -->
         <div class="filters">
-            <select id="restaurant-filter" onchange="loadStaffing()">
+            <label>Filter:</label>
+            <select id="restaurant-filter" onchange="filterStaffing()">
                 <option value="">All Restaurants</option>
             </select>
-            <input type="date" id="date-filter" onchange="loadStaffing()">
+            <input type="date" id="date-filter" onchange="filterStaffing()">
+            <select id="shift-filter" onchange="filterStaffing()">
+                <option value="">All Shifts</option>
+                <option value="morning">Morning</option>
+                <option value="afternoon">Afternoon</option>
+                <option value="evening">Evening</option>
+            </select>
+            <select id="status-filter" onchange="filterStaffing()">
+                <option value="">All Status</option>
+                <option value="critical">Critical Gaps</option>
+                <option value="warning">Understaffed</option>
+                <option value="good">Fully Staffed</option>
+            </select>
         </div>
 
-        <div id="staffing-response" class="response-box">Loading staffing data...</div>
-
-        <table id="staffing-table">
+        <!-- Staffing Table -->
+        <table>
             <thead>
                 <tr>
                     <th>Restaurant</th>
                     <th>Date</th>
+                    <th>Shift</th>
                     <th>Role</th>
                     <th>Required</th>
                     <th>Scheduled</th>
@@ -82,139 +134,272 @@
                 </tr>
             </thead>
             <tbody id="staffing-body">
-                <tr><td colspan="8" style="text-align: center;">Loading...</td></tr>
+                <tr><td colspan="9" class="loading">Loading staffing data...</td></tr>
             </tbody>
         </table>
     </div>
 
     <script>
-        // Inline API Client
-        class ApiGatewayClient {
-            constructor() {
-                this.baseUrl = 'https://mojgf9gmfk.execute-api.us-east-1.amazonaws.com/prod';
-                this.token = null;
-            }
-            
-            async getRestaurants() {
-                const response = await fetch(`${this.baseUrl}/restaurants`);
-                const data = await response.json();
-                return data.restaurants || data;
-            }
-        }
-        
-        let apiClient;
-        
+        let allStaffing = [];
+        let restaurants = [];
+
+        renderNav('staffing');
+        renderChatWidget();
+
         async function init() {
-            apiClient = new ApiGatewayClient();
-            
-            // Set default date to today
+            // Set default date - use latest date from data or today
             const today = new Date().toISOString().split('T')[0];
             document.getElementById('date-filter').value = today;
             
-            await loadRestaurants();
-            await loadStaffing();
-        }
-        
-        async function loadRestaurants() {
-            const restaurants = await apiClient.getRestaurants();
-            const select = document.getElementById('restaurant-filter');
-            restaurants.forEach(r => {
-                const option = document.createElement('option');
-                option.value = r.id;
-                option.textContent = r.name;
-                select.appendChild(option);
-            });
-        }
-        
-        async function loadStaffing() {
-            const restaurantFilter = document.getElementById('restaurant-filter').value;
-            const dateFilter = document.getElementById('date-filter').value;
-            const tbody = document.getElementById('staffing-body');
-            
-            tbody.innerHTML = '<tr><td colspan="8" style="text-align: center;">Loading...</td></tr>';
-            
             try {
-                const agentArn = 'arn:aws:bedrock-agentcore:us-east-1:986635652628:runtime/restaurant_ops_full-Ni2asWG82Q';
-                const chatUrl = `https://bedrock-agentcore-runtime.us-east-1.amazonaws.com/invoke`;
-                let prompt = `Show staffing gaps for all restaurants today. Format each line as: RESTAURANT | DATE | ROLE | REQUIRED | SCHEDULED | GAP | COVERAGE% | STATUS`;
-                if (restaurantFilter) prompt = `Show staffing gaps for ${restaurantFilter} today. Format each line as: RESTAURANT | DATE | ROLE | REQUIRED | SCHEDULED | GAP | COVERAGE% | STATUS`;
-                
-                console.log('Fetching staffing data...');
-                const response = await fetch(chatUrl, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ 
-                        prompt: prompt,
-                        sessionId: 'staffing_' + Date.now()
-                    })
-                });
-                
-                console.log('Response status:', response.status);
-                if (response.ok) {
-                    const data = await response.json();
-                    console.log('Response data:', data);
-                    parseStaffingResponse(data.response || '');
-                } else {
-                    throw new Error('API error: ' + response.status);
-                }
+                await Promise.all([loadRestaurants(), loadStaffing()]);
             } catch (error) {
-                console.error('Error loading staffing:', error);
-                tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; color: red;">Error: ' + error.message + '</td></tr>';
+                console.error('Init error:', error);
+                document.getElementById('staffing-body').innerHTML = 
+                    '<tr><td colspan="9" class="loading" style="color: red;">Error: ' + error.message + '</td></tr>';
             }
         }
-        
-        function parseStaffingResponse(text) {
+
+        async function loadRestaurants() {
+            try {
+                const response = await authFetch(`${API_URL}/restaurants`);
+                const data = await response.json();
+                restaurants = data.restaurants || data || [];
+                
+                const select = document.getElementById('restaurant-filter');
+                restaurants.forEach(r => {
+                    const option = document.createElement('option');
+                    option.value = r.id;
+                    option.textContent = r.name;
+                    select.appendChild(option);
+                });
+            } catch (error) {
+                console.error('Error loading restaurants:', error);
+            }
+        }
+
+        async function loadStaffing() {
+            try {
+                const response = await authFetch(`${API_URL}/staffing`);
+                if (!response.ok) throw new Error('API returned ' + response.status);
+                const data = await response.json();
+                const rawStaffing = data.staffing || data || [];
+                console.log('Loaded staffing:', rawStaffing.length, 'records');
+                
+                // Flatten nested staffing data if needed
+                allStaffing = [];
+                rawStaffing.forEach(record => {
+                    if (record.staffing && Array.isArray(record.staffing)) {
+                        // Old nested format: flatten each staffing entry
+                        record.staffing.forEach(s => {
+                            allStaffing.push({
+                                restaurant_id: record.restaurant_id,
+                                shift_date: record.date || record.shift_date,
+                                shift: s.shift,
+                                role: s.role,
+                                required_count: s.required_count,
+                                scheduled_count: s.scheduled_count
+                            });
+                        });
+                    } else if (record.shifts && typeof record.shifts === 'object') {
+                        // New shifts object format: { morning: {required, scheduled}, afternoon: {...}, evening: {...} }
+                        Object.entries(record.shifts).forEach(([shiftName, shiftData]) => {
+                            allStaffing.push({
+                                restaurant_id: record.restaurant_id,
+                                shift_date: record.date || record.shift_date,
+                                shift: shiftName,
+                                role: 'All Staff',
+                                required_count: shiftData.required,
+                                scheduled_count: shiftData.scheduled
+                            });
+                        });
+                    } else {
+                        // Flat format: normalize field names
+                        allStaffing.push({
+                            ...record,
+                            shift_date: record.date || record.shift_date
+                        });
+                    }
+                });
+                console.log('Flattened staffing:', allStaffing.length, 'entries');
+                
+                // If no data for today, clear the date filter to show all
+                const today = document.getElementById('date-filter').value;
+                const todayData = allStaffing.filter(s => s.shift_date === today);
+                if (todayData.length === 0 && allStaffing.length > 0) {
+                    // Find the latest date with data
+                    const dates = [...new Set(allStaffing.map(s => s.shift_date))].sort().reverse();
+                    if (dates.length > 0) {
+                        document.getElementById('date-filter').value = dates[0];
+                    }
+                }
+                
+                updateSummary();
+                updateRestaurantSummary();
+                filterStaffing();
+            } catch (error) {
+                console.error('Error loading staffing:', error);
+                document.getElementById('staffing-body').innerHTML = 
+                    '<tr><td colspan="9" class="loading" style="color: red;">Error loading staffing data: ' + error.message + '</td></tr>';
+            }
+        }
+
+        function getShiftStatus(shift) {
+            const required = parseInt(shift.required_count || 0);
+            const scheduled = parseInt(shift.scheduled_count || 0);
+            const gap = required - scheduled;
+            const coverage = required > 0 ? (scheduled / required) * 100 : 100;
+            
+            let status = 'good';
+            if (gap > 2 || coverage < 70) status = 'critical';
+            else if (gap > 0) status = 'warning';
+            
+            return { gap, coverage, status };
+        }
+
+        function updateSummary() {
+            const today = document.getElementById('date-filter').value;
+            const todayStaffing = allStaffing.filter(s => s.shift_date === today);
+            
+            let fullyStaffed = 0, understaffed = 0, critical = 0;
+            let totalRequired = 0, totalScheduled = 0;
+            
+            todayStaffing.forEach(shift => {
+                const { gap, status } = getShiftStatus(shift);
+                totalRequired += parseInt(shift.required_count || 0);
+                totalScheduled += parseInt(shift.scheduled_count || 0);
+                
+                if (status === 'critical') critical++;
+                else if (status === 'warning') understaffed++;
+                else fullyStaffed++;
+            });
+            
+            document.getElementById('total-shifts').textContent = todayStaffing.length;
+            document.getElementById('fully-staffed').textContent = fullyStaffed;
+            document.getElementById('understaffed').textContent = understaffed;
+            document.getElementById('critical-gaps').textContent = critical;
+            
+            // Coverage ratio
+            const overallCoverage = totalRequired > 0 ? (totalScheduled / totalRequired) * 100 : 100;
+            document.getElementById('coverage-ratio').textContent = 
+                `${totalScheduled} / ${totalRequired} (${overallCoverage.toFixed(0)}%)`;
+            
+            const coverageBar = document.getElementById('coverage-bar');
+            coverageBar.style.width = `${Math.min(overallCoverage, 100)}%`;
+            coverageBar.className = `progress-fill ${overallCoverage >= 100 ? 'good' : overallCoverage >= 80 ? 'warning' : 'critical'}`;
+        }
+
+        function updateRestaurantSummary() {
+            const container = document.getElementById('restaurant-summary');
+            const today = document.getElementById('date-filter').value;
+            const todayStaffing = allStaffing.filter(s => s.shift_date === today);
+            
+            const byRestaurant = {};
+            
+            todayStaffing.forEach(shift => {
+                const rid = shift.restaurant_id;
+                if (!byRestaurant[rid]) {
+                    byRestaurant[rid] = { required: 0, scheduled: 0, gaps: 0 };
+                }
+                byRestaurant[rid].required += parseInt(shift.required_count || 0);
+                byRestaurant[rid].scheduled += parseInt(shift.scheduled_count || 0);
+                const { gap } = getShiftStatus(shift);
+                if (gap > 0) byRestaurant[rid].gaps++;
+            });
+            
+            container.innerHTML = Object.entries(byRestaurant).map(([rid, data]) => {
+                const restaurant = restaurants.find(r => r.id === rid);
+                const name = restaurant ? restaurant.name : rid;
+                const coverage = data.required > 0 ? (data.scheduled / data.required) * 100 : 100;
+                const statusClass = coverage >= 100 ? 'good' : coverage >= 80 ? 'warning' : 'critical';
+                const statusIcon = coverage >= 100 ? '✅' : coverage >= 80 ? '⚠️' : '🔴';
+                
+                return `
+                    <div class="summary-card ${statusClass}">
+                        <p>${name}</p>
+                        <h3>${statusIcon} ${coverage.toFixed(0)}%</h3>
+                        <small>${data.scheduled}/${data.required} staff</small>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function filterStaffing() {
+            const restaurantFilter = document.getElementById('restaurant-filter').value;
+            const dateFilter = document.getElementById('date-filter').value;
+            const shiftFilter = document.getElementById('shift-filter').value;
+            const statusFilter = document.getElementById('status-filter').value;
+            
+            let filtered = allStaffing;
+            
+            if (restaurantFilter) {
+                filtered = filtered.filter(s => s.restaurant_id === restaurantFilter);
+            }
+            if (dateFilter) {
+                filtered = filtered.filter(s => s.shift_date === dateFilter);
+            }
+            if (shiftFilter) {
+                filtered = filtered.filter(s => s.shift === shiftFilter);
+            }
+            if (statusFilter) {
+                filtered = filtered.filter(s => {
+                    const { status } = getShiftStatus(s);
+                    return status === statusFilter;
+                });
+            }
+            
+            // Update summary when date changes
+            updateSummary();
+            updateRestaurantSummary();
+            renderStaffing(filtered);
+        }
+
+        function renderStaffing(staffing) {
             const tbody = document.getElementById('staffing-body');
             
-            console.log('Parsing response, length:', text.length);
-            console.log('First 200 chars:', text.substring(0, 200));
-            
-            // Split by lines and filter for data rows (must have AFC- and multiple pipes)
-            const lines = text.split('\n').filter(l => 
-                l.includes('AFC-') && 
-                l.includes('|') && 
-                (l.match(/\|/g) || []).length >= 6
-            );
-            
-            console.log('Found', lines.length, 'data lines');
-            
-            if (lines.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="8" style="text-align: center;">No staffing data found. Response: ' + text.substring(0, 100) + '...</td></tr>';
+            if (staffing.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="9" class="loading">No staffing data found for selected filters</td></tr>';
                 return;
             }
             
-            tbody.innerHTML = lines.map(line => {
-                const parts = line.split('|').map(p => p.trim());
-                if (parts.length < 7) return '';
-                
-                // Extract coverage percentage from parts[6] (e.g., "50%")
-                const coverageStr = parts[6] || '100%';
-                const coverage = parseInt(coverageStr.replace('%', '')) || 100;
-                const gap = 100 - coverage; // Gap is inverse of coverage
-                const rowClass = gap > 50 ? 'gap-critical' : gap > 20 ? 'gap-warning' : 'gap-good';
+            // Sort by status (critical first), then by restaurant
+            staffing.sort((a, b) => {
+                const aStatus = getShiftStatus(a);
+                const bStatus = getShiftStatus(b);
+                const order = { critical: 0, warning: 1, good: 2 };
+                if (order[aStatus.status] !== order[bStatus.status]) {
+                    return order[aStatus.status] - order[bStatus.status];
+                }
+                return a.restaurant_id.localeCompare(b.restaurant_id);
+            });
+            
+            tbody.innerHTML = staffing.map(shift => {
+                const { gap, coverage, status } = getShiftStatus(shift);
+                const restaurant = restaurants.find(r => r.id === shift.restaurant_id);
+                const restaurantName = restaurant ? restaurant.name : shift.restaurant_id;
+                const rowClass = status === 'critical' ? 'gap-critical' : status === 'warning' ? 'gap-warning' : 'gap-good';
                 
                 return `
                     <tr class="${rowClass}">
-                        <td>${parts[0]}</td>
-                        <td>${parts[1]}</td>
-                        <td>${parts[2]}</td>
-                        <td>${parts[3]}</td>
-                        <td>${parts[4]}</td>
-                        <td>${parts[5]}</td>
-                        <td>${parts[6]}</td>
-                        <td><strong>${parts[7] || (gap > 50 ? 'Critical' : gap > 20 ? 'Warning' : 'OK')}</strong></td>
+                        <td>${restaurantName}</td>
+                        <td>${shift.shift_date}</td>
+                        <td>${(shift.shift || '').charAt(0).toUpperCase() + (shift.shift || '').slice(1)}</td>
+                        <td>${shift.role}</td>
+                        <td>${shift.required_count}</td>
+                        <td>${shift.scheduled_count}</td>
+                        <td>${gap > 0 ? '-' + gap : '0'}</td>
+                        <td>
+                            <div class="progress-bar">
+                                <div class="progress-fill ${status}" style="width: ${Math.min(coverage, 100)}%"></div>
+                            </div>
+                            <small>${coverage.toFixed(0)}%</small>
+                        </td>
+                        <td><span class="status-badge ${status}">${status === 'good' ? 'FULL' : status.toUpperCase()}</span></td>
                     </tr>
                 `;
-            }).filter(row => row).join('');
-            
-            if (!tbody.innerHTML) {
-                tbody.innerHTML = '<tr><td colspan="8" style="text-align: center;">Unable to parse staffing data</td></tr>';
-            }
-            
-            console.log('Table updated with', lines.length, 'rows');
+            }).join('');
         }
-        
-        
+
         window.onload = init;
     </script>
 </body>

@@ -1,0 +1,17 @@
+{
+  "enabled": true,
+  "name": "Agent Code Review",
+  "description": "Reviews AgentCore agent code changes for Strands SDK patterns and deployment requirements",
+  "version": "1",
+  "when": {
+    "type": "fileEdited",
+    "patterns": [
+      "deployment/agent-code/*.py",
+      "deployment/agent-code/requirements.txt"
+    ]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "Agent code was modified. Review for:\n\n1. **Strands SDK Patterns**:\n   - Tools use @tool decorator from strands.tool\n   - Return format: {\"status\": \"success|error\", \"content\": [{\"text\": \"...\"}]}\n   - Agent uses correct model: us.amazon.nova-lite-v1:0\n   - Proper error handling with try/except\n\n2. **DynamoDB Operations**:\n   - Uses boto3.resource('dynamodb')\n   - Table names match: restaurant-agent-* pattern\n   - Proper error handling for DynamoDB operations\n\n3. **Tool Definitions**:\n   - All tools have docstrings\n   - Parameters have type hints\n   - Tools handle edge cases gracefully\n\n4. **Deployment Reminder**:\n   After changes, redeploy the agent:\n   ```bash\n   cd deployment/agent-code\n   agentcore configure --entrypoint agent.py --name restaurant_agent --runtime PYTHON_3_11 --disable-memory --non-interactive\n   agentcore deploy\n   ```\n   \n   Or use the deployment script:\n   ```bash\n   ./deployment/deploy-agentcore-cli.sh\n   ```\n\n5. **Testing**:\n   Test with:\n   ```bash\n   agentcore invoke '{\"prompt\": \"List restaurants\"}'\n   ```"
+  }
+}

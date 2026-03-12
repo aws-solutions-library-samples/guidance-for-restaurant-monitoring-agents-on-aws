@@ -1,9 +1,9 @@
 // Cognito Authentication Configuration
 const cognitoConfig = {
     region: 'us-east-1',
-    userPoolId: 'us-east-1_mRcfF1QUb', // Replace with actual User Pool ID
-    userPoolWebClientId: '7rsl68lfdpc1eln8g4sl1ophn3', // Replace with actual Client ID
-    identityPoolId: 'us-east-1:ffd98764-b4fc-41e4-9ea9-fb5bee219648' // Replace with actual Identity Pool ID
+    userPoolId: 'us-east-1_irtVFCmZ4',
+    userPoolWebClientId: '76oq6mah56p6t4tchkfej1vmg8',
+    identityPoolId: 'us-east-1:58064a0f-9248-4638-98f8-3f2e30dfbdc7'
 };
 
 // AWS Cognito SDK
@@ -257,6 +257,21 @@ class CognitoAuth {
             },
             onFailure: (err) => {
                 this.showMessage(err.message, 'error');
+            },
+            newPasswordRequired: (userAttributes) => {
+                // For admin-created users, set the same password as permanent
+                delete userAttributes.email_verified;
+                delete userAttributes.email;
+                cognitoUser.completeNewPasswordChallenge(password, userAttributes, {
+                    onSuccess: (result) => {
+                        console.log('Password changed successfully');
+                        this.currentUser = cognitoUser;
+                        this.showMainApp();
+                    },
+                    onFailure: (err) => {
+                        this.showMessage(err.message, 'error');
+                    }
+                });
             }
         });
     }

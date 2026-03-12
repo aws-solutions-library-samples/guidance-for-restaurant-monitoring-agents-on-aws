@@ -37,6 +37,7 @@ wheels/
 
 # Virtual environments
 venv/
+strands-env/
 env/
 ENV/
 
@@ -51,3 +52,7 @@ logs/
 # Temporary files
 *.tmp
 *.temp
+
+# AgentCore config (account-specific, regenerated on deploy)
+.bedrock_agentcore.yaml
+.bedrock_agentcore/

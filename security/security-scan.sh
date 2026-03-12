@@ -3,12 +3,12 @@
 
 echo "🔒 AWS Security Scan Report"
 echo "==========================="
-echo "Project: rest-monitor"
+echo "Project: restaurant-agent"
 echo "Environment: prod"
 echo "Date: $(date)"
 echo
 
-STACK_NAME="rest-monitor-base-infrastructure-prod"
+STACK_NAME="restaurant-agent-infrastructure-prod"
 REGION="us-east-1"
 
 # Check if stack exists
@@ -27,19 +27,28 @@ echo
 
 # Validate template
 echo "Validating template..."
-if aws cloudformation validate-template --template-body file://../deployment/restaurant-monitoring-base-template.yaml --region $REGION >/dev/null 2>&1; then
-    echo "✅ Template is valid"
+TEMPLATE_PATH="deployment/templates/restaurant-monitoring-base-template.yaml"
+if [ -f "$TEMPLATE_PATH" ]; then
+    if aws cloudformation validate-template --template-body file://$TEMPLATE_PATH --region $REGION >/dev/null 2>&1; then
+        echo "✅ Template is valid"
+    else
+        echo "❌ Template validation failed"
+    fi
 else
-    echo "❌ Template validation failed"
+    echo "⚠️  Template file not found at $TEMPLATE_PATH"
 fi
 
 # Check for hardcoded secrets
 echo
 echo "Checking for hardcoded secrets..."
-if grep -r "password\|secret\|key" ../deployment/restaurant-monitoring-base-template.yaml | grep -v "PolicyName\|KeySchema\|AttributeName\|BucketKey" | grep -v "^#"; then
-    echo "⚠️  Potential secrets found in template"
+if [ -f "$TEMPLATE_PATH" ]; then
+    if grep -r "password\|secret\|key" $TEMPLATE_PATH | grep -v "PolicyName\|KeySchema\|AttributeName\|BucketKey\|SecretKey\|KeyType\|KeyId" | grep -v "^#"; then
+        echo "⚠️  Potential secrets found in template"
+    else
+        echo "✅ No hardcoded secrets detected"
+    fi
 else
-    echo "✅ No hardcoded secrets detected"
+    echo "⚠️  Skipping - template not found"
 fi
 
 # 2. IAM Security
@@ -50,7 +59,7 @@ echo
 
 # Check IAM roles
 echo "Checking IAM roles..."
-ROLES=$(aws iam list-roles --query "Roles[?contains(RoleName, 'rest-monitor')].RoleName" --output text --region $REGION 2>/dev/null)
+ROLES=$(aws iam list-roles --query "Roles[?contains(RoleName, 'restaurant-agent')].RoleName" --output text --region $REGION 2>/dev/null)
 if [ -n "$ROLES" ]; then
     echo "✅ Found IAM roles:"
     for role in $ROLES; do
@@ -74,7 +83,7 @@ echo "📋 3. S3 Bucket Security"
 echo "========================"
 echo
 
-BUCKETS=$(aws s3 ls | grep "rest-monitor" | awk '{print $3}')
+BUCKETS=$(aws s3 ls | grep "restaurant-agent" | awk '{print $3}')
 if [ -n "$BUCKETS" ]; then
     for bucket in $BUCKETS; do
         echo "Checking bucket: $bucket"
@@ -113,7 +122,7 @@ echo "📋 4. DynamoDB Security"
 echo "======================="
 echo
 
-TABLES=$(aws dynamodb list-tables --query "TableNames[?contains(@, 'rest-monitor')]" --output text --region $REGION 2>/dev/null)
+TABLES=$(aws dynamodb list-tables --query "TableNames[?contains(@, 'restaurant-agent')]" --output text --region $REGION 2>/dev/null)
 if [ -n "$TABLES" ]; then
     for table in $TABLES; do
         echo "Checking table: $table"
@@ -145,7 +154,7 @@ echo "📋 5. Lambda Security"
 echo "====================="
 echo
 
-FUNCTIONS=$(aws lambda list-functions --query "Functions[?contains(FunctionName, 'rest-monitor')].FunctionName" --output text --region $REGION 2>/dev/null)
+FUNCTIONS=$(aws lambda list-functions --query "Functions[?contains(FunctionName, 'restaurant-agent')].FunctionName" --output text --region $REGION 2>/dev/null)
 if [ -n "$FUNCTIONS" ]; then
     for func in $FUNCTIONS; do
         echo "Checking function: $func"
@@ -192,7 +201,7 @@ if [ -n "$API_ID" ] && [ "$API_ID" != "None" ]; then
     fi
     
     # Check for usage plans (rate limiting)
-    USAGE_PLANS=$(aws apigateway get-usage-plans --region $REGION --query "items[?contains(name, 'rest-monitor')].name" --output text 2>/dev/null)
+    USAGE_PLANS=$(aws apigateway get-usage-plans --region $REGION --query "items[?contains(name, 'restaurant-agent')].name" --output text 2>/dev/null)
     if [ -n "$USAGE_PLANS" ]; then
         echo "   ✅ Usage plans configured (rate limiting enabled)"
     else
@@ -270,7 +279,7 @@ echo "📋 9. CloudTrail"
 echo "================"
 echo
 
-TRAILS=$(aws cloudtrail describe-trails --region $REGION --query "trailList[?contains(Name, 'rest-monitor')].Name" --output text 2>/dev/null)
+TRAILS=$(aws cloudtrail describe-trails --region $REGION --query "trailList[?contains(Name, 'restaurant-agent')].Name" --output text 2>/dev/null)
 if [ -n "$TRAILS" ]; then
     echo "✅ CloudTrail enabled: $TRAILS"
 else

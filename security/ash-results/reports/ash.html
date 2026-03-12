@@ -1,0 +1,1088 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>ASH Security Scan Results</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1, h2, h3 {
+            color: #333;
+            margin-top: 20px;
+        }
+        .summary-box {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            padding: 15px;
+            margin: 10px 0;
+        }
+        .severity-error { color: #dc3545; }
+        .severity-warning { color: #fd7e14; }
+        .severity-note { color: #ffc107; }
+        .severity-none { color: #28a745; }
+        .status-passed { color: #28a745; font-weight: bold; }
+        .status-failed { color: #dc3545; font-weight: bold; }
+        .status-error { color: #dc3545; font-weight: bold; }
+        .status-skipped { color: #6c757d; font-weight: bold; }
+        .status-missing { color: #fd7e14; font-weight: bold; }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border: 1px solid #dee2e6;
+        }
+        th {
+            background: #f8f9fa;
+            font-weight: bold;
+        }
+        tr:nth-child(even) {
+            background: #f8f9fa;
+        }
+        .metadata-item {
+            margin: 10px 0;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 4px;
+        }
+        .help-text {
+            background: #e9f5ff;
+            border: 1px solid #b8daff;
+            border-radius: 4px;
+            padding: 15px;
+            margin: 15px 0;
+            font-size: 0.9em;
+        }
+        .help-text h4 {
+            margin-top: 0;
+            color: #0056b3;
+        }
+        .help-text ul {
+            margin-bottom: 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>ASH Security Scan Results</h1>
+
+        <div class="metadata-section">
+            <p><strong>Project:</strong> ASH</p>
+            <p><strong>Scan executed:</strong> 2026-03-10T20:46:16+00:00</p>
+            <p><strong>Report generated:</strong> 2026-03-10T20:47:19+00:00</p>
+            <p><strong>ASH version:</strong> 3.2.3</p>
+        </div>
+
+        <h2>Scanner Results</h2>
+        <div class="help-text">
+            <h4>How to read scanner results</h4>
+            <ul>
+                <li><strong>Severity levels:</strong>
+                    <ul>
+                        <li><strong>Suppressed (S):</strong> Findings that have been explicitly suppressed and don't affect scanner status</li>
+                        <li><strong>Critical (C):</strong> Highest severity findings that require immediate attention</li>
+                        <li><strong>High (H):</strong> Serious findings that should be addressed soon</li>
+                        <li><strong>Medium (M):</strong> Moderate risk findings</li>
+                        <li><strong>Low (L):</strong> Lower risk findings</li>
+                        <li><strong>Info (I):</strong> Informational findings with minimal risk</li>
+                    </ul>
+                </li>
+                <li><strong>Duration:</strong> Time taken by the scanner to complete its execution</li>
+                <li><strong>Actionable:</strong> Number of findings at or above the threshold severity level that require attention</li>
+                <li><strong>Result:</strong>
+                    <ul>
+                        <li class="status-passed">PASSED = No findings at or above threshold</li>
+                        <li class="status-failed">FAILED = Findings at or above threshold</li>
+                        <li class="status-missing">MISSING = Required dependencies not available</li>
+                        <li class="status-skipped">SKIPPED = Scanner explicitly disabled</li>
+                        <li class="status-error">ERROR = Scanner execution error</li>
+                    </ul>
+                </li>
+                <li><strong>Threshold:</strong> The minimum severity level that will cause a scanner to fail</li>
+                <li><strong>Statistics calculation:</strong>
+                    <ul>
+                        <li>All statistics are calculated from the final aggregated SARIF report</li>
+                        <li>Suppressed findings are counted separately and do not contribute to actionable findings</li>
+                        <li>Scanner status is determined by comparing actionable findings to the threshold</li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+        
+        <table>
+            <tr>
+                <th>Scanner</th>
+                <th>S</th>
+                <th>C</th>
+                <th>H</th>
+                <th>M</th>
+                <th>L</th>
+                <th>I</th>
+                <th>Duration</th>
+                <th>Actionable</th>
+                <th>Result</th>
+                <th>Threshold</th>
+            </tr>
+        
+            <tr>
+                <td>bandit</td>
+                <td>0</td>
+                <td>0</td>
+                <td>0</td>
+                <td>0</td>
+                <td>4</td>
+                <td>0</td>
+                <td><1ms</td>
+                <td class="status-passed">0</td>
+                <td class="status-passed">PASSED</td>
+                <td>MEDIUM (global)</td>
+            </tr>
+            
+            <tr>
+                <td>cdk-nag</td>
+                <td>0</td>
+                <td>19</td>
+                <td>0</td>
+                <td>1</td>
+                <td>0</td>
+                <td>46</td>
+                <td><1ms</td>
+                <td class="status-failed">20</td>
+                <td class="status-failed">FAILED</td>
+                <td>MEDIUM (global)</td>
+            </tr>
+            
+            <tr>
+                <td>cfn-nag</td>
+                <td>0</td>
+                <td>0</td>
+                <td>0</td>
+                <td>0</td>
+                <td>0</td>
+                <td>0</td>
+                <td><1ms</td>
+                <td class="status-passed">0</td>
+                <td class="status-missing">MISSING</td>
+                <td>MEDIUM (global)</td>
+            </tr>
+            
+            <tr>
+                <td>checkov</td>
+                <td>0</td>
+                <td>6</td>
+                <td>0</td>
+                <td>0</td>
+                <td>0</td>
+                <td>0</td>
+                <td><1ms</td>
+                <td class="status-failed">6</td>
+                <td class="status-failed">FAILED</td>
+                <td>MEDIUM (global)</td>
+            </tr>
+            
+            <tr>
+                <td>detect-secrets</td>
+                <td>0</td>
+                <td>4</td>
+                <td>0</td>
+                <td>0</td>
+                <td>0</td>
+                <td>0</td>
+                <td><1ms</td>
+                <td class="status-failed">4</td>
+                <td class="status-failed">FAILED</td>
+                <td>MEDIUM (global)</td>
+            </tr>
+            
+            <tr>
+                <td>grype</td>
+                <td>0</td>
+                <td>0</td>
+                <td>0</td>
+                <td>0</td>
+                <td>0</td>
+                <td>0</td>
+                <td><1ms</td>
+                <td class="status-passed">0</td>
+                <td class="status-missing">MISSING</td>
+                <td>MEDIUM (global)</td>
+            </tr>
+            
+            <tr>
+                <td>npm-audit</td>
+                <td>0</td>
+                <td>0</td>
+                <td>0</td>
+                <td>0</td>
+                <td>0</td>
+                <td>0</td>
+                <td><1ms</td>
+                <td class="status-passed">0</td>
+                <td class="status-passed">PASSED</td>
+                <td>MEDIUM (global)</td>
+            </tr>
+            
+            <tr>
+                <td>opengrep</td>
+                <td>0</td>
+                <td>0</td>
+                <td>0</td>
+                <td>0</td>
+                <td>0</td>
+                <td>0</td>
+                <td><1ms</td>
+                <td class="status-passed">0</td>
+                <td class="status-missing">MISSING</td>
+                <td>MEDIUM (global)</td>
+            </tr>
+            
+            <tr>
+                <td>semgrep</td>
+                <td>0</td>
+                <td>3</td>
+                <td>0</td>
+                <td>0</td>
+                <td>0</td>
+                <td>0</td>
+                <td><1ms</td>
+                <td class="status-failed">3</td>
+                <td class="status-failed">FAILED</td>
+                <td>MEDIUM (global)</td>
+            </tr>
+            
+            <tr>
+                <td>syft</td>
+                <td>0</td>
+                <td>0</td>
+                <td>0</td>
+                <td>0</td>
+                <td>0</td>
+                <td>0</td>
+                <td><1ms</td>
+                <td class="status-passed">0</td>
+                <td class="status-missing">MISSING</td>
+                <td>MEDIUM (global)</td>
+            </tr>
+            </table>
+
+        <h2>Summary</h2>
+        <div class="summary-box">
+            <h3>Findings by Severity</h3><p>Statistics are calculated from the final aggregated SARIF report:</p><ul><li class="severity-note"><strong>NOTE</strong>: 4 finding(s)</li><li class="severity-error"><strong>ERROR</strong>: 32 finding(s)</li><li class="severity-none"><strong>NONE</strong>: 46 finding(s)</li><li class="severity-warning"><strong>WARNING</strong>: 1 finding(s)</li></ul>
+            <h3>Findings by Type</h3><ul><li>B110: 1 finding(s)</li><li>B311: 3 finding(s)</li><li>SECRET-BASE64-HIGH-ENTROPY-STRING: 3 finding(s)</li><li>SECRET-SECRET-KEYWORD: 1 finding(s)</li><li>AwsSolutions-KMS5: 3 finding(s)</li><li>AwsSolutions-SQS2: 2 finding(s)</li><li>AwsSolutions-SQS3: 2 finding(s)</li><li>AwsSolutions-SQS4: 2 finding(s)</li><li>AwsSolutions-IAM4: 3 finding(s)</li><li>AwsSolutions-IAM5: 4 finding(s)</li><li>AwsSolutions-L1: 2 finding(s)</li><li>AwsSolutions-APIG4: 14 finding(s)</li><li>AwsSolutions-COG4: 7 finding(s)</li><li>AwsSolutions-DDB3: 6 finding(s)</li><li>AwsSolutions-APIG2: 1 finding(s)</li><li>AwsSolutions-COG1: 1 finding(s)</li><li>AwsSolutions-COG2: 1 finding(s)</li><li>AwsSolutions-COG3: 1 finding(s)</li><li>AwsSolutions-S1: 2 finding(s)</li><li>AwsSolutions-S2: 2 finding(s)</li><li>AwsSolutions-S5: 2 finding(s)</li><li>AwsSolutions-S10: 4 finding(s)</li><li>AwsSolutions-CFR1: 1 finding(s)</li><li>AwsSolutions-CFR2: 1 finding(s)</li><li>AwsSolutions-CFR3: 1 finding(s)</li><li>AwsSolutions-CFR4: 1 finding(s)</li><li>AwsSolutions-CFR5: 1 finding(s)</li><li>AwsSolutions-CFR7: 1 finding(s)</li><li>AwsSolutions-COG7: 1 finding(s)</li><li>CKV_AWS_27: 2 finding(s)</li><li>CKV_AWS_117: 2 finding(s)</li><li>CKV_AWS_18: 1 finding(s)</li><li>CKV_AWS_174: 1 finding(s)</li><li>javascript.lang.security.audit.unsafe-formatstring.unsafe-formatstring: 1 finding(s)</li><li>javascript.browser.security.insecure-document-method.insecure-document-method: 2 finding(s)</li></ul>
+            <h3>Top 6 Hotspots</h3><p>Files with the highest number of security findings:</p>
+        <table>
+            <tr>
+                <th>Finding Count</th>
+                <th>File Location</th>
+            </tr>
+        
+            <tr>
+                <td>20</td>
+                <td>deployment/restaurant-monitoring-base-template.yaml</td>
+            </tr>
+            
+            <tr>
+                <td>7</td>
+                <td>deployment/chat-endpoint.yaml</td>
+            </tr>
+            
+            <tr>
+                <td>2</td>
+                <td>frontend/3d-twin.html</td>
+            </tr>
+            
+            <tr>
+                <td>2</td>
+                <td>frontend/shared.js</td>
+            </tr>
+            
+            <tr>
+                <td>1</td>
+                <td>frontend/login.html</td>
+            </tr>
+            
+            <tr>
+                <td>1</td>
+                <td>frontend/api.js</td>
+            </tr>
+            </table>
+        </div>
+
+        <h2>Detailed Findings</h2>
+        
+        <table>
+            <tr>
+                <th>Severity</th>
+                <th>Rule</th>
+                <th>Message</th>
+                <th>Location</th>
+            </tr>
+        
+            <tr>
+                <td class="severity-note">NOTE</td>
+                <td>B110</td>
+                <td>Try, Except, Pass detected.</td>
+                <td>deployment/agent-code/agent.py:233</td>
+            </tr>
+            
+            <tr>
+                <td class="severity-note">NOTE</td>
+                <td>B311</td>
+                <td>Standard pseudo-random generators are not suitable for security/cryptographic purposes.</td>
+                <td>deployment/load-sample-data.py:77</td>
+            </tr>
+            
+            <tr>
+                <td class="severity-note">NOTE</td>
+                <td>B311</td>
+                <td>Standard pseudo-random generators are not suitable for security/cryptographic purposes.</td>
+                <td>deployment/load-sample-data.py:103</td>
+            </tr>
+            
+            <tr>
+                <td class="severity-note">NOTE</td>
+                <td>B311</td>
+                <td>Standard pseudo-random generators are not suitable for security/cryptographic purposes.</td>
+                <td>deployment/load-sample-data.py:139</td>
+            </tr>
+            
+            <tr>
+                <td class="severity-error">ERROR</td>
+                <td>SECRET-BASE64-HIGH-ENTROPY-STRING</td>
+                <td>Secret of type &#x27;Base64 High Entropy String&#x27; detected in file &#x27;frontend/login.html&#x27; at line 7</td>
+                <td>frontend/login.html:7</td>
+            </tr>
+            
+            <tr>
+                <td class="severity-error">ERROR</td>
+                <td>SECRET-SECRET-KEYWORD</td>
+                <td>Secret of type &#x27;Secret Keyword&#x27; detected in file &#x27;deployment/restaurant-monitoring-base-template.yaml&#x27; at line 1059</td>
+                <td>deployment/restaurant-monitoring-base-template.yaml:1059</td>
+            </tr>
+            
+            <tr>
+                <td class="severity-error">ERROR</td>
+                <td>SECRET-BASE64-HIGH-ENTROPY-STRING</td>
+                <td>Secret of type &#x27;Base64 High Entropy String&#x27; detected in file &#x27;frontend/3d-twin.html&#x27; at line 12</td>
+                <td>frontend/3d-twin.html:12</td>
+            </tr>
+            
+            <tr>
+                <td class="severity-error">ERROR</td>
+                <td>SECRET-BASE64-HIGH-ENTROPY-STRING</td>
+                <td>Secret of type &#x27;Base64 High Entropy String&#x27; detected in file &#x27;frontend/3d-twin.html&#x27; at line 13</td>
+                <td>frontend/3d-twin.html:13</td>
+            </tr>
+            
+            <tr>
+                <td class="severity-none">NONE</td>
+                <td>AwsSolutions-KMS5</td>
+                <td>The KMS Symmetric key does not have automatic key rotation enabled.
+
+Exception Reason: N/A</td>
+                <td>deployment/chat-endpoint.yaml:22</td>
+            </tr>
+            
+            <tr>
+                <td class="severity-none">NONE</td>
+                <td>AwsSolutions-SQS2</td>
+                <td>The SQS Queue does not have server-side encryption enabled.
+
+Exception Reason: N/A</td>
+                <td>deployment/chat-endpoint.yaml:46</td>
+            </tr>
+            
+            <tr>
+                <td class="severity-error">ERROR</td>
+                <td>AwsSolutions-SQS3</td>
+                <td>The SQS queue is not used as a dead-letter queue (DLQ) and does not have a DLQ enabled.
+
+Exception Reason: N/A</td>
+                <td>deployment/chat-endpoint.yaml:46</td>
+            </tr>
+            
+            <tr>
+                <td class="severity-none">NONE</td>
+                <td>AwsSolutions-SQS4</td>
+                <td>The SQS queue does not require requests to use SSL.
+
+Exception Reason: N/A</td>
+                <td>deployment/chat-endpoint.yaml:46</td>
+            </tr>
+            
+            <tr>
+                <td class="severity-error">ERROR</td>
+                <td>AwsSolutions-IAM4</td>
+                <td>The IAM user, role, or group uses AWS managed policies.
+
+Exception Reason: N/A</td>
+                <td>deployment/chat-endpoint.yaml:69</td>
+            </tr>
+            
+            <tr>
+                <td class="severity-error">ERROR</td>
+                <td>AwsSolutions-IAM5</td>
+                <td>The IAM entity contains wildcard permissions and does not have a cdk-nag rule suppression with evidence for those permission.
+
+Exception Reason: N/A</td>
+                <td>deployment/chat-endpoint.yaml:69</td>
+            </tr>
+            
+            <tr>
+                <td class="severity-error">ERROR</td>
+                <td>AwsSolutions-L1</td>
+                <td>The non-container Lambda function is not configured to use the latest runtime version.
+
+Exception Reason: N/A</td>
+                <td>deployment/chat-endpoint.yaml:22</td>
+            </tr>
+            
+            <tr>
+                <td class="severity-none">NONE</td>
+                <td>AwsSolutions-APIG4</td>
+                <td>The API does not implement authorization.
+
+Exception Reason: N/A</td>
+                <td>deployment/chat-endpoint.yaml:190</td>
+            </tr>
+            
+            <tr>
+                <td class="severity-none">NONE</td>
+                <td>AwsSolutions-COG4</td>
+                <td>The API GW method does not use a Cognito user pool authorizer.
+
+Exception Reason: N/A</td>
+                <td>deployment/chat-endpoint.yaml:190</td>
+            </tr>
+            
+            <tr>
+                <td class="severity-error">ERROR</td>
+                <td>AwsSolutions-APIG4</td>
+                <td>The API does not implement authorization.
+
+Exception Reason: N/A</td>
+                <td>deployment/chat-endpoint.yaml:203</td>
+            </tr>
+            
+            <tr>
+                <td class="severity-none">NONE</td>
+                <td>AwsSolutions-KMS5</td>
+                <td>The KMS Symmetric key does not have automatic key rotation enabled.
+
+Exception Reason: N/A</td>
+                <td>deployment/restaurant-monitoring-base-template.yaml:13</td>
+            </tr>
+            
+            <tr>
+                <td class="severity-none">NONE</td>
+                <td>AwsSolutions-KMS5</td>
+                <td>The KMS Symmetric key does not have automatic key rotation enabled.
+
+Exception Reason: N/A</td>
+                <td>deployment/restaurant-monitoring-base-template.yaml:37</td>
+            </tr>
+            
+            <tr>
+                <td class="severity-none">NONE</td>
+                <td>AwsSolutions-SQS2</td>
+                <td>The SQS Queue does not have server-side encryption enabled.
+
+Exception Reason: N/A</td>
+                <td>deployment/restaurant-monitoring-base-template.yaml:65</td>
+            </tr>
+            
+            <tr>
+                <td class="severity-error">ERROR</td>
+                <td>AwsSolutions-SQS3</td>
+                <td>The SQS queue is not used as a dead-letter queue (DLQ) and does not have a DLQ enabled.
+
+Exception Reason: N/A</td>
+                <td>deployment/restaurant-monitoring-base-template.yaml:65</td>
+            </tr>
+            
+            <tr>
+                <td class="severity-none">NONE</td>
+                <td>AwsSolutions-SQS4</td>
+                <td>The SQS queue does not require requests to use SSL.
+
+Exception Reason: N/A</td>
+                <td>deployment/restaurant-monitoring-base-template.yaml:65</td>
+            </tr>
+            
+            <tr>
+                <td class="severity-none">NONE</td>
+                <td>AwsSolutions-DDB3</td>
+                <td>The DynamoDB table does not have Point-in-time Recovery enabled.
+
+Exception Reason: N/A</td>
+                <td>deployment/restaurant-monitoring-base-template.yaml:89</td>
+            </tr>
+            
+            <tr>
+                <td class="severity-none">NONE</td>
+                <td>AwsSolutions-DDB3</td>
+                <td>The DynamoDB table does not have Point-in-time Recovery enabled.
+
+Exception Reason: N/A</td>
+                <td>deployment/restaurant-monitoring-base-template.yaml:112</td>
+            </tr>
+            
+            <tr>
+                <td class="severity-none">NONE</td>
+                <td>AwsSolutions-DDB3</td>
+                <td>The DynamoDB table does not have Point-in-time Recovery enabled.
+
+Exception Reason: N/A</td>
+                <td>deployment/restaurant-monitoring-base-template.yaml:141</td>
+            </tr>
+            
+            <tr>
+                <td class="severity-none">NONE</td>
+                <td>AwsSolutions-DDB3</td>
+                <td>The DynamoDB table does not have Point-in-time Recovery enabled.
+
+Exception Reason: N/A</td>
+                <td>deployment/restaurant-monitoring-base-template.yaml:164</td>
+            </tr>
+            
+            <tr>
+                <td class="severity-none">NONE</td>
+                <td>AwsSolutions-DDB3</td>
+                <td>The DynamoDB table does not have Point-in-time Recovery enabled.
+
+Exception Reason: N/A</td>
+                <td>deployment/restaurant-monitoring-base-template.yaml:194</td>
+            </tr>
+            
+            <tr>
+                <td class="severity-none">NONE</td>
+                <td>AwsSolutions-DDB3</td>
+                <td>The DynamoDB table does not have Point-in-time Recovery enabled.
+
+Exception Reason: N/A</td>
+                <td>deployment/restaurant-monitoring-base-template.yaml:217</td>
+            </tr>
+            
+            <tr>
+                <td class="severity-error">ERROR</td>
+                <td>AwsSolutions-IAM4</td>
+                <td>The IAM user, role, or group uses AWS managed policies.
+
+Exception Reason: N/A</td>
+                <td>deployment/restaurant-monitoring-base-template.yaml:245</td>
+            </tr>
+            
+            <tr>
+                <td class="severity-error">ERROR</td>
+                <td>AwsSolutions-IAM5</td>
+                <td>The IAM entity contains wildcard permissions and does not have a cdk-nag rule suppression with evidence for those permission.
+
+Exception Reason: N/A</td>
+                <td>deployment/restaurant-monitoring-base-template.yaml:245</td>
+            </tr>
+            
+            <tr>
+                <td class="severity-error">ERROR</td>
+                <td>AwsSolutions-L1</td>
+                <td>The non-container Lambda function is not configured to use the latest runtime version.
+
+Exception Reason: N/A</td>
+                <td>deployment/restaurant-monitoring-base-template.yaml:291</td>
+            </tr>
+            
+            <tr>
+                <td class="severity-none">NONE</td>
+                <td>AwsSolutions-APIG2</td>
+                <td>The REST API does not have request validation enabled.
+
+Exception Reason: N/A</td>
+                <td>deployment/restaurant-monitoring-base-template.yaml:450</td>
+            </tr>
+            
+            <tr>
+                <td class="severity-none">NONE</td>
+                <td>AwsSolutions-COG1</td>
+                <td>The Cognito user pool does not have a password policy that minimally specify a password length of at least 8 characters, as well as requiring uppercase, numeric, and special characters.
+
+Exception Reason: N/A</td>
+                <td>deployment/restaurant-monitoring-base-template.yaml:476</td>
+            </tr>
+            
+            <tr>
+                <td class="severity-none">NONE</td>
+                <td>AwsSolutions-COG2</td>
+                <td>The Cognito user pool does not require MFA.
+
+Exception Reason: N/A</td>
+                <td>deployment/restaurant-monitoring-base-template.yaml:476</td>
+            </tr>
+            
+            <tr>
+                <td class="severity-none">NONE</td>
+                <td>AwsSolutions-COG3</td>
+                <td>The Cognito user pool does not have AdvancedSecurityMode set to ENFORCED.
+
+Exception Reason: N/A</td>
+                <td>deployment/restaurant-monitoring-base-template.yaml:476</td>
+            </tr>
+            
+            <tr>
+                <td class="severity-none">NONE</td>
+                <td>AwsSolutions-APIG4</td>
+                <td>The API does not implement authorization.
+
+Exception Reason: N/A</td>
+                <td>deployment/restaurant-monitoring-base-template.yaml:481</td>
+            </tr>
+            
+            <tr>
+                <td class="severity-none">NONE</td>
+                <td>AwsSolutions-COG4</td>
+                <td>The API GW method does not use a Cognito user pool authorizer.
+
+Exception Reason: N/A</td>
+                <td>deployment/restaurant-monitoring-base-template.yaml:481</td>
+            </tr>
+            
+            <tr>
+                <td class="severity-error">ERROR</td>
+                <td>AwsSolutions-APIG4</td>
+                <td>The API does not implement authorization.
+
+Exception Reason: N/A</td>
+                <td>deployment/restaurant-monitoring-base-template.yaml:482</td>
+            </tr>
+            
+            <tr>
+                <td class="severity-none">NONE</td>
+                <td>AwsSolutions-APIG4</td>
+                <td>The API does not implement authorization.
+
+Exception Reason: N/A</td>
+                <td>deployment/restaurant-monitoring-base-template.yaml:483</td>
+            </tr>
+            
+            <tr>
+                <td class="severity-none">NONE</td>
+                <td>AwsSolutions-COG4</td>
+                <td>The API GW method does not use a Cognito user pool authorizer.
+
+Exception Reason: N/A</td>
+                <td>deployment/restaurant-monitoring-base-template.yaml:483</td>
+            </tr>
+            
+            <tr>
+                <td class="severity-error">ERROR</td>
+                <td>AwsSolutions-APIG4</td>
+                <td>The API does not implement authorization.
+
+Exception Reason: N/A</td>
+                <td>deployment/restaurant-monitoring-base-template.yaml:484</td>
+            </tr>
+            
+            <tr>
+                <td class="severity-none">NONE</td>
+                <td>AwsSolutions-APIG4</td>
+                <td>The API does not implement authorization.
+
+Exception Reason: N/A</td>
+                <td>deployment/restaurant-monitoring-base-template.yaml:485</td>
+            </tr>
+            
+            <tr>
+                <td class="severity-none">NONE</td>
+                <td>AwsSolutions-COG4</td>
+                <td>The API GW method does not use a Cognito user pool authorizer.
+
+Exception Reason: N/A</td>
+                <td>deployment/restaurant-monitoring-base-template.yaml:485</td>
+            </tr>
+            
+            <tr>
+                <td class="severity-error">ERROR</td>
+                <td>AwsSolutions-APIG4</td>
+                <td>The API does not implement authorization.
+
+Exception Reason: N/A</td>
+                <td>deployment/restaurant-monitoring-base-template.yaml:486</td>
+            </tr>
+            
+            <tr>
+                <td class="severity-none">NONE</td>
+                <td>AwsSolutions-APIG4</td>
+                <td>The API does not implement authorization.
+
+Exception Reason: N/A</td>
+                <td>deployment/restaurant-monitoring-base-template.yaml:487</td>
+            </tr>
+            
+            <tr>
+                <td class="severity-none">NONE</td>
+                <td>AwsSolutions-COG4</td>
+                <td>The API GW method does not use a Cognito user pool authorizer.
+
+Exception Reason: N/A</td>
+                <td>deployment/restaurant-monitoring-base-template.yaml:487</td>
+            </tr>
+            
+            <tr>
+                <td class="severity-error">ERROR</td>
+                <td>AwsSolutions-APIG4</td>
+                <td>The API does not implement authorization.
+
+Exception Reason: N/A</td>
+                <td>deployment/restaurant-monitoring-base-template.yaml:488</td>
+            </tr>
+            
+            <tr>
+                <td class="severity-none">NONE</td>
+                <td>AwsSolutions-APIG4</td>
+                <td>The API does not implement authorization.
+
+Exception Reason: N/A</td>
+                <td>deployment/restaurant-monitoring-base-template.yaml:489</td>
+            </tr>
+            
+            <tr>
+                <td class="severity-none">NONE</td>
+                <td>AwsSolutions-COG4</td>
+                <td>The API GW method does not use a Cognito user pool authorizer.
+
+Exception Reason: N/A</td>
+                <td>deployment/restaurant-monitoring-base-template.yaml:489</td>
+            </tr>
+            
+            <tr>
+                <td class="severity-error">ERROR</td>
+                <td>AwsSolutions-APIG4</td>
+                <td>The API does not implement authorization.
+
+Exception Reason: N/A</td>
+                <td>deployment/restaurant-monitoring-base-template.yaml:490</td>
+            </tr>
+            
+            <tr>
+                <td class="severity-none">NONE</td>
+                <td>AwsSolutions-APIG4</td>
+                <td>The API does not implement authorization.
+
+Exception Reason: N/A</td>
+                <td>deployment/restaurant-monitoring-base-template.yaml:491</td>
+            </tr>
+            
+            <tr>
+                <td class="severity-none">NONE</td>
+                <td>AwsSolutions-COG4</td>
+                <td>The API GW method does not use a Cognito user pool authorizer.
+
+Exception Reason: N/A</td>
+                <td>deployment/restaurant-monitoring-base-template.yaml:491</td>
+            </tr>
+            
+            <tr>
+                <td class="severity-error">ERROR</td>
+                <td>AwsSolutions-APIG4</td>
+                <td>The API does not implement authorization.
+
+Exception Reason: N/A</td>
+                <td>deployment/restaurant-monitoring-base-template.yaml:492</td>
+            </tr>
+            
+            <tr>
+                <td class="severity-none">NONE</td>
+                <td>AwsSolutions-S1</td>
+                <td>The S3 Bucket has server access logs disabled.
+
+Exception Reason: N/A</td>
+                <td>deployment/restaurant-monitoring-base-template.yaml:813</td>
+            </tr>
+            
+            <tr>
+                <td class="severity-none">NONE</td>
+                <td>AwsSolutions-S2</td>
+                <td>The S3 Bucket does not have public access restricted and blocked.
+
+Exception Reason: N/A</td>
+                <td>deployment/restaurant-monitoring-base-template.yaml:813</td>
+            </tr>
+            
+            <tr>
+                <td class="severity-none">NONE</td>
+                <td>AwsSolutions-S5</td>
+                <td>The S3 static website bucket either has an open world bucket policy or does not use a CloudFront Origin Access Identity (OAI) in the bucket policy for limited getObject and/or putObject permissions.
+
+Exception Reason: N/A</td>
+                <td>deployment/restaurant-monitoring-base-template.yaml:813</td>
+            </tr>
+            
+            <tr>
+                <td class="severity-none">NONE</td>
+                <td>AwsSolutions-S10</td>
+                <td>The S3 Bucket or bucket policy does not require requests to use SSL.
+
+Exception Reason: N/A</td>
+                <td>deployment/restaurant-monitoring-base-template.yaml:813</td>
+            </tr>
+            
+            <tr>
+                <td class="severity-none">NONE</td>
+                <td>AwsSolutions-S1</td>
+                <td>The S3 Bucket has server access logs disabled.
+
+Exception Reason: N/A</td>
+                <td>deployment/restaurant-monitoring-base-template.yaml:795</td>
+            </tr>
+            
+            <tr>
+                <td class="severity-none">NONE</td>
+                <td>AwsSolutions-S2</td>
+                <td>The S3 Bucket does not have public access restricted and blocked.
+
+Exception Reason: N/A</td>
+                <td>deployment/restaurant-monitoring-base-template.yaml:795</td>
+            </tr>
+            
+            <tr>
+                <td class="severity-error">ERROR</td>
+                <td>AwsSolutions-S5</td>
+                <td>The S3 static website bucket either has an open world bucket policy or does not use a CloudFront Origin Access Identity (OAI) in the bucket policy for limited getObject and/or putObject permissions.
+
+Exception Reason: N/A</td>
+                <td>deployment/restaurant-monitoring-base-template.yaml:795</td>
+            </tr>
+            
+            <tr>
+                <td class="severity-none">NONE</td>
+                <td>AwsSolutions-S10</td>
+                <td>The S3 Bucket or bucket policy does not require requests to use SSL.
+
+Exception Reason: N/A</td>
+                <td>deployment/restaurant-monitoring-base-template.yaml:795</td>
+            </tr>
+            
+            <tr>
+                <td class="severity-warning">WARNING</td>
+                <td>AwsSolutions-CFR1</td>
+                <td>The CloudFront distribution may require Geo restrictions.
+
+Exception Reason: N/A</td>
+                <td>deployment/restaurant-monitoring-base-template.yaml:855</td>
+            </tr>
+            
+            <tr>
+                <td class="severity-none">NONE</td>
+                <td>AwsSolutions-CFR2</td>
+                <td>The CloudFront distribution may require integration with AWS WAF.
+
+Exception Reason: N/A</td>
+                <td>deployment/restaurant-monitoring-base-template.yaml:855</td>
+            </tr>
+            
+            <tr>
+                <td class="severity-none">NONE</td>
+                <td>AwsSolutions-CFR3</td>
+                <td>The CloudFront distribution does not have access logging enabled.
+
+Exception Reason: N/A</td>
+                <td>deployment/restaurant-monitoring-base-template.yaml:855</td>
+            </tr>
+            
+            <tr>
+                <td class="severity-error">ERROR</td>
+                <td>AwsSolutions-CFR4</td>
+                <td>The CloudFront distribution allows for SSLv3 or TLSv1 for HTTPS viewer connections.
+
+Exception Reason: N/A</td>
+                <td>deployment/restaurant-monitoring-base-template.yaml:855</td>
+            </tr>
+            
+            <tr>
+                <td class="severity-none">NONE</td>
+                <td>AwsSolutions-CFR5</td>
+                <td>The CloudFront distributions uses SSLv3 or TLSv1 for communication to the origin.
+
+Exception Reason: N/A</td>
+                <td>deployment/restaurant-monitoring-base-template.yaml:855</td>
+            </tr>
+            
+            <tr>
+                <td class="severity-none">NONE</td>
+                <td>AwsSolutions-CFR7</td>
+                <td>The CloudFront distribution does not use an origin access control with an S3 origin.
+
+Exception Reason: N/A</td>
+                <td>deployment/restaurant-monitoring-base-template.yaml:855</td>
+            </tr>
+            
+            <tr>
+                <td class="severity-none">NONE</td>
+                <td>AwsSolutions-S10</td>
+                <td>The S3 Bucket or bucket policy does not require requests to use SSL.
+
+Exception Reason: N/A</td>
+                <td>deployment/restaurant-monitoring-base-template.yaml:959</td>
+            </tr>
+            
+            <tr>
+                <td class="severity-none">NONE</td>
+                <td>AwsSolutions-S10</td>
+                <td>The S3 Bucket or bucket policy does not require requests to use SSL.
+
+Exception Reason: N/A</td>
+                <td>deployment/restaurant-monitoring-base-template.yaml:986</td>
+            </tr>
+            
+            <tr>
+                <td class="severity-none">NONE</td>
+                <td>AwsSolutions-COG7</td>
+                <td>The Cognito identity pool allows for unauthenticated logins and does not have a cdk-nag rule suppression with a reason.
+
+Exception Reason: N/A</td>
+                <td>deployment/restaurant-monitoring-base-template.yaml:1079</td>
+            </tr>
+            
+            <tr>
+                <td class="severity-none">NONE</td>
+                <td>AwsSolutions-IAM4</td>
+                <td>The IAM user, role, or group uses AWS managed policies.
+
+Exception Reason: N/A</td>
+                <td>deployment/restaurant-monitoring-base-template.yaml:1089</td>
+            </tr>
+            
+            <tr>
+                <td class="severity-error">ERROR</td>
+                <td>AwsSolutions-IAM5</td>
+                <td>The IAM entity contains wildcard permissions and does not have a cdk-nag rule suppression with evidence for those permission.
+
+Exception Reason: N/A</td>
+                <td>deployment/restaurant-monitoring-base-template.yaml:1089</td>
+            </tr>
+            
+            <tr>
+                <td class="severity-error">ERROR</td>
+                <td>AwsSolutions-IAM5</td>
+                <td>The IAM entity contains wildcard permissions and does not have a cdk-nag rule suppression with evidence for those permission.
+
+Exception Reason: N/A</td>
+                <td>deployment/restaurant-monitoring-base-template.yaml:1089</td>
+            </tr>
+            
+            <tr>
+                <td class="severity-error">ERROR</td>
+                <td>CKV_AWS_27</td>
+                <td>Ensure all data stored in the SQS queue is encrypted</td>
+                <td>deployment/chat-endpoint.yaml:47</td>
+            </tr>
+            
+            <tr>
+                <td class="severity-error">ERROR</td>
+                <td>CKV_AWS_117</td>
+                <td>Ensure that AWS Lambda function is configured inside a VPC</td>
+                <td>deployment/chat-endpoint.yaml:98</td>
+            </tr>
+            
+            <tr>
+                <td class="severity-error">ERROR</td>
+                <td>CKV_AWS_27</td>
+                <td>Ensure all data stored in the SQS queue is encrypted</td>
+                <td>deployment/restaurant-monitoring-base-template.yaml:66</td>
+            </tr>
+            
+            <tr>
+                <td class="severity-error">ERROR</td>
+                <td>CKV_AWS_117</td>
+                <td>Ensure that AWS Lambda function is configured inside a VPC</td>
+                <td>deployment/restaurant-monitoring-base-template.yaml:292</td>
+            </tr>
+            
+            <tr>
+                <td class="severity-error">ERROR</td>
+                <td>CKV_AWS_18</td>
+                <td>Ensure the S3 bucket has access logging enabled</td>
+                <td>deployment/restaurant-monitoring-base-template.yaml:820</td>
+            </tr>
+            
+            <tr>
+                <td class="severity-error">ERROR</td>
+                <td>CKV_AWS_174</td>
+                <td>Verify CloudFront Distribution Viewer Certificate is using TLS v1.2 or higher</td>
+                <td>deployment/restaurant-monitoring-base-template.yaml:856</td>
+            </tr>
+            
+            <tr>
+                <td class="severity-error">ERROR</td>
+                <td>javascript.lang.security.audit.unsafe-formatstring.unsafe-formatstring</td>
+                <td>Detected string concatenation with a non-literal variable in a util.format / console.log function. If an attacker injects a format specifier in the string, it will forge the log message. Try to use constant values for the format string.</td>
+                <td>frontend/api.js:24</td>
+            </tr>
+            
+            <tr>
+                <td class="severity-error">ERROR</td>
+                <td>javascript.browser.security.insecure-document-method.insecure-document-method</td>
+                <td>User controlled data in methods like `innerHTML`, `outerHTML` or `document.write` is an anti-pattern that can lead to XSS vulnerabilities</td>
+                <td>frontend/shared.js:30</td>
+            </tr>
+            
+            <tr>
+                <td class="severity-error">ERROR</td>
+                <td>javascript.browser.security.insecure-document-method.insecure-document-method</td>
+                <td>User controlled data in methods like `innerHTML`, `outerHTML` or `document.write` is an anti-pattern that can lead to XSS vulnerabilities</td>
+                <td>frontend/shared.js:157</td>
+            </tr>
+            </table>
+
+        <h2>Scan Metadata</h2>
+        <div class='metadata-section'>
+            <div class="metadata-item">
+                <strong>report_id:</strong> ASH-20264610
+            </div>
+            
+            <div class="metadata-item">
+                <strong>generated_at:</strong> 2026-03-10T20:46:16+00:00
+            </div>
+            
+            <div class="metadata-item">
+                <strong>project_name:</strong> ASH
+            </div>
+            
+            <div class="metadata-item">
+                <strong>tool_version:</strong> 3.2.3
+            </div>
+            
+            <div class="metadata-item">
+                <strong>description:</strong> Automated Security Helper Aggregated Report Post-processor
+            </div>
+            
+            <div class="metadata-item">
+                <strong>summary_stats:</strong> {&#x27;suppressed&#x27;: 0, &#x27;critical&#x27;: 0, &#x27;high&#x27;: 0, &#x27;medium&#x27;: 0, &#x27;low&#x27;: 0, &#x27;info&#x27;: 0, &#x27;start&#x27;: None, &#x27;end&#x27;: None, &#x27;duration&#x27;: 0.0, &#x27;total&#x27;: 0, &#x27;actionable&#x27;: 0, &#x27;passed&#x27;: 0, &#x27;failed&#x27;: 0, &#x27;missing&#x27;: 0, &#x27;skipped&#x27;: 0}
+            </div>
+            
+            <div class="metadata-item">
+                <strong>validation_summary:</strong> {&#x27;scanner_tasks_validation&#x27;: {&#x27;timestamp&#x27;: &#x27;2026-03-10T16:46:34.407512&#x27;, &#x27;expected_count&#x27;: 6, &#x27;actual_count&#x27;: 6, &#x27;missing_count&#x27;: 0, &#x27;has_issues&#x27;: False, &#x27;successfully_retried&#x27;: 0}, &#x27;execution_completion_validation&#x27;: {&#x27;timestamp&#x27;: &#x27;2026-03-10T16:47:19.528457&#x27;, &#x27;expected_count&#x27;: 6, &#x27;completed_count&#x27;: 6, &#x27;missing_count&#x27;: 0, &#x27;unexpected_count&#x27;: 0, &#x27;completion_rate&#x27;: 1.0, &#x27;has_issues&#x27;: False}, &#x27;result_completeness_validation&#x27;: {&#x27;timestamp&#x27;: &#x27;2026-03-10T16:47:19.528625&#x27;, &#x27;expected_count&#x27;: 10, &#x27;final_count&#x27;: 10, &#x27;missing_count&#x27;: 0, &#x27;unexpected_count&#x27;: 0, &#x27;completeness_rate&#x27;: 1.0, &#x27;has_issues&#x27;: False}}
+            </div>
+            
+            <div class="metadata-item">
+                <strong>execution_discrepancy_report:</strong> {}
+            </div>
+            </div>
+    </div>
+</body>
+</html>

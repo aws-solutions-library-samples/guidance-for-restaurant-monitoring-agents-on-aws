@@ -3,230 +3,319 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Inventory</title>
-    <script src="https://unpkg.com/amazon-cognito-identity-js@6.3.12/dist/amazon-cognito-identity.min.js"></script>
-    <script src="auth.js"></script>
+    <title>Inventory Status</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: Arial, sans-serif; background: #f5f5f5; }
-        .header { background: #2c3e50; color: white; padding: 1rem; text-align: center; }
-        .nav { background: #34495e; padding: 0.5rem; text-align: center; }
-        .nav a { color: white; text-decoration: none; margin: 0 1rem; padding: 0.5rem 1rem; border-radius: 4px; }
-        .nav a:hover, .nav a.active { background: #3498db; }
-        .container { max-width: 1400px; margin: 2rem auto; padding: 0 1rem; }
-        .filters { background: white; padding: 1rem; border-radius: 8px; margin-bottom: 1rem; }
-        .filters select { padding: 0.5rem; margin-right: 1rem; border: 1px solid #ddd; border-radius: 4px; }
-        .response-box { background: white; padding: 2rem; border-radius: 8px; white-space: pre-wrap; font-family: monospace; font-size: 0.9rem; line-height: 1.6; display: none; }
-        table { width: 100%; background: white; border-radius: 8px; overflow: hidden; }
-        th, td { padding: 1rem; text-align: left; border-bottom: 1px solid #eee; }
-        th { background: #34495e; color: white; }
-        .low-stock { background: #fff3cd; }
-        .critical-stock { background: #f8d7da; }
-        .good-stock { background: #d4edda; }
+        .container { max-width: 1400px; margin: 1rem auto; padding: 0 1rem; }
+        
+        /* Summary Cards */
+        .summary-section { margin-bottom: 1.5rem; }
+        .summary-title { font-size: 1.2rem; color: #2c3e50; margin-bottom: 1rem; font-weight: bold; }
+        .summary-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; }
+        .summary-card { background: white; padding: 1.2rem; border-radius: 8px; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .summary-card h3 { font-size: 2.2rem; margin: 0.5rem 0; }
+        .summary-card p { color: #666; font-size: 0.9rem; }
+        .summary-card.critical { border-left: 4px solid #e74c3c; }
+        .summary-card.warning { border-left: 4px solid #f39c12; }
+        .summary-card.good { border-left: 4px solid #27ae60; }
+        .summary-card.info { border-left: 4px solid #3498db; }
+        
+        /* Filters */
+        .filters { background: white; padding: 1rem; border-radius: 8px; margin-bottom: 1rem; display: flex; gap: 1rem; flex-wrap: wrap; align-items: center; }
+        .filters select { padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px; min-width: 150px; }
+        .filters label { font-weight: bold; color: #555; }
+        
+        /* Table */
+        table { width: 100%; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        th, td { padding: 0.8rem 1rem; text-align: left; border-bottom: 1px solid #eee; }
+        th { background: #34495e; color: white; font-weight: 600; }
+        .critical-stock { background: #ffeaea; }
+        .low-stock { background: #fff8e6; }
+        .good-stock { background: #eafff0; }
+        
+        /* Progress Bar */
         .progress-bar { width: 100%; height: 20px; background: #eee; border-radius: 10px; overflow: hidden; }
         .progress-fill { height: 100%; transition: width 0.3s; }
         .progress-fill.good { background: #27ae60; }
         .progress-fill.warning { background: #f39c12; }
         .progress-fill.critical { background: #e74c3c; }
+        
+        /* Status Badge */
+        .status-badge { padding: 0.3rem 0.6rem; border-radius: 4px; font-size: 0.8rem; font-weight: bold; }
+        .status-badge.critical { background: #e74c3c; color: white; }
+        .status-badge.warning { background: #f39c12; color: white; }
+        .status-badge.good { background: #27ae60; color: white; }
+        
+        .loading { text-align: center; padding: 2rem; color: #666; }
     </style>
 </head>
 <body>
-    
-
+    <script src="shared.js?v=1773237403"></script>
+    <script src="api.js?v=1773237403"></script>
     <div class="container">
+        <!-- High-Level Summary -->
+        <div class="summary-section">
+            <div class="summary-title">📦 Inventory Overview</div>
+            <div class="summary-cards">
+                <div class="summary-card info">
+                    <p>Total Items</p>
+                    <h3 id="total-items">-</h3>
+                </div>
+                <div class="summary-card good">
+                    <p>Adequate Stock</p>
+                    <h3 id="adequate-count">-</h3>
+                </div>
+                <div class="summary-card warning">
+                    <p>Low Stock</p>
+                    <h3 id="low-count">-</h3>
+                </div>
+                <div class="summary-card critical">
+                    <p>Critical Stock</p>
+                    <h3 id="critical-count">-</h3>
+                </div>
+            </div>
+        </div>
+
+        <!-- Restaurant Summary -->
+        <div class="summary-section">
+            <div class="summary-title">🏪 By Restaurant</div>
+            <div class="summary-cards" id="restaurant-summary"></div>
+        </div>
+
+        <!-- Filters -->
         <div class="filters">
-            <select id="restaurant-filter" onchange="loadInventory()">
+            <label>Filter:</label>
+            <select id="restaurant-filter" onchange="filterInventory()">
                 <option value="">All Restaurants</option>
             </select>
-            <select id="status-filter" onchange="loadInventory()">
+            <select id="status-filter" onchange="filterInventory()">
                 <option value="">All Status</option>
-                <option value="critical">Critical</option>
+                <option value="critical">Critical Only</option>
                 <option value="low">Low Stock</option>
-                <option value="good">Good</option>
+                <option value="adequate">Adequate</option>
+            </select>
+            <select id="category-filter" onchange="filterInventory()">
+                <option value="">All Categories</option>
             </select>
         </div>
 
-        <div id="inventory-response" class="response-box">Loading inventory data...</div>
-
-        <table id="inventory-table">
+        <!-- Inventory Table -->
+        <table>
             <thead>
                 <tr>
                     <th>Restaurant</th>
                     <th>Item</th>
                     <th>Category</th>
-                    <th>Current Qty</th>
+                    <th>Quantity</th>
                     <th>Reorder Point</th>
                     <th>Stock Level</th>
                     <th>Status</th>
                 </tr>
             </thead>
             <tbody id="inventory-body">
-                <tr><td colspan="7" style="text-align: center;">Loading...</td></tr>
+                <tr><td colspan="7" class="loading">Loading inventory data...</td></tr>
             </tbody>
         </table>
     </div>
 
     <script>
-        // Inline API Client
-        class ApiGatewayClient {
-            constructor() {
-                this.baseUrl = 'https://mojgf9gmfk.execute-api.us-east-1.amazonaws.com/prod';
-                this.token = null;
-            }
-            
-            async getRestaurants() {
-                const response = await fetch(`${this.baseUrl}/restaurants`);
-                const data = await response.json();
-                return data.restaurants || data;
-            }
-        }
-        
-        let apiClient;
-        
+        let allInventory = [];
+        let restaurants = [];
+
+        renderNav('inventory');
+        renderChatWidget();
+
         async function init() {
-            apiClient = new ApiGatewayClient();
-            await loadRestaurants();
-            await loadInventory();
-        }
-        
-        async function loadRestaurants() {
-            const restaurants = await apiClient.getRestaurants();
-            const select = document.getElementById('restaurant-filter');
-            restaurants.forEach(r => {
-                const option = document.createElement('option');
-                option.value = r.id;
-                option.textContent = r.name;
-                select.appendChild(option);
-            });
-        }
-        
-        async function loadInventory() {
-            const restaurantFilter = document.getElementById('restaurant-filter').value;
-            const statusFilter = document.getElementById('status-filter').value;
-            const tbody = document.getElementById('inventory-body');
-            
-            tbody.innerHTML = '<tr><td colspan="7" style="text-align: center;">Loading...</td></tr>';
-            
             try {
-                const agentArn = 'arn:aws:bedrock-agentcore:us-east-1:986635652628:runtime/restaurant_ops_full-Ni2asWG82Q';
-                const chatUrl = `https://bedrock-agentcore-runtime.us-east-1.amazonaws.com/invoke`;
-                let prompt = 'List all inventory items. Format each line as: RESTAURANT | ITEM | CATEGORY | QTY | UNIT | REORDER';
-                if (restaurantFilter) prompt = `List inventory for ${restaurantFilter}. Format each line as: RESTAURANT | ITEM | CATEGORY | QTY | UNIT | REORDER`;
+                await Promise.all([loadRestaurants(), loadInventory()]);
+            } catch (error) {
+                console.error('Init error:', error);
+                document.getElementById('inventory-body').innerHTML = 
+                    '<tr><td colspan="7" class="loading" style="color: red;">Error: ' + error.message + '</td></tr>';
+            }
+        }
+
+        async function loadRestaurants() {
+            try {
+                const response = await authFetch(`${API_URL}/restaurants`);
+                const data = await response.json();
+                restaurants = data.restaurants || data || [];
                 
-                console.log('Fetching inventory data...');
-                const response = await fetch(chatUrl, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ 
-                        prompt: prompt,
-                        sessionId: 'inventory_' + Date.now()
-                    })
+                const select = document.getElementById('restaurant-filter');
+                restaurants.forEach(r => {
+                    const option = document.createElement('option');
+                    option.value = r.id;
+                    option.textContent = r.name;
+                    select.appendChild(option);
+                });
+            } catch (error) {
+                console.error('Error loading restaurants:', error);
+            }
+        }
+
+        async function loadInventory() {
+            try {
+                const response = await authFetch(`${API_URL}/inventory`);
+                if (!response.ok) throw new Error('API returned ' + response.status);
+                const data = await response.json();
+                allInventory = data.inventory || data || [];
+                console.log('Loaded inventory:', allInventory.length, 'items');
+                
+                // Populate category filter
+                const categories = [...new Set(allInventory.map(i => i.category).filter(c => c))];
+                const categorySelect = document.getElementById('category-filter');
+                categories.forEach(cat => {
+                    const option = document.createElement('option');
+                    option.value = cat;
+                    option.textContent = cat.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+                    categorySelect.appendChild(option);
                 });
                 
-                console.log('Response status:', response.status);
-                if (response.ok) {
-                    const data = await response.json();
-                    console.log('Response data:', data);
-                    parseInventoryResponse(data.response || '');
-                } else {
-                    throw new Error('API error: ' + response.status);
-                }
+                updateSummary();
+                updateRestaurantSummary();
+                renderInventory(allInventory);
             } catch (error) {
                 console.error('Error loading inventory:', error);
-                tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: red;">Error: ' + error.message + '</td></tr>';
+                document.getElementById('inventory-body').innerHTML = 
+                    '<tr><td colspan="7" class="loading" style="color: red;">Error loading inventory: ' + error.message + '</td></tr>';
             }
         }
-        
-        function parseInventoryResponse(text) {
-            const tbody = document.getElementById('inventory-body');
+
+        // Normalize item to handle both old and new data formats
+        function normalizeItem(item) {
+            return {
+                ...item,
+                item_name: item.item_name || item.name || 'Unknown',
+                quantity: item.quantity ?? item.current_stock ?? 0,
+                unit_of_measure: item.unit_of_measure || item.unit || 'units',
+                restaurant_id: item.restaurant_id || 'ALL'
+            };
+        }
+
+        function getItemStatus(item) {
+            const normalized = normalizeItem(item);
+            const qty = parseFloat(normalized.quantity || 0);
+            const reorder = parseFloat(item.reorder_point || 1);
+            const pct = (qty / reorder) * 100;
             
-            // Split by lines and filter for data rows (must have AFC- and multiple pipes)
-            const lines = text.split('\n').filter(l => 
-                l.includes('AFC-') && 
-                l.includes('|') && 
-                (l.match(/\|/g) || []).length >= 5
-            );
+            if (pct < 50) return { status: 'critical', pct, class: 'critical' };
+            if (pct < 100) return { status: 'low', pct, class: 'warning' };
+            return { status: 'adequate', pct, class: 'good' };
+        }
+
+        function updateSummary() {
+            let critical = 0, low = 0, adequate = 0;
             
-            if (lines.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="7" style="text-align: center;">No inventory data found. Try selecting a specific restaurant.</td></tr>';
-                return;
-            }
+            allInventory.forEach(item => {
+                const { status } = getItemStatus(item);
+                if (status === 'critical') critical++;
+                else if (status === 'low') low++;
+                else adequate++;
+            });
             
-            tbody.innerHTML = lines.map(line => {
-                const parts = line.split('|').map(p => p.trim());
-                if (parts.length < 6) return '';
-                
-                const qty = parseFloat(parts[3]) || 0;
-                const reorder = parseFloat(parts[5]) || 1;
-                const pct = (qty / reorder) * 100;
-                const rowClass = pct < 50 ? 'critical-stock' : pct < 100 ? 'low-stock' : 'good-stock';
+            document.getElementById('total-items').textContent = allInventory.length;
+            document.getElementById('adequate-count').textContent = adequate;
+            document.getElementById('low-count').textContent = low;
+            document.getElementById('critical-count').textContent = critical;
+        }
+
+        function updateRestaurantSummary() {
+            const container = document.getElementById('restaurant-summary');
+            const byRestaurant = {};
+            
+            allInventory.forEach(item => {
+                const normalized = normalizeItem(item);
+                const rid = normalized.restaurant_id;
+                if (!byRestaurant[rid]) byRestaurant[rid] = { critical: 0, low: 0, adequate: 0 };
+                const { status } = getItemStatus(item);
+                byRestaurant[rid][status]++;
+            });
+            
+            container.innerHTML = Object.entries(byRestaurant).map(([rid, counts]) => {
+                const restaurant = restaurants.find(r => r.id === rid);
+                const name = restaurant ? restaurant.name : (rid === 'ALL' ? 'All Locations' : rid);
+                const statusClass = counts.critical > 0 ? 'critical' : counts.low > 0 ? 'warning' : 'good';
+                const statusIcon = counts.critical > 0 ? '🔴' : counts.low > 0 ? '⚠️' : '✅';
                 
                 return `
-                    <tr class="${rowClass}">
-                        <td>${parts[0]}</td>
-                        <td>${parts[1]}</td>
-                        <td>${parts[2]}</td>
-                        <td>${parts[3]} ${parts[4]}</td>
-                        <td>${parts[5]} ${parts[4]}</td>
-                        <td>
-                            <div class="progress-bar">
-                                <div class="progress-fill ${pct < 50 ? 'critical' : pct < 100 ? 'warning' : 'good'}" style="width: ${Math.min(pct, 100)}%"></div>
-                            </div>
-                            ${pct.toFixed(0)}%
-                        </td>
-                        <td><strong>${pct < 50 ? 'Critical' : pct < 100 ? 'Low' : 'Good'}</strong></td>
-                    </tr>
+                    <div class="summary-card ${statusClass}">
+                        <p>${name}</p>
+                        <h3>${statusIcon}</h3>
+                        <small>${counts.critical} critical, ${counts.low} low</small>
+                    </div>
                 `;
-            }).filter(row => row).join('');
-            
-            if (!tbody.innerHTML) {
-                tbody.innerHTML = '<tr><td colspan="7" style="text-align: center;">Unable to parse inventory data</td></tr>';
-            }
+            }).join('');
         }
-        
+
+        function filterInventory() {
+            const restaurantFilter = document.getElementById('restaurant-filter').value;
+            const statusFilter = document.getElementById('status-filter').value;
+            const categoryFilter = document.getElementById('category-filter').value;
+            
+            let filtered = allInventory;
+            
+            if (restaurantFilter) {
+                filtered = filtered.filter(i => {
+                    const normalized = normalizeItem(i);
+                    return normalized.restaurant_id === restaurantFilter;
+                });
+            }
+            if (categoryFilter) {
+                filtered = filtered.filter(i => i.category === categoryFilter);
+            }
+            if (statusFilter) {
+                filtered = filtered.filter(i => {
+                    const { status } = getItemStatus(i);
+                    return status === statusFilter;
+                });
+            }
+            
+            renderInventory(filtered);
+        }
+
         function renderInventory(inventory) {
             const tbody = document.getElementById('inventory-body');
             
             if (inventory.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="7" style="text-align: center;">No inventory items found</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="7" class="loading">No inventory items found</td></tr>';
                 return;
             }
             
+            // Sort by status (critical first)
+            inventory.sort((a, b) => {
+                const aStatus = getItemStatus(a);
+                const bStatus = getItemStatus(b);
+                const order = { critical: 0, low: 1, adequate: 2 };
+                return order[aStatus.status] - order[bStatus.status];
+            });
+            
             tbody.innerHTML = inventory.map(item => {
-                const pct = (item.quantity / item.reorder_point) * 100;
-                let statusClass = 'good-stock';
-                let statusText = 'Good';
-                let progressClass = 'good';
-                
-                if (pct < 50) {
-                    statusClass = 'critical-stock';
-                    statusText = 'Critical';
-                    progressClass = 'critical';
-                } else if (pct < 100) {
-                    statusClass = 'low-stock';
-                    statusText = 'Low';
-                    progressClass = 'warning';
-                }
+                const normalized = normalizeItem(item);
+                const { status, pct, class: statusClass } = getItemStatus(item);
+                const restaurant = restaurants.find(r => r.id === normalized.restaurant_id);
+                const restaurantName = restaurant ? restaurant.name : (normalized.restaurant_id === 'ALL' ? 'All Locations' : normalized.restaurant_id);
+                const rowClass = status === 'critical' ? 'critical-stock' : status === 'low' ? 'low-stock' : 'good-stock';
                 
                 return `
-                    <tr class="${statusClass}">
-                        <td>${item.restaurant_id}</td>
-                        <td>${item.item_name}</td>
-                        <td>${item.category}</td>
-                        <td>${item.quantity} ${item.unit}</td>
-                        <td>${item.reorder_point} ${item.unit}</td>
+                    <tr class="${rowClass}">
+                        <td>${restaurantName}</td>
+                        <td>${normalized.item_name}</td>
+                        <td>${(item.category || '').replace(/_/g, ' ')}</td>
+                        <td>${parseFloat(normalized.quantity).toFixed(1)} ${normalized.unit_of_measure}</td>
+                        <td>${item.reorder_point} ${normalized.unit_of_measure}</td>
                         <td>
                             <div class="progress-bar">
-                                <div class="progress-fill ${progressClass}" style="width: ${Math.min(pct, 100)}%"></div>
+                                <div class="progress-fill ${statusClass}" style="width: ${Math.min(pct, 100)}%"></div>
                             </div>
                             <small>${pct.toFixed(0)}%</small>
                         </td>
-                        <td><strong>${statusText}</strong></td>
+                        <td><span class="status-badge ${statusClass}">${status.toUpperCase()}</span></td>
                     </tr>
                 `;
             }).join('');
         }
-        
+
         window.onload = init;
     </script>
 </body>

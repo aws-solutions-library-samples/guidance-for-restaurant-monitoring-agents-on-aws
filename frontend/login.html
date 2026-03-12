@@ -19,17 +19,19 @@
 <body>
     <div class="login-container">
         <h2>🏪 Restaurant Login</h2>
-        <input type="email" id="login-email" placeholder="Email">
-        <input type="password" id="login-password" placeholder="Password">
-        <button onclick="signIn()">Sign In</button>
+        <form onsubmit="event.preventDefault(); signIn();">
+            <input type="email" id="login-email" placeholder="Email" autocomplete="username">
+            <input type="password" id="login-password" placeholder="Password" autocomplete="current-password">
+            <button type="submit">Sign In</button>
+        </form>
         <div id="message" class="message"></div>
     </div>
 
     <script>
         const cognitoConfig = {
             region: 'us-east-1',
-            userPoolId: '',
-            userPoolWebClientId: '7rsl68lfdpc1eln8g4sl1ophn3'
+            userPoolId: 'us-east-1_irtVFCmZ4',
+            userPoolWebClientId: '76oq6mah56p6t4tchkfej1vmg8'
         };
 
         const userPool = new AmazonCognitoIdentity.CognitoUserPool({
@@ -62,6 +64,18 @@
                 },
                 onFailure: (err) => {
                     showMessage(err.message, 'error');
+                },
+                newPasswordRequired: (userAttributes) => {
+                    delete userAttributes.email_verified;
+                    delete userAttributes.email;
+                    cognitoUser.completeNewPasswordChallenge(password, userAttributes, {
+                        onSuccess: (result) => {
+                            window.location.href = 'index.html';
+                        },
+                        onFailure: (err) => {
+                            showMessage(err.message, 'error');
+                        }
+                    });
                 }
             });
         }
