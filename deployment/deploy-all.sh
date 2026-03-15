@@ -46,8 +46,7 @@ echo "  ✅ Base infrastructure deployed"
 echo ""
 echo "Step 2: Loading Sample Data..."
 
-bash "$SCRIPT_DIR/load-data.sh" 2>/dev/null || \
-python3 "$SCRIPT_DIR/load-sample-data.py" 2>/dev/null || true
+bash "$SCRIPT_DIR/load-data.sh"
 
 echo "  ✅ Sample data loaded"
 

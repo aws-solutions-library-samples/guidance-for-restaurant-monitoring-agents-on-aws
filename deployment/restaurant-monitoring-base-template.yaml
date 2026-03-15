@@ -1060,9 +1060,11 @@ Resources:
           RequireLowercase: true
           RequireNumbers: true
           RequireSymbols: true
-      MfaConfiguration: 'OPTIONAL'
+      MfaConfiguration: 'ON'
       EnabledMfas:
         - SOFTWARE_TOKEN_MFA
+      UserPoolAddOns:
+        AdvancedSecurityMode: ENFORCED
       Schema:
         - Name: email
           AttributeDataType: String

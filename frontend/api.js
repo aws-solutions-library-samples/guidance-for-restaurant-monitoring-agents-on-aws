@@ -38,7 +38,7 @@ class ApiGatewayClient {
             
             return await response.json();
         } catch (error) {
-            console.error(`API Error for ${endpoint}:`, error);
+            console.error('API Error for %s:', endpoint, error);
             throw error;
         }
     }
