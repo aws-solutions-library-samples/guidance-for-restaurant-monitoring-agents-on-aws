@@ -1,4 +1,4 @@
-# Guidance for Restaurant Monitoring Agents on AWS
+# Guidance for AI-Powered Restaurant Visibility on AWS
 
 ## Overview
 
@@ -95,7 +95,7 @@ Approximate monthly cost for 5 restaurant locations in US East (N. Virginia):
 
 ```bash
 git clone <repo-url>
-cd guidance-for-restaurant-monitoring-agents-on-aws
+cd guidance-for-ai-powered-restaurant-visibility-on-aws
 ./deployment/deploy-all.sh
 ```
 

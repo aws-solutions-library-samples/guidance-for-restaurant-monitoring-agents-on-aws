@@ -1,4 +1,4 @@
-# Project: Guidance for Restaurant Monitoring Agents on AWS
+# Project: Guidance for AI-Powered Restaurant Visibility on AWS
 
 ## Objective
 AWS Solutions Library guidance demonstrating AI-powered restaurant equipment monitoring using Amazon Bedrock AgentCore, DynamoDB, and real-time anomaly detection across 10 Georgia locations.

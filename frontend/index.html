@@ -4,78 +4,208 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard - AnyCompany Restaurant Monitoring</title>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: Arial, sans-serif; background: #f5f5f5; }
-        .container { max-width: 1200px; margin: 2rem auto; padding: 0 1rem; }
-        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 1rem; }
-        .card { background: white; border-radius: 8px; padding: 1.5rem; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-        .card h3 { margin-bottom: 0.5rem; color: #2c3e50; }
-        .card p { color: #666; font-size: 0.9rem; margin: 0.3rem 0; }
-        .status { display: inline-block; padding: 0.25rem 0.6rem; border-radius: 4px; color: white; font-size: 0.8rem; font-weight: bold; }
-        .status.operational { background: #27ae60; }
-        .status.warning { background: #f39c12; }
-        .status.critical { background: #e74c3c; }
-        .stat-row { display: flex; justify-content: space-between; margin-top: 0.8rem; padding-top: 0.8rem; border-top: 1px solid #eee; }
-        .stat { text-align: center; }
-        .stat .num { font-size: 1.4rem; font-weight: bold; color: #2c3e50; }
-        .stat .lbl { font-size: 0.75rem; color: #999; }
-        .loading { text-align: center; padding: 3rem; color: #666; }
-        .ticket-badge { display: inline-block; background: #e74c3c; color: white; border-radius: 12px; padding: 0.15rem 0.5rem; font-size: 0.75rem; margin-left: 0.3rem; }
-    </style>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <script>if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) document.documentElement.classList.add('dark');</script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>body{font-family:'Inter',system-ui,sans-serif;}@media(min-width:1024px){#sidebar{transform:translateX(0)!important;}main{margin-left:16rem;}}@media(max-width:1023px){#sidebar{transform:translateX(-100%);}#sidebar.open{transform:translateX(0)!important;}}</style>
 </head>
-<body>
-    <script src="shared.js?v=1773237403"></script>
-    <script src="api.js?v=1773237403"></script>
+<body class="bg-gray-50 dark:bg-gray-950 min-h-screen">
+    <aside id="sidebar" style="position:fixed;left:0;top:0;height:100%;width:16rem;background:#111827;z-index:50;display:flex;flex-direction:column;">
+        <a href="index.html" style="display:flex;align-items:center;gap:0.75rem;padding:1.25rem 1.5rem;border-bottom:1px solid #374151;text-decoration:none;"><div style="width:2.5rem;height:2.5rem;border-radius:0.5rem;background:#f97316;display:flex;align-items:center;justify-content:center;font-size:1.25rem;">🍔</div><div><div style="color:#fff;font-size:1.1rem;font-weight:600;">AnyCompany</div><div style="color:#9ca3af;font-size:0.75rem;">Restaurant Monitoring</div></div></a>
+        <nav style="padding:1rem;display:flex;flex-direction:column;gap:0.25rem;flex:1;">
+            <a href="index.html" style="display:flex;align-items:center;gap:0.75rem;padding:0.75rem 1rem;border-radius:0.5rem;color:#fff;background:#f97316;text-decoration:none;font-size:14px;font-weight:500;"><i class="ti ti-dashboard" style="font-size:1.25rem;"></i><span>Dashboard</span></a>
+            <a href="3d-twin.html" style="display:flex;align-items:center;gap:0.75rem;padding:0.75rem 1rem;border-radius:0.5rem;color:#d1d5db;text-decoration:none;font-size:14px;font-weight:500;"><i class="ti ti-cpu" style="font-size:1.25rem;"></i><span>Equipment 3D Twin</span></a>
+            <a href="inventory.html" style="display:flex;align-items:center;gap:0.75rem;padding:0.75rem 1rem;border-radius:0.5rem;color:#d1d5db;text-decoration:none;font-size:14px;font-weight:500;"><i class="ti ti-packages" style="font-size:1.25rem;"></i><span>Inventory</span></a>
+            <a href="staffing.html" style="display:flex;align-items:center;gap:0.75rem;padding:0.75rem 1rem;border-radius:0.5rem;color:#d1d5db;text-decoration:none;font-size:14px;font-weight:500;"><i class="ti ti-users" style="font-size:1.25rem;"></i><span>Staffing</span></a>
+            <a href="tickets.html" style="display:flex;align-items:center;gap:0.75rem;padding:0.75rem 1rem;border-radius:0.5rem;color:#d1d5db;text-decoration:none;font-size:14px;font-weight:500;"><i class="ti ti-ticket" style="font-size:1.25rem;"></i><span>Tickets</span></a>
+        </nav>
+        <div style="padding:1rem;border-top:1px solid #374151;"><div onclick="sharedSignOut()" style="display:flex;align-items:center;gap:0.75rem;padding:0.75rem;border-radius:0.5rem;cursor:pointer;"><div style="width:2.5rem;height:2.5rem;border-radius:50%;background:rgba(249,115,22,0.2);display:flex;align-items:center;justify-content:center;"><i class="ti ti-logout" style="font-size:1.25rem;color:#fb923c;"></i></div><div><div id="sidebar-user-name" style="color:#fff;font-weight:500;font-size:0.875rem;">User</div><div style="color:#6b7280;font-size:0.75rem;">Sign Out</div></div></div></div>
+    </aside>
+    <div id="sidebar-overlay" class="fixed inset-0 bg-black/50 z-40 lg:hidden hidden" onclick="toggleSidebar()"></div>
 
-    <div class="container">
-        <div id="content" class="loading">Loading dashboard...</div>
-    </div>
+    <main style="margin-left:16rem;min-height:100vh;">
+        <header class="sticky top-0 z-30 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 px-4 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center gap-4">
+                <button onclick="toggleSidebar()" class="lg:hidden p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800"><i class="ti ti-menu-2 text-xl text-gray-600 dark:text-gray-400"></i></button>
+                <div><h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Dashboard</h2><p class="text-sm text-gray-500 dark:text-gray-400 hidden sm:block">AI-Powered Kitchen Management — Georgia Locations</p></div>
+            </div>
+            <button onclick="toggleDarkMode()" class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800"><i class="ti ti-sun text-xl text-gray-600 dark:hidden"></i><i class="ti ti-moon text-xl text-gray-400 hidden dark:inline"></i></button>
+        </header>
+        <div class="p-4 lg:p-8">
+            <!-- Summary Metrics -->
+            <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6" id="metrics">
+                <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 p-5"><div class="flex items-center justify-between mb-2"><div class="w-10 h-10 rounded-lg bg-blue-100 dark:bg-blue-900/20 flex items-center justify-center"><i class="ti ti-building-store text-blue-600 dark:text-blue-400 text-xl"></i></div></div><p class="text-2xl font-bold text-gray-900 dark:text-gray-100" id="m-restaurants">-</p><p class="text-sm text-gray-500">Restaurants</p></div>
+                <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 p-5"><div class="flex items-center justify-between mb-2"><div class="w-10 h-10 rounded-lg bg-red-100 dark:bg-red-900/20 flex items-center justify-center"><i class="ti ti-alert-circle text-red-600 dark:text-red-400 text-xl"></i></div></div><p class="text-2xl font-bold text-gray-900 dark:text-gray-100" id="m-critical">-</p><p class="text-sm text-gray-500">Critical Equipment</p></div>
+                <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 p-5"><div class="flex items-center justify-between mb-2"><div class="w-10 h-10 rounded-lg bg-yellow-100 dark:bg-yellow-900/20 flex items-center justify-center"><i class="ti ti-packages text-yellow-600 dark:text-yellow-400 text-xl"></i></div></div><p class="text-2xl font-bold text-gray-900 dark:text-gray-100" id="m-lowstock">-</p><p class="text-sm text-gray-500">Low/Critical Stock</p></div>
+                <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 p-5"><div class="flex items-center justify-between mb-2"><div class="w-10 h-10 rounded-lg bg-orange-100 dark:bg-orange-900/20 flex items-center justify-center"><i class="ti ti-ticket text-orange-600 dark:text-orange-400 text-xl"></i></div></div><p class="text-2xl font-bold text-gray-900 dark:text-gray-100" id="m-tickets">-</p><p class="text-sm text-gray-500">Open Tickets</p></div>
+            </div>
 
+            <!-- AI Recommendations -->
+            <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 mb-6 overflow-hidden">
+                <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-lg bg-orange-100 dark:bg-orange-900/20 flex items-center justify-center"><i class="ti ti-bulb text-orange-600 dark:text-orange-400"></i></div>
+                    <div><h3 class="font-semibold text-gray-900 dark:text-gray-100">AI Recommendations</h3><p class="text-xs text-gray-500">Based on current equipment, inventory, and staffing status</p></div>
+                </div>
+                <div class="divide-y divide-gray-100 dark:divide-gray-800 max-h-80 overflow-y-auto" id="recommendations">
+                    <div class="px-6 py-4 text-sm text-gray-500">Analyzing data...</div>
+                </div>
+            </div>
+
+            <!-- Restaurant Cards -->
+            <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Restaurant Locations</h3>
+            <div id="content" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
+                <div class="text-center py-12 text-gray-500 col-span-full">Loading...</div>
+            </div>
+        </div>
+    </main>
+
+    <script src="shared.js?v=1775095000"></script>
+    <script src="api.js?v=1775095000"></script>
     <script>
-        renderNav('dashboard');
+        function toggleSidebar(){document.getElementById('sidebar').classList.toggle('open');document.getElementById('sidebar-overlay').classList.toggle('hidden');}
+        function toggleDarkMode(){document.documentElement.classList.toggle('dark');localStorage.theme=document.documentElement.classList.contains('dark')?'dark':'light';}
         renderChatWidget();
 
         async function loadDashboard() {
             try {
-                const [restaurants, tickets, equipment] = await Promise.all([
-                    apiClient.getRestaurants(),
-                    apiClient.getTickets(),
-                    apiClient.getEquipment()
+                const [restaurants, tickets, equipment, inventory, staffing] = await Promise.all([
+                    apiClient.getRestaurants(), apiClient.getTickets(), apiClient.getEquipment(),
+                    apiClient.getInventory(), apiClient.getStaffing()
                 ]);
 
-                const content = document.getElementById('content');
-                content.className = 'grid';
+                // Metrics
+                const critEquip = equipment.filter(e => e.status === 'critical').length;
+                const warnEquip = equipment.filter(e => e.status === 'warning').length;
+                const lowStock = inventory.filter(i => { const q = parseFloat(i.quantity ?? i.current_stock ?? 0); const r = parseFloat(i.reorder_point || 1); return (q/r)*100 < 100; }).length;
+                document.getElementById('m-restaurants').textContent = restaurants.length;
+                document.getElementById('m-critical').textContent = critEquip + warnEquip;
+                document.getElementById('m-lowstock').textContent = lowStock;
+                document.getElementById('m-tickets').textContent = tickets.length;
 
+                // AI Recommendations
+                const recs = [];
+                // Equipment recommendations
+                equipment.filter(e => e.status === 'critical').forEach(e => {
+                    const r = restaurants.find(x => x.id === e.restaurant_id);
+                    const rName = r?.name || e.restaurant_id;
+                    const rLoc = r?.location || 'Georgia';
+                    const hasTicket = tickets.some(t => t.restaurant_id === e.restaurant_id && (t.equipment_id === e.equipment_id || (t.issue||'').toLowerCase().includes((e.appliance_name||'').toLowerCase().split(' ')[0])));
+                    const prompt = hasTicket ? null : `Create a maintenance ticket for ${e.appliance_name} at ${rName}. Temperature is ${e.temperature}°F, target is ${e.target_temperature}°F. Critical status.`;
+                    recs.push({ type: 'equipment', severity: 'critical', icon: 'ti-alert-circle', color: 'red',
+                        title: `${e.appliance_name} at ${rName} — Critical`,
+                        desc: `Temperature ${e.temperature}°F (target: ${e.target_temperature}°F). ${hasTicket ? 'Ticket exists.' : 'No ticket yet.'}`,
+                        prompt: prompt, btnLabel: 'Create Ticket'
+                    });
+                });
+                // Inventory recommendations
+                inventory.forEach(i => {
+                    const q = parseFloat(i.quantity ?? i.current_stock ?? 0);
+                    const rp = parseFloat(i.reorder_point || 1);
+                    const pct = (q/rp)*100;
+                    const itemName = i.item_name || i.name || 'Unknown';
+                    const unit = i.unit_of_measure || i.unit || 'units';
+                    const cat = (i.category || '').replace(/_/g, ' ');
+                    if (pct < 50) {
+                        const r = restaurants.find(x => x.id === (i.restaurant_id || 'ALL'));
+                        const rName = r?.name || i.restaurant_id || 'All Locations';
+                        const rLoc = r?.location || 'Georgia';
+                        const deficit = Math.ceil(rp - q);
+                        const prompt = `Reorder ${itemName} for ${rName}. Current stock: ${q} ${unit}, reorder point: ${rp} ${unit} (${pct.toFixed(0)}%). Need ${deficit} more ${unit}.`;
+                        recs.push({ type: 'inventory', severity: 'critical', icon: 'ti-package', color: 'red',
+                            title: `Reorder ${itemName} — ${rName}`,
+                            desc: `Stock at ${pct.toFixed(0)}% (${q} / ${rp} ${unit}). Immediate reorder needed.`,
+                            prompt: prompt, btnLabel: 'Place Reorder'
+                        });
+                    } else if (pct < 100) {
+                        const r = restaurants.find(x => x.id === (i.restaurant_id || 'ALL'));
+                        const rName = r?.name || i.restaurant_id || 'All Locations';
+                        recs.push({ type: 'inventory', severity: 'warning', icon: 'ti-package', color: 'yellow',
+                            title: `Low stock: ${itemName} — ${rName}`,
+                            desc: `Stock at ${pct.toFixed(0)}% (${q} / ${rp} ${unit}). Consider reordering soon.`,
+                            prompt: null, btnLabel: null
+                        });
+                    }
+                });
+                // Staffing recommendations
+                const staffFlat = [];
+                (staffing || []).forEach(rec => {
+                    if (rec.shifts && typeof rec.shifts === 'object') {
+                        Object.entries(rec.shifts).forEach(([name, d]) => { staffFlat.push({ restaurant_id: rec.restaurant_id, shift: name, required: d.required, scheduled: d.scheduled, date: rec.date }); });
+                    } else if (rec.staffing && Array.isArray(rec.staffing)) {
+                        rec.staffing.forEach(s => { staffFlat.push({ restaurant_id: rec.restaurant_id, shift: s.shift, required: s.required_count, scheduled: s.scheduled_count, date: rec.date }); });
+                    }
+                });
+                staffFlat.forEach(s => {
+                    const gap = parseInt(s.required||0) - parseInt(s.scheduled||0);
+                    if (gap > 0) {
+                        const r = restaurants.find(x => x.id === s.restaurant_id);
+                        const rName = r?.name || s.restaurant_id;
+                        const rLoc = r?.location || 'Georgia';
+                        const cov = s.required > 0 ? (s.scheduled/s.required)*100 : 100;
+                        const shiftName = (s.shift||'').charAt(0).toUpperCase()+(s.shift||'').slice(1);
+                        const prompt = gap > 2 ? `Request ${gap} additional staff for ${rName} ${shiftName} shift on ${s.date || 'today'}. Currently ${s.scheduled}/${s.required} scheduled.` : null;
+                        recs.push({ type: 'staffing', severity: gap > 2 ? 'critical' : 'warning', icon: 'ti-users', color: gap > 2 ? 'red' : 'yellow',
+                            title: `Staffing gap: ${rName} — ${shiftName} shift`,
+                            desc: `Need ${gap} more staff (${s.scheduled}/${s.required}, ${cov.toFixed(0)}% coverage). ${s.date || ''}`,
+                            prompt: prompt, btnLabel: 'Request Staff'
+                        });
+                    }
+                });
+
+                // Sort: critical first
+                recs.sort((a,b) => (a.severity === 'critical' ? 0 : 1) - (b.severity === 'critical' ? 0 : 1));
+
+                const recsEl = document.getElementById('recommendations');
+                if (recs.length === 0) {
+                    recsEl.innerHTML = '<div class="px-6 py-4 text-sm text-green-600 dark:text-green-400 flex items-center gap-2"><i class="ti ti-circle-check"></i> All systems operational — no recommendations at this time.</div>';
+                } else {
+                    recsEl.innerHTML = recs.map((r, idx) => `
+                        <div class="px-6 py-4 flex items-start gap-4 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
+                            <div class="w-9 h-9 rounded-lg bg-${r.color}-100 dark:bg-${r.color}-900/20 flex items-center justify-center flex-shrink-0 mt-0.5"><i class="ti ${r.icon} text-${r.color}-600 dark:text-${r.color}-400"></i></div>
+                            <div class="flex-1 min-w-0">
+                                <p class="text-sm font-medium text-gray-900 dark:text-gray-100">${r.title}</p>
+                                <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">${r.desc}</p>
+                            </div>
+                            ${r.prompt ? `<button onclick="askChatAgent(recPrompts[${idx}])" class="px-3 py-1.5 text-xs font-medium rounded-lg bg-orange-100 dark:bg-orange-900/20 text-orange-700 dark:text-orange-300 hover:bg-orange-200 dark:hover:bg-orange-900/40 transition-colors flex-shrink-0 whitespace-nowrap">${r.btnLabel}</button>` : `<span class="px-2 py-1 text-xs rounded-full bg-${r.color}-100 dark:bg-${r.color}-900/20 text-${r.color}-700 dark:text-${r.color}-300 flex-shrink-0">${r.severity}</span>`}
+                        </div>
+                    `).join('');
+                    // Store prompts in a global array so onclick can reference them without escaping issues
+                    window.recPrompts = recs.map(r => r.prompt);
+                }
+
+                // Restaurant cards
+                const content = document.getElementById('content');
                 content.innerHTML = restaurants.map(r => {
                     const rTickets = tickets.filter(t => t.restaurant_id === r.id);
                     const rEquip = equipment.filter(e => e.restaurant_id === r.id);
-                    const criticalEquip = rEquip.filter(e => e.status === 'critical').length;
-                    const warningEquip = rEquip.filter(e => e.status === 'warning').length;
+                    const crit = rEquip.filter(e => e.status === 'critical').length;
+                    const warn = rEquip.filter(e => e.status === 'warning').length;
                     const status = r.status || 'operational';
-
-                    return `
-                        <div class="card">
-                            <h3>${r.name || r.id} <span class="status ${status}">${status.toUpperCase()}</span></h3>
-                            <p>📍 ${r.location || 'Georgia'}</p>
-                            <p>👤 ${r.manager || 'N/A'}</p>
-                            ${rTickets.length > 0 ? `<p>🎫 Tickets <span class="ticket-badge">${rTickets.length}</span></p>` : '<p style="color:#27ae60;">✅ No active tickets</p>'}
-                            <div class="stat-row">
-                                <div class="stat"><div class="num">${rEquip.length}</div><div class="lbl">Equipment</div></div>
-                                <div class="stat"><div class="num" style="color:#e74c3c">${criticalEquip}</div><div class="lbl">Critical</div></div>
-                                <div class="stat"><div class="num" style="color:#f39c12">${warningEquip}</div><div class="lbl">Warning</div></div>
-                                <div class="stat"><div class="num" style="color:#27ae60">${rEquip.length - criticalEquip - warningEquip}</div><div class="lbl">Normal</div></div>
-                            </div>
+                    const sC = status === 'critical' ? 'red' : status === 'warning' ? 'yellow' : 'green';
+                    return `<div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 p-5 hover:shadow-md transition-shadow">
+                        <div class="flex items-center justify-between mb-3"><h3 class="font-semibold text-gray-900 dark:text-gray-100 truncate">${r.name||r.id}</h3><span class="px-2.5 py-1 rounded-full text-xs font-medium bg-${sC}-100 dark:bg-${sC}-900/20 text-${sC}-800 dark:text-${sC}-300">${status.toUpperCase()}</span></div>
+                        <p class="text-sm text-gray-500 dark:text-gray-400 mb-1"><i class="ti ti-map-pin text-sm"></i> ${r.location||'Georgia'}</p>
+                        <p class="text-sm text-gray-500 dark:text-gray-400 mb-3"><i class="ti ti-user text-sm"></i> ${r.manager||'N/A'}</p>
+                        ${rTickets.length > 0 ? `<p class="text-sm text-red-600 dark:text-red-400 mb-3"><i class="ti ti-ticket text-sm"></i> ${rTickets.length} active ticket${rTickets.length>1?'s':''}</p>` : '<p class="text-sm text-green-600 dark:text-green-400 mb-3"><i class="ti ti-circle-check text-sm"></i> No active tickets</p>'}
+                        <div class="grid grid-cols-4 gap-2 pt-3 border-t border-gray-200 dark:border-gray-700">
+                            <div class="text-center"><p class="text-lg font-bold text-gray-900 dark:text-gray-100">${rEquip.length}</p><p class="text-xs text-gray-400">Total</p></div>
+                            <div class="text-center"><p class="text-lg font-bold text-red-600 dark:text-red-400">${crit}</p><p class="text-xs text-gray-400">Critical</p></div>
+                            <div class="text-center"><p class="text-lg font-bold text-yellow-600 dark:text-yellow-400">${warn}</p><p class="text-xs text-gray-400">Warning</p></div>
+                            <div class="text-center"><p class="text-lg font-bold text-green-600 dark:text-green-400">${rEquip.length-crit-warn}</p><p class="text-xs text-gray-400">Normal</p></div>
                         </div>
-                    `;
+                    </div>`;
                 }).join('');
-
-            } catch (e) {
-                document.getElementById('content').innerHTML = '<div style="color:#e74c3c;text-align:center;padding:2rem;">Error loading dashboard: ' + e.message + '</div>';
-            }
+            } catch(e) { document.getElementById('content').innerHTML = `<div class="text-red-500 text-center py-8 col-span-full">${e.message}</div>`; }
         }
 
-        authReady.then(function() { loadDashboard(); });
+        function askChatAgent(prompt) {
+            toggleChat();
+            const input = document.getElementById('chat-input');
+            if (input) { input.value = prompt; sendChat(); }
+        }
+
+        authReady.then(() => loadDashboard());
     </script>
 </body>
 </html>

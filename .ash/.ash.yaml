@@ -1,5 +1,5 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/awslabs/automated-security-helper/refs/heads/main/automated_security_helper/schemas/AshConfig.json
-project_name: guidance-for-restaurant-monitoring-agents-on-aws
+project_name: guidance-for-ai-powered-restaurant-visibility-on-aws
 global_settings:
   severity_threshold: MEDIUM
   ignore_paths:

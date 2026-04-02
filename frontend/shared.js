@@ -38,17 +38,15 @@ function initAuth() {
                     });
                 }};
                 _authReadyResolve(auth);
-                // Update nav user display
-                var nameEl = document.getElementById('sh-user-name');
-                var userEl = document.getElementById('sh-user');
-                if (nameEl && userEl) {
+                // Update sidebar user display
+                var nameEl = document.getElementById('sidebar-user-name');
+                if (nameEl) {
                     user.getUserAttributes(function(e, attrs) {
                         if (!e && attrs) {
                             var name = attrs.find(function(a) { return a.getName() === 'name'; });
                             if (name && nameEl) nameEl.textContent = name.getValue();
                         }
                     });
-                    userEl.style.display = 'flex';
                 }
             } else {
                 window.location.href = 'login.html';
@@ -95,54 +93,60 @@ function escapeHtml(str) {
 }
 
 // ============================================
-// NAVIGATION
+// NAVIGATION (sidebar is now per-page; this is a no-op for backward compat)
 // ============================================
 function renderNav(activePage) {
-    const pages = [
-        { id: 'dashboard', href: 'index.html', icon: '📊', label: 'Dashboard' },
-        { id: 'equipment', href: '3d-twin.html', icon: '🏭', label: 'Equipment 3D Twin' },
-        { id: 'inventory', href: 'inventory.html', icon: '📦', label: 'Inventory' },
-        { id: 'staffing', href: 'staffing.html', icon: '👥', label: 'Staffing' },
-        { id: 'tickets', href: 'tickets.html', icon: '🎫', label: 'Tickets' }
-    ];
-
-    const header = document.createElement('div');
-    header.className = 'shared-header';
-    header.innerHTML = `
-        <div class="sh-bar">
-            <h1>🍔 AnyCompany Restaurant Monitoring System</h1>
-            <p>AI-Powered Kitchen Management — Georgia Locations</p>
-            <div class="sh-user" id="sh-user" style="display:none;">
-                <span id="sh-user-name"></span>
-                <button class="sh-signout" onclick="sharedSignOut()">Sign Out</button>
-            </div>
-        </div>
-        <nav class="sh-nav">
-            ${pages.map(p => `<a href="${p.href}" class="${p.id === activePage ? 'active' : ''}">${p.icon} ${p.label}</a>`).join('')}
-        </nav>
-    `;
-    document.body.prepend(header);
-
-    // Check auth
+    // Top nav removed — each page now has its own sidebar.
+    // Keep this function so existing calls don't throw errors.
     checkAuth();
+}
+
+// ============================================
+// SIDEBAR NAV POPULATION — auto-fills #sidebar-nav on any page
+// ============================================
+function populateSidebar() {
+    var navEl = document.getElementById('sidebar-nav');
+    if (!navEl) return;
+    var path = window.location.pathname;
+    var pages = [
+        { id: 'dashboard', href: 'index.html', icon: 'ti-dashboard', label: 'Dashboard' },
+        { id: 'equipment', href: '3d-twin.html', icon: 'ti-cpu', label: 'Equipment 3D Twin' },
+        { id: 'inventory', href: 'inventory.html', icon: 'ti-packages', label: 'Inventory' },
+        { id: 'staffing', href: 'staffing.html', icon: 'ti-users', label: 'Staffing' },
+        { id: 'tickets', href: 'tickets.html', icon: 'ti-ticket', label: 'Tickets' }
+    ];
+    navEl.innerHTML = pages.map(function(p) {
+        var isActive = path.indexOf(p.href) !== -1 || (p.id === 'dashboard' && (path.endsWith('/') || path.endsWith('/index.html')));
+        return '<a href="' + p.href + '" style="display:flex;align-items:center;gap:0.75rem;padding:0.75rem 1rem;border-radius:0.5rem;color:' +
+            (isActive ? '#fff;background:#f97316;' : '#d1d5db;background:transparent;') +
+            'text-decoration:none;font-size:14px;font-weight:500;transition:background 0.15s;" ' +
+            'onmouseover="if(!this.style.background.includes(\'#f97316\'))this.style.background=\'rgba(255,255,255,0.1)\'" ' +
+            'onmouseout="if(!this.style.background.includes(\'#f97316\'))this.style.background=\'transparent\'">' +
+            '<i class="ti ' + p.icon + '" style="font-size:1.25rem;"></i><span>' + p.label + '</span></a>';
+    }).join('');
+    checkAuth();
+}
+// Run when DOM is ready (handles scripts in <head> or <body>)
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', populateSidebar);
+} else {
+    populateSidebar();
 }
 
 // ============================================
 // AUTH CHECK (lightweight — no Cognito SDK needed on sub-pages)
 // ============================================
 function checkAuth() {
-    // Look for Cognito tokens in localStorage
     const keys = Object.keys(localStorage);
     const idTokenKey = keys.find(k => k.includes('idToken'));
     if (idTokenKey) {
-        const userEl = document.getElementById('sh-user');
-        if (userEl) userEl.style.display = 'block';
-        // Try to get user name from token
         try {
             const token = localStorage.getItem(idTokenKey);
             const payload = JSON.parse(atob(token.split('.')[1]));
-            const nameEl = document.getElementById('sh-user-name');
-            if (nameEl) nameEl.textContent = 'Welcome, ' + (payload.name || payload.email || 'User');
+            const displayName = payload.name || payload.email || 'User';
+            // Update sidebar user name if present
+            const sidebarName = document.getElementById('sidebar-user-name');
+            if (sidebarName) sidebarName.textContent = displayName;
         } catch(e) { /* ignore */ }
     }
 }
@@ -171,11 +175,11 @@ function renderChatWidget() {
         <button class="chat-toggle" onclick="toggleChat()" aria-label="Open chat">🧑‍💼</button>
         <div class="chat-panel" id="chat-panel">
             <div class="chat-header">
-                <h4>🤖 Kitchen Assistant AI</h4>
+                <h4>🤖 Restaurant Assistant AI</h4>
                 <small>Ask about equipment, tickets, or locations</small>
             </div>
             <div class="chat-messages" id="chat-messages">
-                <div class="message bot"><div class="message-content">Hi! Ask me about equipment status, tickets, inventory, or staffing. 🎤 Use the mic for voice input.</div></div>
+                <div class="message bot"><div class="message-content">Hi! I can help with equipment issues, inventory reorders, staffing requests, and maintenance tickets. Try asking:<br>• "What equipment needs attention?"<br>• "Which items need reordering?"<br>• "Show staffing gaps for today"<br>• "Create a ticket for the walk-in cooler"</div></div>
             </div>
             <div class="chat-input">
                 <button class="voice-btn" id="voice-input-btn" onclick="toggleVoiceInput()" title="Voice input">🎤</button>
@@ -342,42 +346,50 @@ function injectSharedStyles() {
     const style = document.createElement('style');
     style.id = 'shared-nav-styles';
     style.textContent = `
-        .shared-header { position: relative; z-index: 1000; }
-        .sh-bar { background: #2c3e50; color: white; padding: 1rem; text-align: center; position: relative; }
-        .sh-bar h1 { font-size: 1.8rem; margin-bottom: 0.3rem; font-weight: bold; }
-        .sh-bar p { font-size: 1rem; opacity: 0.9; }
-        .sh-nav { background: #34495e; padding: 0.5rem; text-align: center; }
-        .sh-nav a { color: white; text-decoration: none; margin: 0 0.8rem; padding: 0.5rem 1rem; border-radius: 4px; display: inline-block; }
-        .sh-nav a:hover, .sh-nav a.active { background: #3498db; }
-        .sh-user { position: absolute; top: 50%; right: 1rem; transform: translateY(-50%); display: flex; align-items: center; gap: 0.5rem; font-size: 0.9rem; }
-        .sh-signout { background: #e74c3c; color: white; border: none; padding: 0.3rem 0.8rem; border-radius: 4px; cursor: pointer; font-size: 0.85rem; }
-        .sh-signout:hover { background: #c0392b; }
-        .chat-widget { position: fixed; bottom: 20px; right: 20px; z-index: 9999; }
-        .chat-toggle { background: #e74c3c; color: white; border: none; border-radius: 50%; width: 72px; height: 72px; font-size: 36px; cursor: pointer; box-shadow: 0 4px 16px rgba(0,0,0,0.35); transition: transform 0.2s; }
-        .chat-toggle:hover { background: #c0392b; transform: scale(1.1); }
-        .chat-panel { display: none; flex-direction: column; position: absolute; bottom: 82px; right: 0; width: 380px; height: 450px; background: white; border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.3); overflow: hidden; }
-        .chat-header { background: #3498db; color: white; padding: 1rem; text-align: center; }
-        .chat-header h4 { margin: 0 0 0.2rem 0; }
-        .chat-header small { opacity: 0.9; }
-        .chat-messages { flex: 1; overflow-y: auto; padding: 1rem; background: #fafafa; }
-        .chat-input input { flex: 1; padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px; font-size: 0.9rem; min-width: 0; }
-        .chat-input button { background: #3498db; color: white; border: none; padding: 0.5rem 1rem; margin-left: 0.5rem; border-radius: 4px; cursor: pointer; }
-        .chat-input button:hover { background: #2980b9; }
+        .chat-widget { position: fixed; bottom: 20px; right: 20px; z-index: 9999; font-family: 'Inter', system-ui, -apple-system, sans-serif; font-size: 14px; }
+        .chat-toggle { background: #f97316; color: white; border: none; border-radius: 50%; width: 64px; height: 64px; font-size: 32px; cursor: pointer; box-shadow: 0 4px 16px rgba(0,0,0,0.35); transition: transform 0.2s; }
+        .chat-toggle:hover { background: #ea580c; transform: scale(1.1); }
+        .chat-panel { display: none; flex-direction: column; position: absolute; bottom: 76px; right: 0; width: 380px; height: 480px; background: white; border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.3); overflow: hidden; font-size: 14px; }
+        .chat-header { background: #111827; color: white; padding: 1rem 1.25rem; }
+        .chat-header h4 { margin: 0 0 0.2rem 0; font-size: 15px; font-weight: 600; }
+        .chat-header small { opacity: 0.7; font-size: 12px; }
+        .chat-messages { flex: 1; overflow-y: auto; padding: 1rem; background: #f9fafb; }
+        .chat-input input { flex: 1; padding: 0.6rem 0.75rem; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px; min-width: 0; font-family: inherit; outline: none; }
+        .chat-input input:focus { border-color: #f97316; box-shadow: 0 0 0 2px rgba(249,115,22,0.2); }
+        .chat-input button { background: #f97316; color: white; border: none; padding: 0.6rem 1rem; margin-left: 0.4rem; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 500; }
+        .chat-input button:hover { background: #ea580c; }
         .message { margin-bottom: 0.8rem; }
         .message.user { text-align: right; }
         .message.bot { text-align: left; }
-        .message-content { display: inline-block; padding: 0.5rem 1rem; border-radius: 12px; max-width: 85%; word-wrap: break-word; line-height: 1.4; }
-        .message.user .message-content { background: #3498db; color: white; }
-        .message.bot .message-content { background: #e8e8e8; color: #333; }
-        .voice-btn { background: #e74c3c; color: white; border: none; width: 36px; height: 36px; border-radius: 50%; font-size: 16px; cursor: pointer; flex-shrink: 0; display: flex; align-items: center; justify-content: center; transition: background 0.2s; }
+        .message-content { display: inline-block; padding: 0.6rem 1rem; border-radius: 12px; max-width: 85%; word-wrap: break-word; line-height: 1.5; font-size: 14px; }
+        .message.user .message-content { background: #f97316; color: white; }
+        .message.bot .message-content { background: #e5e7eb; color: #1f2937; }
+        .voice-btn { background: #f97316; color: white; border: none; width: 36px; height: 36px; border-radius: 50%; font-size: 16px; cursor: pointer; flex-shrink: 0; display: flex; align-items: center; justify-content: center; transition: background 0.2s; }
         .voice-btn:hover { opacity: 0.85; }
-        .voice-btn.recording { background: #c0392b; animation: pulse-rec 1s infinite; }
-        .voice-btn.voice-output-on { background: #27ae60; }
-        .voice-btn.voice-output-off { background: #95a5a6; }
-        @keyframes pulse-rec { 0%,100% { box-shadow: 0 0 0 0 rgba(192,57,43,0.5); } 50% { box-shadow: 0 0 0 8px rgba(192,57,43,0); } }
-        .chat-input { display: flex; padding: 0.8rem; border-top: 1px solid #eee; background: white; gap: 0.4rem; align-items: center; }
+        .voice-btn.recording { background: #dc2626; animation: pulse-rec 1s infinite; }
+        .voice-btn.voice-output-on { background: #16a34a; }
+        .voice-btn.voice-output-off { background: #9ca3af; }
+        @keyframes pulse-rec { 0%,100% { box-shadow: 0 0 0 0 rgba(220,38,38,0.5); } 50% { box-shadow: 0 0 0 8px rgba(220,38,38,0); } }
+        .chat-input { display: flex; padding: 0.75rem; border-top: 1px solid #e5e7eb; background: white; gap: 0.4rem; align-items: center; }
     `;
     document.head.appendChild(style);
 }
 
 injectSharedStyles();
+
+// ============================================
+// SIDEBAR TOGGLE & DARK MODE (global helpers)
+// ============================================
+function toggleSidebar() {
+    var sb = document.getElementById('sidebar');
+    var ov = document.getElementById('sidebar-overlay');
+    if (sb) sb.classList.toggle('open');
+    if (ov) ov.classList.toggle('hidden');
+    // Also handle 3d-twin sidebar-nav class
+    var sbNav = document.querySelector('.sidebar-nav');
+    if (sbNav && sbNav !== sb) sbNav.classList.toggle('open');
+}
+function toggleDarkMode() {
+    document.documentElement.classList.toggle('dark');
+    localStorage.theme = document.documentElement.classList.contains('dark') ? 'dark' : 'light';
+}

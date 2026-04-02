@@ -1,184 +1,116 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Maintenance Tickets - Restaurant Kitchen Assistant</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+    <title>Tickets - AnyCompany Restaurant Monitoring</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <script>
+        if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark');
         }
-
-        body {
-            font-family: Arial, sans-serif;
-            background: #f5f5f5;
-        }
-
-        .container {
-            max-width: 1200px;
-            margin: 2rem auto;
-            padding: 0 1rem;
-        }
-
-        .card {
-            background: white;
-            border-radius: 8px;
-            padding: 1.5rem;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        }
-
-        .loading {
-            text-align: center;
-            padding: 2rem;
-        }
-
-        .ticket-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 1rem;
-        }
-
-        .ticket-table th,
-        .ticket-table td {
-            padding: 0.75rem;
-            text-align: left;
-            border-bottom: 1px solid #ddd;
-        }
-
-        .ticket-table th {
-            background: #f8f9fa;
-            font-weight: bold;
-        }
-
-        .priority-critical,
-        .priority-high {
-            background: #ffebee;
-            color: #c62828;
-        }
-
-        .priority-warning,
-        .priority-medium {
-            background: #fff3e0;
-            color: #ef6c00;
-        }
-
-        .priority-low {
-            background: #e8f5e8;
-            color: #2e7d32;
-        }
-
-        .status.critical,
-        .status.high {
-            background: #c62828;
-            color: white;
-        }
-
-        .status.warning,
-        .status.medium {
-            background: #ef6c00;
-            color: white;
-        }
-
-        .status.low {
-            background: #2e7d32;
-            color: white;
-        }
-
-        .category-badge { padding: 0.3rem 0.6rem; border-radius: 4px; font-size: 0.75rem; font-weight: bold; color: white; }
-        .category-badge.equipment { background: #3498db; }
-        .category-badge.inventory { background: #9b59b6; }
-        .category-badge.staffing { background: #e67e22; }
-
-        .no-tickets {
-            color: #666;
-            font-style: italic;
-        }
+    </script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>body { font-family: 'Inter', system-ui, -apple-system, sans-serif; }
+    @media (min-width: 1024px) { #sidebar { transform: translateX(0) !important; } main { margin-left: 16rem; } }
+    @media (max-width: 1023px) { #sidebar { transform: translateX(-100%); } #sidebar.open { transform: translateX(0) !important; } }
     </style>
 </head>
-
-<body>
-    <script src="shared.js?v=1773237403"></script>
-    <script src="api.js?v=1773237403"></script>
-    <div class="container">
-        <div class="card">
-            <h2>🎫 Maintenance Tickets by Restaurant</h2>
-            <div class="loading" id="loading">Loading tickets...</div>
-            <div id="tickets-content" style="display: none;"></div>
+<body class="bg-gray-50 dark:bg-gray-950 min-h-screen">
+    <aside id="sidebar" style="position:fixed;left:0;top:0;height:100%;width:16rem;background:#111827;z-index:50;display:flex;flex-direction:column;">
+        <a href="index.html" style="display:flex;align-items:center;gap:0.75rem;padding:1.25rem 1.5rem;border-bottom:1px solid #374151;text-decoration:none;">
+            <div style="width:2.5rem;height:2.5rem;border-radius:0.5rem;background:#f97316;display:flex;align-items:center;justify-content:center;font-size:1.25rem;">🍔</div>
+            <div><div style="color:#fff;font-size:1.1rem;font-weight:600;">AnyCompany</div><div style="color:#9ca3af;font-size:0.75rem;">Restaurant Monitoring</div></div>
+        </a>
+        <nav style="padding:1rem;display:flex;flex-direction:column;gap:0.25rem;flex:1;">
+            <a href="index.html" style="display:flex;align-items:center;gap:0.75rem;padding:0.75rem 1rem;border-radius:0.5rem;color:#d1d5db;text-decoration:none;font-size:14px;font-weight:500;"><i class="ti ti-dashboard" style="font-size:1.25rem;"></i><span>Dashboard</span></a>
+            <a href="3d-twin.html" style="display:flex;align-items:center;gap:0.75rem;padding:0.75rem 1rem;border-radius:0.5rem;color:#d1d5db;text-decoration:none;font-size:14px;font-weight:500;"><i class="ti ti-cpu" style="font-size:1.25rem;"></i><span>Equipment 3D Twin</span></a>
+            <a href="inventory.html" style="display:flex;align-items:center;gap:0.75rem;padding:0.75rem 1rem;border-radius:0.5rem;color:#d1d5db;text-decoration:none;font-size:14px;font-weight:500;"><i class="ti ti-packages" style="font-size:1.25rem;"></i><span>Inventory</span></a>
+            <a href="staffing.html" style="display:flex;align-items:center;gap:0.75rem;padding:0.75rem 1rem;border-radius:0.5rem;color:#d1d5db;text-decoration:none;font-size:14px;font-weight:500;"><i class="ti ti-users" style="font-size:1.25rem;"></i><span>Staffing</span></a>
+            <a href="tickets.html" style="display:flex;align-items:center;gap:0.75rem;padding:0.75rem 1rem;border-radius:0.5rem;color:#fff;background:#f97316;text-decoration:none;font-size:14px;font-weight:500;"><i class="ti ti-ticket" style="font-size:1.25rem;"></i><span>Tickets</span></a>
+        </nav>
+        <div style="padding:1rem;border-top:1px solid #374151;">
+            <div onclick="sharedSignOut()" style="display:flex;align-items:center;gap:0.75rem;padding:0.75rem;border-radius:0.5rem;cursor:pointer;">
+                <div style="width:2.5rem;height:2.5rem;border-radius:50%;background:rgba(249,115,22,0.2);display:flex;align-items:center;justify-content:center;"><i class="ti ti-logout" style="font-size:1.25rem;color:#fb923c;"></i></div>
+                <div><div id="sidebar-user-name" style="color:#fff;font-weight:500;font-size:0.875rem;">User</div><div style="color:#6b7280;font-size:0.75rem;">Sign Out</div></div>
+            </div>
         </div>
-    </div>
+    </aside>
+    <div id="sidebar-overlay" class="fixed inset-0 bg-black/50 z-40 lg:hidden hidden" onclick="toggleSidebar()"></div>
 
+    <main style="margin-left:16rem;min-height:100vh;">
+        <header class="sticky top-0 z-30 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 px-4 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center gap-4">
+                <button onclick="toggleSidebar()" class="lg:hidden p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800"><i class="ti ti-menu-2 text-xl text-gray-600 dark:text-gray-400"></i></button>
+                <div><h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Maintenance Tickets</h2><p class="text-sm text-gray-500 dark:text-gray-400 hidden sm:block">Tickets by restaurant and priority</p></div>
+            </div>
+            <div class="flex items-center gap-3">
+                <button onclick="toggleDarkMode()" class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800"><i class="ti ti-sun text-xl text-gray-600 dark:hidden"></i><i class="ti ti-moon text-xl text-gray-400 hidden dark:inline"></i></button>
+            </div>
+        </header>
+        <div class="p-4 lg:p-8">
+            <div id="loading" class="text-center py-12 text-gray-500 dark:text-gray-400">Loading tickets...</div>
+            <div id="tickets-content" class="hidden"></div>
+        </div>
+    </main>
+
+    <script src="shared.js?v=1775095000"></script>
+    <script src="api.js?v=1775095000"></script>
     <script>
-        renderNav('tickets');
         renderChatWidget();
+        authReady.then(() => { if (auth && auth.currentUser) { auth.currentUser.getUserAttributes((e, attrs) => { if (!e && attrs) { const n = attrs.find(a => a.getName() === 'name'); if (n) document.getElementById('sidebar-user-name').textContent = n.getValue(); } }); } });
 
         async function loadTickets() {
             try {
                 const tickets = await apiClient.getTickets();
                 const restaurants = await apiClient.getRestaurants();
-
-                // Group tickets by restaurant
                 const ticketsByRestaurant = {};
-                restaurants.forEach(restaurant => {
-                    ticketsByRestaurant[restaurant.id] = {
-                        restaurant: restaurant,
-                        tickets: tickets.filter(t => t.restaurant_id === restaurant.id)
-                    };
-                });
+                restaurants.forEach(r => { ticketsByRestaurant[r.id] = { restaurant: r, tickets: tickets.filter(t => t.restaurant_id === r.id) }; });
 
                 document.getElementById('tickets-content').innerHTML = `
-                    <table class="ticket-table">
-                        <thead>
-                            <tr>
-                                <th>Restaurant</th>
-                                <th>Ticket ID</th>
-                                <th>Category</th>
-                                <th>Description</th>
-                                <th>Priority</th>
-                                <th>Status</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${Object.values(ticketsByRestaurant).map(group => {
-                    if (group.tickets.length === 0) {
-                        return `
-                                        <tr>
-                                            <td><strong>${group.restaurant.name}</strong><br><small>${group.restaurant.location}</small></td>
-                                            <td colspan="5" class="no-tickets">No active tickets</td>
-                                        </tr>
-                                    `;
-                    }
-                    return group.tickets.map((ticket, index) => `
-                                    <tr class="priority-${ticket.priority}">
-                                        ${index === 0 ? `<td rowspan="${group.tickets.length}"><strong>${group.restaurant.name}</strong><br><small>${group.restaurant.location}</small></td>` : ''}
-                                        <td>${ticket.ticket_id}</td>
-                                        <td><span class="category-badge ${ticket.category || 'equipment'}">${(ticket.category || 'equipment').toUpperCase()}</span></td>
-                                        <td>${ticket.issue || ticket.description || 'No description'}</td>
-                                        <td><span class="status ${ticket.priority}">${ticket.priority.toUpperCase()}</span></td>
-                                        <td>${ticket.status}</td>
-                                    </tr>
-                                `).join('');
-                }).join('')}
-                        </tbody>
-                    </table>
-                `;
-
-                document.getElementById('loading').style.display = 'none';
-                document.getElementById('tickets-content').style.display = 'block';
-
-            } catch (error) {
-                console.error('Error loading tickets:', error);
-                document.getElementById('loading').innerHTML = '<div style="color: #e74c3c;">Error loading tickets. Please try again.</div>';
-            }
+                    <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
+                        <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+                            <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">All Tickets</h3>
+                            <p class="text-sm text-gray-500 dark:text-gray-400">${tickets.length} total across ${restaurants.length} locations</p>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full min-w-[700px]">
+                                <thead><tr class="bg-gray-50 dark:bg-gray-800">
+                                    <th class="text-left px-4 py-3 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Restaurant</th>
+                                    <th class="text-left px-4 py-3 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Ticket ID</th>
+                                    <th class="text-left px-4 py-3 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Category</th>
+                                    <th class="text-left px-4 py-3 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Description</th>
+                                    <th class="text-center px-4 py-3 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Priority</th>
+                                    <th class="text-center px-4 py-3 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Status</th>
+                                </tr></thead>
+                                <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
+                                    ${Object.values(ticketsByRestaurant).map(group => {
+                                        if (group.tickets.length === 0) {
+                                            return `<tr class="hover:bg-gray-50 dark:hover:bg-gray-800/50"><td class="px-4 py-3 text-sm font-medium text-gray-900 dark:text-gray-100">${group.restaurant.name}<br><span class="text-xs text-gray-400">${group.restaurant.location}</span></td><td colspan="5" class="px-4 py-3 text-sm text-gray-400 italic">No active tickets</td></tr>`;
+                                        }
+                                        return group.tickets.map((t, i) => {
+                                            const pColor = (t.priority === 'critical' || t.priority === 'high') ? 'red' : t.priority === 'medium' ? 'yellow' : 'green';
+                                            const catColor = t.category === 'equipment' ? 'blue' : t.category === 'inventory' ? 'purple' : 'orange';
+                                            return `<tr class="hover:bg-gray-50 dark:hover:bg-gray-800/50">
+                                                ${i === 0 ? `<td rowspan="${group.tickets.length}" class="px-4 py-3 text-sm font-medium text-gray-900 dark:text-gray-100 align-top">${group.restaurant.name}<br><span class="text-xs text-gray-400">${group.restaurant.location}</span></td>` : ''}
+                                                <td class="px-4 py-3 text-sm text-gray-600 dark:text-gray-300 font-mono">${t.ticket_id}</td>
+                                                <td class="px-4 py-3"><span class="px-2 py-1 rounded text-xs font-medium bg-${catColor}-100 dark:bg-${catColor}-900/20 text-${catColor}-800 dark:text-${catColor}-300">${(t.category || 'equipment').toUpperCase()}</span></td>
+                                                <td class="px-4 py-3 text-sm text-gray-900 dark:text-gray-100">${t.issue || t.description || 'No description'}</td>
+                                                <td class="px-4 py-3 text-center"><span class="px-2.5 py-1 rounded-full text-xs font-medium bg-${pColor}-100 dark:bg-${pColor}-900/20 text-${pColor}-800 dark:text-${pColor}-300">${t.priority.toUpperCase()}</span></td>
+                                                <td class="px-4 py-3 text-center text-sm text-gray-600 dark:text-gray-300">${t.status}</td>
+                                            </tr>`;
+                                        }).join('');
+                                    }).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>`;
+                document.getElementById('loading').classList.add('hidden');
+                document.getElementById('tickets-content').classList.remove('hidden');
+            } catch (e) { document.getElementById('loading').innerHTML = `<div class="text-red-500">${e.message}</div>`; }
         }
-
-        authReady.then(function() {
-            loadTickets();
-            setInterval(loadTickets, 15000);
-        });
+        authReady.then(() => { loadTickets(); setInterval(loadTickets, 15000); });
     </script>
 </body>
-
 </html>

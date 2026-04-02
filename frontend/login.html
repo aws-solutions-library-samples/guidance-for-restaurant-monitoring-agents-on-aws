@@ -3,28 +3,148 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Restaurant Login</title>
-    <script src="https://unpkg.com/amazon-cognito-identity-js@6.3.12/dist/amazon-cognito-identity.min.js"></script>
+    <title>Sign In - AnyCompany Restaurant Monitoring</title>
+    <script src="https://unpkg.com/amazon-cognito-identity-js@6.3.12/dist/amazon-cognito-identity.min.js" integrity="sha384-YkDOkBg8dBira7f28t9KbD0tG5OnnuU540fRBz8JgorAXLJOwtakyHNV7m36RDG4" crossorigin="anonymous"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: Arial, sans-serif; background: #f5f5f5; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
-        .login-container { background: white; padding: 2rem; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); width: 100%; max-width: 400px; }
-        .login-container h2 { text-align: center; color: #2c3e50; margin-bottom: 2rem; }
-        .login-container input { width: 100%; padding: 0.75rem; margin: 0.5rem 0; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box; }
-        .login-container button { width: 100%; padding: 0.75rem; background: #3498db; color: white; border: none; border-radius: 4px; cursor: pointer; margin: 0.5rem 0; }
-        .login-container button:hover { background: #2980b9; }
-        .message { margin-top: 1rem; padding: 0.5rem; border-radius: 4px; text-align: center; display: none; }
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background: linear-gradient(135deg, #111827 0%, #1f2937 50%, #111827 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+        }
+        .login-card {
+            background: #fff;
+            border-radius: 1rem;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            width: 100%;
+            max-width: 420px;
+            overflow: hidden;
+        }
+        .login-header {
+            background: #111827;
+            padding: 2rem 2rem 1.75rem;
+            text-align: center;
+        }
+        .logo-row {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+        }
+        .logo-icon {
+            width: 3rem; height: 3rem;
+            border-radius: 0.75rem;
+            background: #f97316;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.5rem;
+        }
+        .logo-text h1 { color: #fff; font-size: 1.35rem; font-weight: 700; }
+        .logo-text p { color: #9ca3af; font-size: 0.75rem; }
+        .login-subtitle { color: #6b7280; font-size: 0.85rem; margin-top: 0.25rem; }
+        .login-body { padding: 2rem; }
+        .form-group { margin-bottom: 1.25rem; }
+        .form-group label {
+            display: block;
+            margin-bottom: 0.4rem;
+            font-weight: 600;
+            color: #374151;
+            font-size: 0.85rem;
+        }
+        .form-group input {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 1.5px solid #d1d5db;
+            border-radius: 0.5rem;
+            font-size: 0.9rem;
+            font-family: inherit;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            outline: none;
+        }
+        .form-group input:focus {
+            border-color: #f97316;
+            box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.15);
+        }
+        .login-btn {
+            width: 100%;
+            background: #f97316;
+            color: #fff;
+            border: none;
+            padding: 0.8rem;
+            border-radius: 0.5rem;
+            font-size: 0.95rem;
+            font-weight: 600;
+            font-family: inherit;
+            cursor: pointer;
+            transition: background 0.2s;
+            margin-top: 0.5rem;
+        }
+        .login-btn:hover { background: #ea580c; }
+        .login-btn:disabled { background: #d1d5db; cursor: not-allowed; }
+        .message {
+            margin-top: 1rem;
+            padding: 0.75rem 1rem;
+            border-radius: 0.5rem;
+            text-align: center;
+            font-size: 0.85rem;
+            display: none;
+        }
+        .login-footer {
+            text-align: center;
+            padding: 0 2rem 1.75rem;
+            color: #9ca3af;
+            font-size: 0.75rem;
+        }
+        .powered-by {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            margin-top: 1.5rem;
+            opacity: 0.5;
+        }
+        .powered-by img { height: 28px; }
     </style>
 </head>
 <body>
-    <div class="login-container">
-        <h2>🏪 Restaurant Login</h2>
-        <form onsubmit="event.preventDefault(); signIn();">
-            <input type="email" id="login-email" placeholder="Email" autocomplete="username">
-            <input type="password" id="login-password" placeholder="Password" autocomplete="current-password">
-            <button type="submit">Sign In</button>
-        </form>
-        <div id="message" class="message"></div>
+    <div class="login-card">
+        <div class="login-header">
+            <div class="logo-row">
+                <div class="logo-icon">🍔</div>
+                <div class="logo-text">
+                    <h1>AnyCompany</h1>
+                    <p>Restaurant Monitoring</p>
+                </div>
+            </div>
+            <p class="login-subtitle">AI-Powered Kitchen Management</p>
+        </div>
+
+        <div class="login-body">
+            <form onsubmit="event.preventDefault(); signIn();">
+                <div class="form-group">
+                    <label for="login-email">Email</label>
+                    <input type="email" id="login-email" placeholder="demo@anycompany.com" autocomplete="username" required>
+                </div>
+                <div class="form-group">
+                    <label for="login-password">Password</label>
+                    <input type="password" id="login-password" placeholder="Enter your password" autocomplete="current-password" required>
+                </div>
+                <button type="submit" class="login-btn" id="login-btn">Sign In</button>
+            </form>
+            <div id="message" class="message"></div>
+        </div>
+
+        <div class="login-footer">
+            Secure access to restaurant operations dashboard
+            <div class="powered-by">
+                <img src="https://d0.awsstatic.com/logos/powered-by-aws.png" alt="Powered by AWS">
+            </div>
+        </div>
     </div>
 
     <script>
@@ -42,38 +162,40 @@
         function signIn() {
             const email = document.getElementById('login-email').value;
             const password = document.getElementById('login-password').value;
+            const btn = document.getElementById('login-btn');
 
             if (!email || !password) {
                 showMessage('Please enter email and password', 'error');
                 return;
             }
 
+            btn.disabled = true;
+            btn.textContent = 'Signing in...';
+
             const authenticationDetails = new AmazonCognitoIdentity.AuthenticationDetails({
-                Username: email,
-                Password: password
+                Username: email, Password: password
             });
 
             const cognitoUser = new AmazonCognitoIdentity.CognitoUser({
-                Username: email,
-                Pool: userPool
+                Username: email, Pool: userPool
             });
 
             cognitoUser.authenticateUser(authenticationDetails, {
-                onSuccess: (result) => {
-                    window.location.href = 'index.html';
-                },
+                onSuccess: () => { window.location.href = 'index.html'; },
                 onFailure: (err) => {
                     showMessage(err.message, 'error');
+                    btn.disabled = false;
+                    btn.textContent = 'Sign In';
                 },
                 newPasswordRequired: (userAttributes) => {
                     delete userAttributes.email_verified;
                     delete userAttributes.email;
                     cognitoUser.completeNewPasswordChallenge(password, userAttributes, {
-                        onSuccess: (result) => {
-                            window.location.href = 'index.html';
-                        },
+                        onSuccess: () => { window.location.href = 'index.html'; },
                         onFailure: (err) => {
                             showMessage(err.message, 'error');
+                            btn.disabled = false;
+                            btn.textContent = 'Sign In';
                         }
                     });
                 }
@@ -81,23 +203,24 @@
         }
 
         function showMessage(message, type) {
-            const messageDiv = document.getElementById('message');
-            messageDiv.textContent = message;
-            messageDiv.style.display = 'block';
-            messageDiv.style.background = type === 'error' ? '#ffebee' : '#e8f5e8';
-            messageDiv.style.color = type === 'error' ? '#c62828' : '#2e7d32';
-            messageDiv.style.border = type === 'error' ? '1px solid #ffcdd2' : '1px solid #c8e6c9';
+            const el = document.getElementById('message');
+            el.textContent = message;
+            el.style.display = 'block';
+            el.style.background = type === 'error' ? '#fef2f2' : '#f0fdf4';
+            el.style.color = type === 'error' ? '#991b1b' : '#166534';
+            el.style.border = type === 'error' ? '1px solid #fecaca' : '1px solid #bbf7d0';
         }
 
-        // Check if already authenticated
+        // Auto-redirect if already authenticated
         const currentUser = userPool.getCurrentUser();
         if (currentUser) {
             currentUser.getSession((err, session) => {
-                if (!err && session.isValid()) {
-                    window.location.href = 'index.html';
-                }
+                if (!err && session.isValid()) window.location.href = 'index.html';
             });
         }
+
+        // Auto-focus email field
+        document.getElementById('login-email').focus();
     </script>
 </body>
 </html>
