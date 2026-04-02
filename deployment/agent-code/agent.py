@@ -131,19 +131,29 @@ def get_tickets(restaurant_id: str = None) -> dict:
     return {"status": "success", "content": [{"text": json.dumps(response.get('Items', []), default=str)}]}
 
 @tool
-def create_ticket(restaurant_id: str, equipment_id: str, issue: str, priority: str = "medium") -> dict:
-    """Create a maintenance ticket"""
+def create_ticket(restaurant_id: str, issue: str, priority: str = "medium", category: str = "equipment", equipment_id: str = None) -> dict:
+    """Create a ticket for equipment maintenance, inventory reorder, or staffing request.
+
+    Args:
+        restaurant_id: Restaurant ID (e.g. AFC-001)
+        issue: Description of the issue or request
+        priority: Ticket priority — critical, high, medium, or low
+        category: Type of ticket — equipment, inventory, or staffing
+        equipment_id: Equipment ID (only for equipment tickets)
+    """
     dynamodb = boto3.resource('dynamodb', region_name=REGION)
     table = dynamodb.Table(TICKETS_TABLE)
     ticket_id = f"TKT-{uuid.uuid4().hex[:8].upper()}"
     ticket = {
         'ticket_id': ticket_id, 'restaurant_id': restaurant_id,
-        'equipment_id': equipment_id, 'issue': issue,
-        'priority': priority, 'status': 'open',
+        'issue': issue, 'priority': priority,
+        'category': category, 'status': 'open',
         'created_at': datetime.now().isoformat()
     }
+    if equipment_id:
+        ticket['equipment_id'] = equipment_id
     table.put_item(Item=ticket)
-    return {"status": "success", "content": [{"text": f"Ticket {ticket_id} created successfully"}]}
+    return {"status": "success", "content": [{"text": f"Ticket {ticket_id} created successfully for {category} — {issue}"}]}
 
 # Knowledge Base ID — set via environment variable after KB creation
 KNOWLEDGE_BASE_ID = os.environ.get('KNOWLEDGE_BASE_ID', 'RXNA4EHZKC')
@@ -203,7 +213,7 @@ ALL_TOOLS = [get_restaurants, get_equipment, analyze_temperature, get_troublesho
 # SYSTEM PROMPT
 # ============================================================
 
-SYSTEM_PROMPT = """You are a friendly restaurant monitoring assistant for AnyCompany's Georgia restaurant network.
+SYSTEM_PROMPT = """You are a friendly restaurant operations assistant for AnyCompany's Georgia restaurant network.
 
 PERSONALITY:
 - Be warm, conversational, and helpful — like a knowledgeable colleague.
@@ -211,6 +221,20 @@ PERSONALITY:
 - NEVER show internal thinking or reasoning. Never use <thinking> tags. Only show the final answer.
 - Ask clarifying questions when needed (e.g., "Which restaurant?")
 - Keep voice responses SHORT — 1-2 sentences max for natural conversation flow.
+
+CAPABILITIES — You can help with ALL of these:
+1. EQUIPMENT: Monitor status, temperatures, create maintenance tickets, troubleshoot issues.
+2. INVENTORY: Check stock levels, identify low/critical items, create reorder tickets.
+3. STAFFING: Check coverage, identify gaps, create staffing request tickets.
+4. TICKETS: View, create, and track tickets for equipment, inventory, AND staffing.
+
+CREATING TICKETS:
+- Use create_ticket for ANY type of request — equipment maintenance, inventory reorders, or staffing requests.
+- Set category to "equipment", "inventory", or "staffing" based on the request type.
+- For inventory reorders: create a ticket with category="inventory" and include item name, quantity needed, and restaurant.
+- For staffing requests: create a ticket with category="staffing" and include shift, date, number of staff needed.
+- For equipment issues: create a ticket with category="equipment" and include equipment_id.
+- Always confirm the ticket was created and provide the ticket ID.
 
 EQUIPMENT KNOWLEDGE BASE:
 - You have access to detailed equipment manuals via the search_equipment_manual tool.
@@ -230,10 +254,10 @@ RESPONSE STYLE:
 
 RULES:
 - Only use data from tools. Never invent data.
-- No access to: food prep, orders, recipes, cooking status.
-- Restaurant IDs: AFC-001 (Atlanta), AFC-002 (Savannah), AFC-003 (Augusta), AFC-004 (Macon), AFC-005 (Athens).
+- Restaurant IDs: AFC-001 (Atlanta), AFC-002 (Savannah), AFC-003 (Augusta), AFC-004 (Macon), AFC-005 (Athens),
+  AFC-006 (Columbus), AFC-007 (Brunswick), AFC-008 (Albany), AFC-009 (Valdosta), AFC-010 (Cumming).
 
-TOOLS: get_restaurants, get_equipment, get_inventory, get_staffing, get_tickets, create_ticket, analyze_temperature, get_troubleshooting"""
+TOOLS: get_restaurants, get_equipment, get_inventory, get_staffing, get_tickets, create_ticket, analyze_temperature, get_troubleshooting, search_equipment_manual"""
 
 # ============================================================
 # WEBSOCKET ENTRYPOINT — BidiAgent with Nova Sonic (voice)

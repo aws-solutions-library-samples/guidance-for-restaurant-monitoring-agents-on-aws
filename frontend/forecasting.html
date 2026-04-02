@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Demand Forecasting - AnyCompany Restaurant Monitoring</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <script>if(localStorage.theme==='dark'||(!('theme' in localStorage)&&window.matchMedia('(prefers-color-scheme:dark)').matches))document.documentElement.classList.add('dark');</script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <style>
+        body{font-family:'Inter',system-ui,sans-serif;}
+        @media(min-width:1024px){#sidebar{transform:translateX(0)!important;}main{margin-left:16rem;}}
+        @media(max-width:1023px){#sidebar{transform:translateX(-100%);}#sidebar.open{transform:translateX(0)!important;}}
+    </style>
+</head>
+<body class="bg-gray-50 dark:bg-gray-950 min-h-screen">
+    <aside id="sidebar" style="position:fixed;left:0;top:0;height:100%;width:16rem;background:#111827;z-index:50;display:flex;flex-direction:column;">
+        <a href="index.html" style="display:flex;align-items:center;gap:0.75rem;padding:1.25rem 1.5rem;border-bottom:1px solid #374151;text-decoration:none;"><div style="width:2.5rem;height:2.5rem;border-radius:0.5rem;background:#f97316;display:flex;align-items:center;justify-content:center;font-size:1.25rem;">🍔</div><div><div style="color:#fff;font-size:1.1rem;font-weight:600;">AnyCompany</div><div style="color:#9ca3af;font-size:0.75rem;">Restaurant Monitoring</div></div></a>
+        <nav style="padding:1rem;display:flex;flex-direction:column;gap:0.25rem;flex:1;">
+            <a href="index.html" style="display:flex;align-items:center;gap:0.75rem;padding:0.75rem 1rem;border-radius:0.5rem;color:#d1d5db;text-decoration:none;font-size:14px;font-weight:500;"><i class="ti ti-map-2" style="font-size:1.25rem;"></i><span>Location Performance</span></a>
+            <a href="3d-twin.html" style="display:flex;align-items:center;gap:0.75rem;padding:0.75rem 1rem;border-radius:0.5rem;color:#d1d5db;text-decoration:none;font-size:14px;font-weight:500;"><i class="ti ti-cpu" style="font-size:1.25rem;"></i><span>Equipment 3D Twin</span></a>
+            <a href="inventory.html" style="display:flex;align-items:center;gap:0.75rem;padding:0.75rem 1rem;border-radius:0.5rem;color:#d1d5db;text-decoration:none;font-size:14px;font-weight:500;"><i class="ti ti-packages" style="font-size:1.25rem;"></i><span>Inventory</span></a>
+            <a href="staffing.html" style="display:flex;align-items:center;gap:0.75rem;padding:0.75rem 1rem;border-radius:0.5rem;color:#d1d5db;text-decoration:none;font-size:14px;font-weight:500;"><i class="ti ti-users" style="font-size:1.25rem;"></i><span>Staffing</span></a>
+            <a href="tickets.html" style="display:flex;align-items:center;gap:0.75rem;padding:0.75rem 1rem;border-radius:0.5rem;color:#d1d5db;text-decoration:none;font-size:14px;font-weight:500;"><i class="ti ti-ticket" style="font-size:1.25rem;"></i><span>Tickets</span></a>
+            <a href="forecasting.html" style="display:flex;align-items:center;gap:0.75rem;padding:0.75rem 1rem;border-radius:0.5rem;color:#fff;background:#f97316;text-decoration:none;font-size:14px;font-weight:500;"><i class="ti ti-chart-line" style="font-size:1.25rem;"></i><span>Forecasting</span></a>
+        </nav>
+        <div style="padding:1rem;border-top:1px solid #374151;"><div onclick="sharedSignOut()" style="display:flex;align-items:center;gap:0.75rem;padding:0.75rem;border-radius:0.5rem;cursor:pointer;"><div style="width:2.5rem;height:2.5rem;border-radius:50%;background:rgba(249,115,22,0.2);display:flex;align-items:center;justify-content:center;"><i class="ti ti-logout" style="font-size:1.25rem;color:#fb923c;"></i></div><div><div id="sidebar-user-name" style="color:#fff;font-weight:500;font-size:0.875rem;">User</div><div style="color:#6b7280;font-size:0.75rem;">Sign Out</div></div></div></div>
+    </aside>
+
+    <main style="margin-left:16rem;min-height:100vh;">
+        <header class="sticky top-0 z-30 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 px-4 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center gap-4">
+                <button onclick="toggleSidebar()" class="lg:hidden p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800"><i class="ti ti-menu-2 text-xl text-gray-600 dark:text-gray-400"></i></button>
+                <div><h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">AI-Powered Demand Forecasting</h2><p class="text-sm text-gray-500 dark:text-gray-400 hidden sm:block">Inventory & staffing predictions with event-based demand spikes</p></div>
+            </div>
+            <div class="flex items-center gap-3">
+                <select id="location-selector" onchange="updateForecasts()" class="px-3 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg text-sm text-gray-900 dark:text-gray-100">
+                    <option value="all">All Locations</option>
+                </select>
+                <button onclick="toggleDarkMode()" class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800"><i class="ti ti-sun text-xl text-gray-600 dark:hidden"></i><i class="ti ti-moon text-xl text-gray-400 hidden dark:inline"></i></button>
+            </div>
+        </header>
+
+        <div class="p-4 lg:p-8">
+            <!-- Spike Alert Banner -->
+            <div id="spike-banner" class="hidden mb-6 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-300 dark:border-yellow-700 rounded-xl p-4">
+                <div class="flex items-start gap-3">
+                    <div class="w-10 h-10 rounded-full bg-yellow-100 dark:bg-yellow-900/40 flex items-center justify-center flex-shrink-0"><i class="ti ti-alert-triangle text-yellow-600 dark:text-yellow-400 text-xl"></i></div>
+                    <div class="flex-1"><h4 class="font-semibold text-yellow-800 dark:text-yellow-300" id="spike-title">Demand Spike Detected</h4><p class="text-sm text-yellow-700 dark:text-yellow-400 mt-0.5" id="spike-msg"></p></div>
+                    <button onclick="document.getElementById('spike-banner').classList.add('hidden')" class="p-1 hover:bg-yellow-100 dark:hover:bg-yellow-900/40 rounded"><i class="ti ti-x text-yellow-600"></i></button>
+                </div>
+            </div>
+
+            <!-- Summary Metrics -->
+            <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 p-5">
+                    <div class="flex items-center justify-between mb-2"><div class="w-10 h-10 rounded-lg bg-blue-100 dark:bg-blue-900/20 flex items-center justify-center"><i class="ti ti-chart-bar text-blue-600 dark:text-blue-400 text-xl"></i></div><span class="text-xs font-medium text-green-600 flex items-center gap-0.5" id="m-trend-orders"><i class="ti ti-arrow-up text-xs"></i>+12%</span></div>
+                    <p class="text-2xl font-bold text-gray-900 dark:text-gray-100" id="m-predicted-orders">-</p>
+                    <p class="text-sm text-gray-500">Predicted Orders (14 days)</p>
+                </div>
+                <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 p-5">
+                    <div class="flex items-center justify-between mb-2"><div class="w-10 h-10 rounded-lg bg-yellow-100 dark:bg-yellow-900/20 flex items-center justify-center"><i class="ti ti-alert-triangle text-yellow-600 dark:text-yellow-400 text-xl"></i></div><span class="px-2 py-0.5 bg-yellow-100 dark:bg-yellow-900/20 text-yellow-800 dark:text-yellow-300 text-xs font-medium rounded-full" id="m-spike-count">-</span></div>
+                    <p class="text-2xl font-bold text-gray-900 dark:text-gray-100" id="m-next-spike">-</p>
+                    <p class="text-sm text-gray-500">Next Demand Spike</p>
+                </div>
+                <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 p-5">
+                    <div class="flex items-center justify-between mb-2"><div class="w-10 h-10 rounded-lg bg-red-100 dark:bg-red-900/20 flex items-center justify-center"><i class="ti ti-packages text-red-600 dark:text-red-400 text-xl"></i></div><span class="text-xs font-medium text-red-600 flex items-center gap-0.5" id="m-trend-reorder"><i class="ti ti-arrow-up text-xs"></i>-</span></div>
+                    <p class="text-2xl font-bold text-gray-900 dark:text-gray-100" id="m-reorder-items">-</p>
+                    <p class="text-sm text-gray-500">Items Need Reorder by Spike</p>
+                </div>
+                <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 p-5">
+                    <div class="flex items-center justify-between mb-2"><div class="w-10 h-10 rounded-lg bg-orange-100 dark:bg-orange-900/20 flex items-center justify-center"><i class="ti ti-users text-orange-600 dark:text-orange-400 text-xl"></i></div><span class="text-xs font-medium text-orange-600 flex items-center gap-0.5" id="m-trend-staff"><i class="ti ti-arrow-up text-xs"></i>-</span></div>
+                    <p class="text-2xl font-bold text-gray-900 dark:text-gray-100" id="m-extra-staff">-</p>
+                    <p class="text-sm text-gray-500">Extra Staff Needed</p>
+                </div>
+            </div>
+
+            <!-- Charts Row -->
+            <div class="grid grid-cols-1 xl:grid-cols-3 gap-6 mb-6">
+                <!-- Demand Forecast Chart -->
+                <div class="xl:col-span-2 bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700">
+                    <div class="p-5 border-b border-gray-200 dark:border-gray-700">
+                        <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">14-Day Demand Forecast</h3>
+                        <p class="text-sm text-gray-500">Predicted daily orders across all locations</p>
+                    </div>
+                    <div class="p-5" style="position:relative;height:300px;"><canvas id="demandChart"></canvas></div>
+                </div>
+                <!-- Upcoming Events -->
+                <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700">
+                    <div class="p-5 border-b border-gray-200 dark:border-gray-700">
+                        <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Upcoming Events</h3>
+                        <p class="text-sm text-gray-500">Factors influencing demand predictions</p>
+                    </div>
+                    <div class="p-4 space-y-3 max-h-[300px] overflow-y-auto" id="events-list"></div>
+                </div>
+            </div>
+
+            <!-- Inventory Forecast & Staffing Forecast -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                <!-- Inventory Forecast -->
+                <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700">
+                    <div class="p-5 border-b border-gray-200 dark:border-gray-700">
+                        <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Inventory Forecast</h3>
+                        <p class="text-sm text-gray-500">Items projected to need reorder before next spike</p>
+                    </div>
+                    <div class="divide-y divide-gray-100 dark:divide-gray-800 max-h-[400px] overflow-y-auto" id="inv-forecast"></div>
+                </div>
+                <!-- Staffing Forecast -->
+                <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700">
+                    <div class="p-5 border-b border-gray-200 dark:border-gray-700">
+                        <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Staffing Forecast</h3>
+                        <p class="text-sm text-gray-500">Recommended staffing adjustments for predicted demand</p>
+                    </div>
+                    <div class="divide-y divide-gray-100 dark:divide-gray-800 max-h-[400px] overflow-y-auto" id="staff-forecast"></div>
+                </div>
+            </div>
+
+            <!-- Recommended Actions -->
+            <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 mb-6">
+                <div class="p-5 border-b border-gray-200 dark:border-gray-700 flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-lg bg-orange-100 dark:bg-orange-900/20 flex items-center justify-center"><i class="ti ti-bulb text-orange-600"></i></div>
+                    <div><h3 class="font-semibold text-gray-900 dark:text-gray-100">Recommended Preparation Actions</h3><p class="text-xs text-gray-500">Based on predicted demand spikes and current levels</p></div>
+                </div>
+                <div class="divide-y divide-gray-100 dark:divide-gray-800 max-h-72 overflow-y-auto" id="actions-list"></div>
+            </div>
+        </div>
+    </main>
+
+    <script src="shared.js?v=1775130000"></script>
+    <script src="api.js?v=1775130000"></script>
+    <script>
+        function toggleSidebar(){document.getElementById('sidebar').classList.toggle('open');}
+        function toggleDarkMode(){document.documentElement.classList.toggle('dark');localStorage.theme=document.documentElement.classList.contains('dark')?'dark':'light';}
+        renderChatWidget();
+
+        // Event icon mapping
+        const eventIcons = { 'Sports': 'ti-ball-baseball', 'Holiday': 'ti-egg', 'Festival': 'ti-music', 'Seasonal': 'ti-calendar' };
+
+        let allForecasts=[], allRestaurants=[];
+        let demandChart = null;
+
+        async function init() {
+            try {
+                const [restaurants, forecasts] = await Promise.all([
+                    apiClient.getRestaurants(), apiClient.getForecasts()
+                ]);
+                allRestaurants = restaurants;
+                allForecasts = forecasts;
+                console.log('Loaded', forecasts.length, 'forecasts,', restaurants.length, 'restaurants');
+                if (!forecasts.length) {
+                    document.getElementById('recommendations') && (document.getElementById('recommendations').innerHTML = '<div class="px-5 py-3 text-sm text-yellow-600">No forecast data found. Run deployment/load-forecast-data.sh to load sample data.</div>');
+                }
+                // Populate location selector
+                const sel = document.getElementById('location-selector');
+                restaurants.forEach(r => { const o = document.createElement('option'); o.value = r.id; o.textContent = r.name; sel.appendChild(o); });
+                updateForecasts();
+            } catch(e) { 
+                console.error('Init error:', e);
+                document.getElementById('events-list').innerHTML = '<div class="p-3 text-sm text-red-500">Error loading forecasts: ' + e.message + '</div>';
+            }
+        }
+
+        function updateForecasts() {
+            const locFilter = document.getElementById('location-selector').value;
+            // Filter forecasts by location
+            let forecasts = locFilter === 'all' ? allForecasts : allForecasts.filter(f => f.restaurant_id === locFilter);
+
+            // Aggregate by date for the chart
+            const byDate = {};
+            forecasts.forEach(f => {
+                if (!byDate[f.forecast_date]) byDate[f.forecast_date] = { predicted: 0, historical: 0, multiplier: 0, count: 0, event_name: null, event_impact: 0, event_type: null };
+                byDate[f.forecast_date].predicted += f.predicted_orders || 0;
+                byDate[f.forecast_date].historical += f.historical_avg || 0;
+                byDate[f.forecast_date].multiplier += parseFloat(f.demand_multiplier || 1);
+                byDate[f.forecast_date].count++;
+                if (f.event_name && f.event_name !== 'none') {
+                    byDate[f.forecast_date].event_name = f.event_name;
+                    byDate[f.forecast_date].event_impact = f.event_impact_pct || 0;
+                    byDate[f.forecast_date].event_type = f.event_type || '';
+                }
+            });
+            const sortedDates = Object.keys(byDate).sort();
+            const chartData = sortedDates.map(d => {
+                const avg = byDate[d].count > 0 ? byDate[d].multiplier / byDate[d].count : 1;
+                return { date: d, label: new Date(d+'T12:00:00').toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'}), predicted: byDate[d].predicted, historical: byDate[d].historical, multiplier: avg, eventName: byDate[d].event_name, eventImpact: byDate[d].event_impact, eventType: byDate[d].event_type };
+            });
+
+            // Spikes
+            const avgPredicted = chartData.length > 0 ? chartData.reduce((s,d) => s+d.historical, 0) / chartData.length : 0;
+            const spikes = chartData.filter(d => d.predicted > avgPredicted * 1.2);
+
+            // Metrics
+            document.getElementById('m-predicted-orders').textContent = chartData.reduce((s,d) => s+d.predicted, 0).toLocaleString();
+            document.getElementById('m-spike-count').textContent = spikes.length + ' spikes';
+            document.getElementById('m-next-spike').textContent = spikes.length > 0 ? new Date(spikes[0].date+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'}) : 'None';
+
+            // Inventory projections from forecast data
+            let reorderCount = 0;
+            const invForecasts = [];
+            forecasts.forEach(f => {
+                (f.inventory_projections || []).forEach(ip => {
+                    if (ip.reorder_needed) reorderCount++;
+                    const rName = f.restaurant_name || f.restaurant_id;
+                    invForecasts.push({ name: ip.item, unit: 'units', qty: parseFloat(ip.current_qty||0), projectedRemaining: parseFloat(ip.projected_remaining||0), rp: parseFloat(ip.reorder_point||1), rName, willRunOut: ip.reorder_needed, date: f.forecast_date });
+                });
+            });
+            // Deduplicate: keep worst projection per item per restaurant
+            const invMap = {};
+            invForecasts.forEach(i => { const k = i.rName+'|'+i.name; if (!invMap[k] || i.projectedRemaining < invMap[k].projectedRemaining) invMap[k] = i; });
+            const invUnique = Object.values(invMap).sort((a,b) => a.projectedRemaining - b.projectedRemaining);
+            const reorderItems = invUnique.filter(i => i.willRunOut).length;
+            document.getElementById('m-reorder-items').textContent = reorderItems;
+            document.getElementById('m-trend-reorder').innerHTML = reorderItems > 0 ? `<i class="ti ti-arrow-up text-xs"></i>${reorderItems} items` : 'OK';
+
+            // Staffing from forecast data
+            let extraStaff = 0;
+            const staffMap = {};
+            forecasts.forEach(f => {
+                (f.staffing_recommendations || []).forEach(sr => {
+                    const k = f.restaurant_id;
+                    if (!staffMap[k]) staffMap[k] = { rName: f.restaurant_name || f.restaurant_id, gap: 0, peakReq: 0, currentSched: 0, multiplier: 0, count: 0 };
+                    staffMap[k].gap += sr.gap || 0;
+                    staffMap[k].peakReq += sr.peak_required || 0;
+                    staffMap[k].currentSched += sr.current_scheduled || 0;
+                    staffMap[k].multiplier += parseFloat(f.demand_multiplier || 1);
+                    staffMap[k].count++;
+                });
+            });
+            const staffForecasts = Object.values(staffMap).map(s => ({ ...s, spikeMultiplier: s.count > 0 ? s.multiplier / s.count : 1 }));
+            staffForecasts.sort((a,b) => b.gap - a.gap);
+            staffForecasts.forEach(s => { extraStaff += s.gap; });
+            document.getElementById('m-extra-staff').textContent = extraStaff;
+            document.getElementById('m-trend-staff').innerHTML = extraStaff > 0 ? `<i class="ti ti-arrow-up text-xs"></i>+${extraStaff}` : 'OK';
+
+            // Spike banner
+            if (spikes.length > 0 && spikes[0].eventName) {
+                document.getElementById('spike-banner').classList.remove('hidden');
+                document.getElementById('spike-title').textContent = 'Demand Spike: ' + spikes[0].eventName;
+                document.getElementById('spike-msg').textContent = `Expected +${spikes[0].eventImpact}% on ${spikes[0].label}. ${reorderItems} items need reorder, ${extraStaff} extra staff needed.`;
+            }
+
+            renderDemandChart(chartData);
+            renderEvents(forecasts);
+            renderInvForecast(invUnique);
+            renderStaffForecast(staffForecasts);
+            renderActions(invUnique, staffForecasts, spikes);
+        }
+
+        function renderDemandChart(forecast) {
+            const ctx = document.getElementById('demandChart').getContext('2d');
+            if (demandChart) demandChart.destroy();
+            const spikeIndices = forecast.map((d,i) => d.eventName ? i : -1).filter(i => i >= 0);
+            demandChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: forecast.map(d => d.label),
+                    datasets: [
+                        { label: 'Predicted', data: forecast.map(d => d.predicted), backgroundColor: forecast.map(d => d.eventName ? '#f97316' : '#3b82f6'), borderRadius: 4, order: 1 },
+                        { label: 'Historical Avg', data: forecast.map(d => d.historical), type: 'line', borderColor: '#9ca3af', borderDash: [5,5], pointRadius: 0, borderWidth: 2, fill: false, order: 0 }
+                    ]
+                },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'top', labels: { usePointStyle: true, padding: 16 } } }, scales: { y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.05)' } }, x: { grid: { display: false } } } }
+            });
+        }
+
+        function renderEvents(forecasts) {
+            const now = new Date();
+            const evMap = {};
+            forecasts.forEach(f => {
+                if (f.event_name && f.event_name !== 'none') {
+                    const k = f.forecast_date + '|' + f.event_name;
+                    if (!evMap[k]) evMap[k] = { date: f.forecast_date, name: f.event_name, impact: f.event_impact_pct || 0, type: f.event_type || '', locations: [] };
+                    if (!evMap[k].locations.includes(f.restaurant_id)) evMap[k].locations.push(f.restaurant_id);
+                }
+            });
+            const events = Object.values(evMap).filter(ev => new Date(ev.date) >= now).sort((a,b) => a.date.localeCompare(b.date));
+            const el = document.getElementById('events-list');
+            if (!events.length) { el.innerHTML = '<div class="p-3 text-sm text-gray-500">No upcoming events</div>'; return; }
+            el.innerHTML = events.slice(0, 10).map(ev => {
+                const daysAway = Math.round((new Date(ev.date) - now) / 86400000);
+                const urgency = daysAway <= 3 ? 'red' : daysAway <= 7 ? 'yellow' : 'green';
+                const icon = eventIcons[ev.type] || 'ti-calendar-event';
+                const locLabel = ev.locations.length >= 10 ? 'All locations' : ev.locations.join(', ');
+                return `<div class="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800/50">
+                    <div class="w-9 h-9 rounded-lg bg-${urgency}-100 dark:bg-${urgency}-900/20 flex items-center justify-center flex-shrink-0"><i class="ti ${icon} text-${urgency}-600 dark:text-${urgency}-400"></i></div>
+                    <div class="flex-1 min-w-0">
+                        <p class="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">${ev.name}</p>
+                        <p class="text-[11px] text-gray-500">${ev.type} · +${ev.impact}% demand · ${locLabel}</p>
+                    </div>
+                    <div class="text-right flex-shrink-0"><p class="text-xs font-semibold text-gray-900 dark:text-gray-100">${daysAway}d</p><p class="text-[10px] text-gray-400">away</p></div>
+                </div>`;
+            }).join('');
+        }
+
+        function renderInvForecast(items) {
+            const el = document.getElementById('inv-forecast');
+            if (!items.length) { el.innerHTML = '<div class="p-4 text-sm text-gray-500">No inventory data</div>'; return; }
+            el.innerHTML = items.slice(0, 15).map(i => {
+                const pct = i.rp > 0 ? Math.max(0, i.projectedRemaining / i.rp * 100) : 100;
+                const color = i.willRunOut ? 'red' : pct < 100 ? 'yellow' : 'green';
+                const barColor = i.willRunOut ? 'bg-red-500' : pct < 100 ? 'bg-yellow-500' : 'bg-green-500';
+                return `<div class="px-4 py-3 flex items-center gap-3 hover:bg-gray-50 dark:hover:bg-gray-800/50">
+                    <div class="w-8 h-8 rounded bg-${color}-100 dark:bg-${color}-900/20 flex items-center justify-center flex-shrink-0"><i class="ti ti-package text-${color}-600 dark:text-${color}-400 text-sm"></i></div>
+                    <div class="flex-1 min-w-0">
+                        <p class="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">${i.name}</p>
+                        <p class="text-[11px] text-gray-500">${i.rName} · ${i.qty.toFixed(0)} ${i.unit} now → ${Math.max(0,i.projectedRemaining).toFixed(0)} projected</p>
+                    </div>
+                    <div class="w-16"><div class="h-1.5 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden"><div class="${barColor} h-full rounded-full" style="width:${Math.min(Math.max(pct,0),100)}%"></div></div></div>
+                    ${i.willRunOut ? '<span class="px-1.5 py-0.5 text-[10px] font-medium rounded bg-red-100 dark:bg-red-900/20 text-red-700 dark:text-red-300">REORDER</span>' : '<span class="px-1.5 py-0.5 text-[10px] font-medium rounded bg-green-100 dark:bg-green-900/20 text-green-700 dark:text-green-300">OK</span>'}
+                </div>`;
+            }).join('');
+        }
+
+        function renderStaffForecast(items) {
+            const el = document.getElementById('staff-forecast');
+            if (!items.length) { el.innerHTML = '<div class="p-4 text-sm text-gray-500">No staffing data</div>'; return; }
+            el.innerHTML = items.map(s => {
+                const color = s.gap > 2 ? 'red' : s.gap > 0 ? 'yellow' : 'green';
+                const pct = s.peakRequired > 0 ? Math.min(s.currentSched / s.peakRequired * 100, 100) : 100;
+                const barColor = s.gap > 2 ? 'bg-red-500' : s.gap > 0 ? 'bg-yellow-500' : 'bg-green-500';
+                return `<div class="px-4 py-3 flex items-center gap-3 hover:bg-gray-50 dark:hover:bg-gray-800/50">
+                    <div class="w-8 h-8 rounded bg-${color}-100 dark:bg-${color}-900/20 flex items-center justify-center flex-shrink-0"><i class="ti ti-users text-${color}-600 dark:text-${color}-400 text-sm"></i></div>
+                    <div class="flex-1 min-w-0">
+                        <p class="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">${s.rName}</p>
+                        <p class="text-[11px] text-gray-500">Current: ${s.currentSched}/${s.currentReq} · Peak need: ${s.peakRequired} (+${Math.round((s.spikeMultiplier-1)*100)}%)</p>
+                    </div>
+                    <div class="w-16"><div class="h-1.5 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden"><div class="${barColor} h-full rounded-full" style="width:${pct}%"></div></div></div>
+                    ${s.gap > 0 ? `<span class="px-1.5 py-0.5 text-[10px] font-medium rounded bg-${color}-100 dark:bg-${color}-900/20 text-${color}-700 dark:text-${color}-300">+${s.gap}</span>` : '<span class="px-1.5 py-0.5 text-[10px] font-medium rounded bg-green-100 dark:bg-green-900/20 text-green-700 dark:text-green-300">OK</span>'}
+                </div>`;
+            }).join('');
+        }
+
+        function renderActions(invForecasts, staffForecasts, spikes) {
+            const el = document.getElementById('actions-list');
+            const actions = [];
+            const spikeName = spikes.length > 0 ? spikes[0].eventName || spikes[0].label : 'upcoming demand';
+
+            invForecasts.filter(i => i.willRunOut).forEach(i => {
+                const deficit = Math.ceil(i.rp - Math.max(0, i.projectedRemaining));
+                actions.push({ severity: 'critical', icon: 'ti-shopping-cart', color: 'red',
+                    title: `Reorder ${i.name} for ${i.rName}`,
+                    desc: `Projected to drop to ${Math.max(0,i.projectedRemaining).toFixed(0)} ${i.unit} before ${spikeName}. Need ${deficit} ${i.unit}.`,
+                    prompt: `Reorder ${i.name} for ${i.rName}. Need ${deficit} ${i.unit} before ${spikeName}.`
+                });
+            });
+            staffForecasts.filter(s => s.gap > 0).forEach(s => {
+                actions.push({ severity: s.gap > 2 ? 'critical' : 'warning', icon: 'ti-user-plus', color: s.gap > 2 ? 'red' : 'yellow',
+                    title: `Add ${s.gap} staff at ${s.rName}`,
+                    desc: `Peak demand requires ${s.peakRequired} staff (currently ${s.currentSched}). ${spikeName} drives +${Math.round((s.spikeMultiplier-1)*100)}%.`,
+                    prompt: `Request ${s.gap} extra staff for ${s.rName} for ${spikeName}. Peak need: ${s.peakRequired}.`
+                });
+            });
+            actions.sort((a,b) => (a.severity==='critical'?0:1) - (b.severity==='critical'?0:1));
+            window.actionPrompts = actions.map(a => a.prompt);
+
+            if (!actions.length) { el.innerHTML = '<div class="px-5 py-4 text-sm text-green-600 flex items-center gap-2"><i class="ti ti-circle-check"></i> All prepared for upcoming demand.</div>'; return; }
+            el.innerHTML = actions.map((a, idx) => `
+                <div class="px-5 py-3 flex items-start gap-3 hover:bg-gray-50 dark:hover:bg-gray-800/50">
+                    <div class="w-8 h-8 rounded-lg bg-${a.color}-100 dark:bg-${a.color}-900/20 flex items-center justify-center flex-shrink-0 mt-0.5"><i class="ti ${a.icon} text-${a.color}-600 dark:text-${a.color}-400 text-sm"></i></div>
+                    <div class="flex-1 min-w-0"><p class="text-sm font-medium text-gray-900 dark:text-gray-100">${a.title}</p><p class="text-xs text-gray-500 mt-0.5">${a.desc}</p></div>
+                    <button onclick="askChatAgent(actionPrompts[${idx}])" class="px-2.5 py-1 text-[11px] font-medium rounded-lg bg-orange-100 dark:bg-orange-900/20 text-orange-700 dark:text-orange-300 hover:bg-orange-200 transition-colors flex-shrink-0">Act</button>
+                </div>
+            `).join('');
+        }
+
+        function askChatAgent(prompt) { toggleChat(); const input = document.getElementById('chat-input'); if (input) { input.value = prompt; sendChat(); } }
+
+        authReady.then(() => init());
+    </script>
+</body>
+</html>

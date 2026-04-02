@@ -5,112 +5,200 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tickets - AnyCompany Restaurant Monitoring</title>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-    <script>
-        if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-            document.documentElement.classList.add('dark');
-        }
-    </script>
+    <script>if(localStorage.theme==='dark'||(!('theme' in localStorage)&&window.matchMedia('(prefers-color-scheme:dark)').matches))document.documentElement.classList.add('dark');</script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <style>body { font-family: 'Inter', system-ui, -apple-system, sans-serif; }
-    @media (min-width: 1024px) { #sidebar { transform: translateX(0) !important; } main { margin-left: 16rem; } }
-    @media (max-width: 1023px) { #sidebar { transform: translateX(-100%); } #sidebar.open { transform: translateX(0) !important; } }
-    </style>
+    <style>body{font-family:'Inter',system-ui,sans-serif;}@media(min-width:1024px){#sidebar{transform:translateX(0)!important;}main{margin-left:16rem;}}@media(max-width:1023px){#sidebar{transform:translateX(-100%);}#sidebar.open{transform:translateX(0)!important;}}</style>
 </head>
 <body class="bg-gray-50 dark:bg-gray-950 min-h-screen">
     <aside id="sidebar" style="position:fixed;left:0;top:0;height:100%;width:16rem;background:#111827;z-index:50;display:flex;flex-direction:column;">
-        <a href="index.html" style="display:flex;align-items:center;gap:0.75rem;padding:1.25rem 1.5rem;border-bottom:1px solid #374151;text-decoration:none;">
-            <div style="width:2.5rem;height:2.5rem;border-radius:0.5rem;background:#f97316;display:flex;align-items:center;justify-content:center;font-size:1.25rem;">🍔</div>
-            <div><div style="color:#fff;font-size:1.1rem;font-weight:600;">AnyCompany</div><div style="color:#9ca3af;font-size:0.75rem;">Restaurant Monitoring</div></div>
-        </a>
+        <a href="index.html" style="display:flex;align-items:center;gap:0.75rem;padding:1.25rem 1.5rem;border-bottom:1px solid #374151;text-decoration:none;"><div style="width:2.5rem;height:2.5rem;border-radius:0.5rem;background:#f97316;display:flex;align-items:center;justify-content:center;font-size:1.25rem;">🍔</div><div><div style="color:#fff;font-size:1.1rem;font-weight:600;">AnyCompany</div><div style="color:#9ca3af;font-size:0.75rem;">Restaurant Monitoring</div></div></a>
         <nav style="padding:1rem;display:flex;flex-direction:column;gap:0.25rem;flex:1;">
-            <a href="index.html" style="display:flex;align-items:center;gap:0.75rem;padding:0.75rem 1rem;border-radius:0.5rem;color:#d1d5db;text-decoration:none;font-size:14px;font-weight:500;"><i class="ti ti-dashboard" style="font-size:1.25rem;"></i><span>Dashboard</span></a>
+            <a href="index.html" style="display:flex;align-items:center;gap:0.75rem;padding:0.75rem 1rem;border-radius:0.5rem;color:#d1d5db;text-decoration:none;font-size:14px;font-weight:500;"><i class="ti ti-map-2" style="font-size:1.25rem;"></i><span>Location Performance</span></a>
             <a href="3d-twin.html" style="display:flex;align-items:center;gap:0.75rem;padding:0.75rem 1rem;border-radius:0.5rem;color:#d1d5db;text-decoration:none;font-size:14px;font-weight:500;"><i class="ti ti-cpu" style="font-size:1.25rem;"></i><span>Equipment 3D Twin</span></a>
             <a href="inventory.html" style="display:flex;align-items:center;gap:0.75rem;padding:0.75rem 1rem;border-radius:0.5rem;color:#d1d5db;text-decoration:none;font-size:14px;font-weight:500;"><i class="ti ti-packages" style="font-size:1.25rem;"></i><span>Inventory</span></a>
             <a href="staffing.html" style="display:flex;align-items:center;gap:0.75rem;padding:0.75rem 1rem;border-radius:0.5rem;color:#d1d5db;text-decoration:none;font-size:14px;font-weight:500;"><i class="ti ti-users" style="font-size:1.25rem;"></i><span>Staffing</span></a>
             <a href="tickets.html" style="display:flex;align-items:center;gap:0.75rem;padding:0.75rem 1rem;border-radius:0.5rem;color:#fff;background:#f97316;text-decoration:none;font-size:14px;font-weight:500;"><i class="ti ti-ticket" style="font-size:1.25rem;"></i><span>Tickets</span></a>
+            <a href="forecasting.html" style="display:flex;align-items:center;gap:0.75rem;padding:0.75rem 1rem;border-radius:0.5rem;color:#d1d5db;text-decoration:none;font-size:14px;font-weight:500;"><i class="ti ti-chart-line" style="font-size:1.25rem;"></i><span>Forecasting</span></a>
         </nav>
-        <div style="padding:1rem;border-top:1px solid #374151;">
-            <div onclick="sharedSignOut()" style="display:flex;align-items:center;gap:0.75rem;padding:0.75rem;border-radius:0.5rem;cursor:pointer;">
-                <div style="width:2.5rem;height:2.5rem;border-radius:50%;background:rgba(249,115,22,0.2);display:flex;align-items:center;justify-content:center;"><i class="ti ti-logout" style="font-size:1.25rem;color:#fb923c;"></i></div>
-                <div><div id="sidebar-user-name" style="color:#fff;font-weight:500;font-size:0.875rem;">User</div><div style="color:#6b7280;font-size:0.75rem;">Sign Out</div></div>
-            </div>
-        </div>
+        <div style="padding:1rem;border-top:1px solid #374151;"><div onclick="sharedSignOut()" style="display:flex;align-items:center;gap:0.75rem;padding:0.75rem;border-radius:0.5rem;cursor:pointer;"><div style="width:2.5rem;height:2.5rem;border-radius:50%;background:rgba(249,115,22,0.2);display:flex;align-items:center;justify-content:center;"><i class="ti ti-logout" style="font-size:1.25rem;color:#fb923c;"></i></div><div><div id="sidebar-user-name" style="color:#fff;font-weight:500;font-size:0.875rem;">User</div><div style="color:#6b7280;font-size:0.75rem;">Sign Out</div></div></div></div>
     </aside>
-    <div id="sidebar-overlay" class="fixed inset-0 bg-black/50 z-40 lg:hidden hidden" onclick="toggleSidebar()"></div>
 
     <main style="margin-left:16rem;min-height:100vh;">
         <header class="sticky top-0 z-30 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 px-4 lg:px-8 h-16 flex items-center justify-between">
             <div class="flex items-center gap-4">
                 <button onclick="toggleSidebar()" class="lg:hidden p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800"><i class="ti ti-menu-2 text-xl text-gray-600 dark:text-gray-400"></i></button>
-                <div><h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Maintenance Tickets</h2><p class="text-sm text-gray-500 dark:text-gray-400 hidden sm:block">Tickets by restaurant and priority</p></div>
+                <div><h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Intervention & Ticket Hub</h2><p class="text-sm text-gray-500 dark:text-gray-400 hidden sm:block">Track maintenance tickets and manage interventions</p></div>
             </div>
-            <div class="flex items-center gap-3">
-                <button onclick="toggleDarkMode()" class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800"><i class="ti ti-sun text-xl text-gray-600 dark:hidden"></i><i class="ti ti-moon text-xl text-gray-400 hidden dark:inline"></i></button>
-            </div>
+            <button onclick="toggleDarkMode()" class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800"><i class="ti ti-sun text-xl text-gray-600 dark:hidden"></i><i class="ti ti-moon text-xl text-gray-400 hidden dark:inline"></i></button>
         </header>
+
         <div class="p-4 lg:p-8">
-            <div id="loading" class="text-center py-12 text-gray-500 dark:text-gray-400">Loading tickets...</div>
-            <div id="tickets-content" class="hidden"></div>
+            <!-- Metrics Row -->
+            <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                <div class="bg-white dark:bg-gray-900 rounded-xl p-5 border border-gray-200 dark:border-gray-700">
+                    <div class="flex items-center justify-between"><div class="w-10 h-10 rounded-lg bg-red-100 dark:bg-red-900/20 flex items-center justify-center"><i class="ti ti-alert-triangle text-red-500 text-xl"></i></div><span class="text-xs font-medium text-red-500 bg-red-100 dark:bg-red-900/20 px-2 py-0.5 rounded-full" id="m-crit-badge">-</span></div>
+                    <p class="text-2xl font-bold text-gray-900 dark:text-gray-100 mt-3" id="m-critical">-</p><p class="text-sm text-gray-500">Critical / High</p>
+                </div>
+                <div class="bg-white dark:bg-gray-900 rounded-xl p-5 border border-gray-200 dark:border-gray-700">
+                    <div class="flex items-center justify-between"><div class="w-10 h-10 rounded-lg bg-orange-100 dark:bg-orange-900/20 flex items-center justify-center"><i class="ti ti-progress text-orange-500 text-xl"></i></div><span class="text-xs font-medium text-orange-600 bg-orange-100 dark:bg-orange-900/20 px-2 py-0.5 rounded-full" id="m-open-badge">-</span></div>
+                    <p class="text-2xl font-bold text-gray-900 dark:text-gray-100 mt-3" id="m-open">-</p><p class="text-sm text-gray-500">Open Tickets</p>
+                </div>
+                <div class="bg-white dark:bg-gray-900 rounded-xl p-5 border border-gray-200 dark:border-gray-700">
+                    <div class="flex items-center justify-between"><div class="w-10 h-10 rounded-lg bg-blue-100 dark:bg-blue-900/20 flex items-center justify-center"><i class="ti ti-tool text-blue-500 text-xl"></i></div></div>
+                    <p class="text-2xl font-bold text-gray-900 dark:text-gray-100 mt-3" id="m-progress">-</p><p class="text-sm text-gray-500">In Progress</p>
+                </div>
+                <div class="bg-white dark:bg-gray-900 rounded-xl p-5 border border-gray-200 dark:border-gray-700">
+                    <div class="flex items-center justify-between"><div class="w-10 h-10 rounded-lg bg-green-100 dark:bg-green-900/20 flex items-center justify-center"><i class="ti ti-circle-check text-green-500 text-xl"></i></div></div>
+                    <p class="text-2xl font-bold text-gray-900 dark:text-gray-100 mt-3" id="m-resolved">-</p><p class="text-sm text-gray-500">Resolved</p>
+                </div>
+            </div>
+
+            <!-- Main 2-Column Layout -->
+            <div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
+                <!-- Left: Ticket List (2/3) -->
+                <div class="xl:col-span-2 space-y-6">
+                    <!-- Filters -->
+                    <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 p-4">
+                        <div class="flex flex-wrap gap-2">
+                            <button onclick="filterTickets('all')" data-f="all" class="tfilter px-4 py-2 rounded-lg text-sm font-medium bg-orange-500 text-white">All <span id="fc-all" class="ml-1 opacity-75">-</span></button>
+                            <button onclick="filterTickets('critical')" data-f="critical" class="tfilter px-4 py-2 rounded-lg text-sm font-medium bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300">Critical <span id="fc-crit">-</span></button>
+                            <button onclick="filterTickets('high')" data-f="high" class="tfilter px-4 py-2 rounded-lg text-sm font-medium bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300">High <span id="fc-high">-</span></button>
+                            <button onclick="filterTickets('medium')" data-f="medium" class="tfilter px-4 py-2 rounded-lg text-sm font-medium bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300">Medium <span id="fc-med">-</span></button>
+                            <button onclick="filterTickets('low')" data-f="low" class="tfilter px-4 py-2 rounded-lg text-sm font-medium bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300">Low <span id="fc-low">-</span></button>
+                            <button onclick="askChatAgent('Create a new maintenance ticket')" class="ml-auto px-4 py-2 rounded-lg text-sm font-medium bg-orange-500 text-white hover:bg-orange-600 transition-colors flex items-center gap-1"><i class="ti ti-plus"></i> New Ticket</button>
+                        </div>
+                    </div>
+                    <!-- Ticket Cards -->
+                    <div class="space-y-3" id="ticket-list"><div class="text-center py-8 text-gray-500">Loading tickets...</div></div>
+                </div>
+
+                <!-- Right: By Restaurant (1/3) -->
+                <div class="space-y-6">
+                    <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700">
+                        <div class="p-5 border-b border-gray-200 dark:border-gray-700 flex items-center gap-3">
+                            <div class="w-9 h-9 rounded-lg bg-blue-100 dark:bg-blue-900/20 flex items-center justify-center"><i class="ti ti-building-store text-blue-600"></i></div>
+                            <div><h3 class="font-semibold text-gray-900 dark:text-gray-100">By Restaurant</h3><p class="text-xs text-gray-500">Ticket distribution</p></div>
+                        </div>
+                        <div class="divide-y divide-gray-100 dark:divide-gray-800 max-h-96 overflow-y-auto" id="by-restaurant"></div>
+                    </div>
+                    <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700">
+                        <div class="p-5 border-b border-gray-200 dark:border-gray-700 flex items-center gap-3">
+                            <div class="w-9 h-9 rounded-lg bg-purple-100 dark:bg-purple-900/20 flex items-center justify-center"><i class="ti ti-category text-purple-600"></i></div>
+                            <div><h3 class="font-semibold text-gray-900 dark:text-gray-100">By Category</h3><p class="text-xs text-gray-500">Issue types</p></div>
+                        </div>
+                        <div class="p-4 space-y-2" id="by-category"></div>
+                    </div>
+                </div>
+            </div>
         </div>
     </main>
 
-    <script src="shared.js?v=1775095000"></script>
-    <script src="api.js?v=1775095000"></script>
+    <script src="shared.js?v=1775130000"></script>
+    <script src="api.js?v=1775130000"></script>
     <script>
+        function toggleSidebar(){document.getElementById('sidebar').classList.toggle('open');}
+        function toggleDarkMode(){document.documentElement.classList.toggle('dark');localStorage.theme=document.documentElement.classList.contains('dark')?'dark':'light';}
         renderChatWidget();
-        authReady.then(() => { if (auth && auth.currentUser) { auth.currentUser.getUserAttributes((e, attrs) => { if (!e && attrs) { const n = attrs.find(a => a.getName() === 'name'); if (n) document.getElementById('sidebar-user-name').textContent = n.getValue(); } }); } });
 
-        async function loadTickets() {
-            try {
-                const tickets = await apiClient.getTickets();
-                const restaurants = await apiClient.getRestaurants();
-                const ticketsByRestaurant = {};
-                restaurants.forEach(r => { ticketsByRestaurant[r.id] = { restaurant: r, tickets: tickets.filter(t => t.restaurant_id === r.id) }; });
+        let allTickets=[], allRestaurants=[], currentFilter='all';
 
-                document.getElementById('tickets-content').innerHTML = `
-                    <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
-                        <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-                            <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">All Tickets</h3>
-                            <p class="text-sm text-gray-500 dark:text-gray-400">${tickets.length} total across ${restaurants.length} locations</p>
-                        </div>
-                        <div class="overflow-x-auto">
-                            <table class="w-full min-w-[700px]">
-                                <thead><tr class="bg-gray-50 dark:bg-gray-800">
-                                    <th class="text-left px-4 py-3 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Restaurant</th>
-                                    <th class="text-left px-4 py-3 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Ticket ID</th>
-                                    <th class="text-left px-4 py-3 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Category</th>
-                                    <th class="text-left px-4 py-3 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Description</th>
-                                    <th class="text-center px-4 py-3 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Priority</th>
-                                    <th class="text-center px-4 py-3 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Status</th>
-                                </tr></thead>
-                                <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
-                                    ${Object.values(ticketsByRestaurant).map(group => {
-                                        if (group.tickets.length === 0) {
-                                            return `<tr class="hover:bg-gray-50 dark:hover:bg-gray-800/50"><td class="px-4 py-3 text-sm font-medium text-gray-900 dark:text-gray-100">${group.restaurant.name}<br><span class="text-xs text-gray-400">${group.restaurant.location}</span></td><td colspan="5" class="px-4 py-3 text-sm text-gray-400 italic">No active tickets</td></tr>`;
-                                        }
-                                        return group.tickets.map((t, i) => {
-                                            const pColor = (t.priority === 'critical' || t.priority === 'high') ? 'red' : t.priority === 'medium' ? 'yellow' : 'green';
-                                            const catColor = t.category === 'equipment' ? 'blue' : t.category === 'inventory' ? 'purple' : 'orange';
-                                            return `<tr class="hover:bg-gray-50 dark:hover:bg-gray-800/50">
-                                                ${i === 0 ? `<td rowspan="${group.tickets.length}" class="px-4 py-3 text-sm font-medium text-gray-900 dark:text-gray-100 align-top">${group.restaurant.name}<br><span class="text-xs text-gray-400">${group.restaurant.location}</span></td>` : ''}
-                                                <td class="px-4 py-3 text-sm text-gray-600 dark:text-gray-300 font-mono">${t.ticket_id}</td>
-                                                <td class="px-4 py-3"><span class="px-2 py-1 rounded text-xs font-medium bg-${catColor}-100 dark:bg-${catColor}-900/20 text-${catColor}-800 dark:text-${catColor}-300">${(t.category || 'equipment').toUpperCase()}</span></td>
-                                                <td class="px-4 py-3 text-sm text-gray-900 dark:text-gray-100">${t.issue || t.description || 'No description'}</td>
-                                                <td class="px-4 py-3 text-center"><span class="px-2.5 py-1 rounded-full text-xs font-medium bg-${pColor}-100 dark:bg-${pColor}-900/20 text-${pColor}-800 dark:text-${pColor}-300">${t.priority.toUpperCase()}</span></td>
-                                                <td class="px-4 py-3 text-center text-sm text-gray-600 dark:text-gray-300">${t.status}</td>
-                                            </tr>`;
-                                        }).join('');
-                                    }).join('')}
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>`;
-                document.getElementById('loading').classList.add('hidden');
-                document.getElementById('tickets-content').classList.remove('hidden');
-            } catch (e) { document.getElementById('loading').innerHTML = `<div class="text-red-500">${e.message}</div>`; }
+        async function init() {
+            [allTickets, allRestaurants] = await Promise.all([apiClient.getTickets(), apiClient.getRestaurants()]);
+            updateMetrics(); renderTickets(); renderSidePanels();
         }
-        authReady.then(() => { loadTickets(); setInterval(loadTickets, 15000); });
+
+        function updateMetrics() {
+            const crit=allTickets.filter(t=>t.priority==='critical'||t.priority==='high').length;
+            const open=allTickets.filter(t=>t.status==='open').length;
+            const prog=allTickets.filter(t=>t.status==='in_progress').length;
+            const resolved=allTickets.filter(t=>t.status==='resolved'||t.status==='closed').length;
+            document.getElementById('m-critical').textContent=crit;
+            document.getElementById('m-crit-badge').textContent=crit+' urgent';
+            document.getElementById('m-open').textContent=open;
+            document.getElementById('m-open-badge').textContent=open+' active';
+            document.getElementById('m-progress').textContent=prog;
+            document.getElementById('m-resolved').textContent=resolved;
+            document.getElementById('fc-all').textContent=allTickets.length;
+            document.getElementById('fc-crit').textContent=allTickets.filter(t=>t.priority==='critical').length;
+            document.getElementById('fc-high').textContent=allTickets.filter(t=>t.priority==='high').length;
+            document.getElementById('fc-med').textContent=allTickets.filter(t=>t.priority==='medium').length;
+            document.getElementById('fc-low').textContent=allTickets.filter(t=>t.priority==='low').length;
+        }
+
+        function filterTickets(f) {
+            currentFilter=f;
+            document.querySelectorAll('.tfilter').forEach(b=>{b.className=b.dataset.f===f?'tfilter px-4 py-2 rounded-lg text-sm font-medium bg-orange-500 text-white':'tfilter px-4 py-2 rounded-lg text-sm font-medium bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300';});
+            renderTickets();
+        }
+
+        function renderTickets() {
+            const filtered = currentFilter==='all' ? allTickets : allTickets.filter(t=>t.priority===currentFilter);
+            const el=document.getElementById('ticket-list');
+            if(!filtered.length){el.innerHTML='<div class="text-center py-8 text-gray-500">No tickets found</div>';return;}
+            // Sort: critical first, then by status
+            const pOrder={critical:0,high:1,medium:2,low:3};
+            filtered.sort((a,b)=>(pOrder[a.priority]||3)-(pOrder[b.priority]||3));
+            el.innerHTML=filtered.map(t=>{
+                const r=allRestaurants.find(x=>x.id===t.restaurant_id);
+                const rn=r?.name||t.restaurant_id;
+                const pc=t.priority==='critical'?'red':t.priority==='high'?'red':t.priority==='medium'?'yellow':'green';
+                const sc=t.status==='open'?'orange':t.status==='in_progress'?'blue':'green';
+                const catIcon=t.category==='equipment'?'ti-cpu':t.category==='inventory'?'ti-packages':t.category==='staffing'?'ti-users':'ti-tool';
+                const catColor=t.category==='equipment'?'blue':t.category==='inventory'?'purple':t.category==='staffing'?'orange':'gray';
+                return `<div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 hover:shadow-md transition-shadow">
+                    <div class="p-4 flex items-start gap-4">
+                        <div class="w-10 h-10 rounded-lg bg-${pc}-100 dark:bg-${pc}-900/20 flex items-center justify-center flex-shrink-0 mt-0.5"><i class="ti ti-alert-triangle text-${pc}-600 dark:text-${pc}-400 text-xl"></i></div>
+                        <div class="flex-1 min-w-0">
+                            <div class="flex items-center gap-2 mb-1 flex-wrap">
+                                <span class="px-2 py-0.5 rounded text-[10px] font-medium bg-${pc}-100 dark:bg-${pc}-900/20 text-${pc}-700 dark:text-${pc}-300">${t.priority.toUpperCase()}</span>
+                                <span class="px-2 py-0.5 rounded text-[10px] font-medium bg-${sc}-100 dark:bg-${sc}-900/20 text-${sc}-700 dark:text-${sc}-300">${t.status.replace('_',' ').toUpperCase()}</span>
+                                <span class="px-2 py-0.5 rounded text-[10px] font-medium bg-${catColor}-100 dark:bg-${catColor}-900/20 text-${catColor}-700 dark:text-${catColor}-300 flex items-center gap-1"><i class="ti ${catIcon} text-[10px]"></i>${(t.category||'equipment').toUpperCase()}</span>
+                            </div>
+                            <p class="text-sm font-medium text-gray-900 dark:text-gray-100">${t.issue||t.description||'Equipment issue'}</p>
+                            <div class="flex items-center gap-3 mt-2 text-xs text-gray-500">
+                                <span><i class="ti ti-building-store text-xs"></i> ${rn}</span>
+                                <span><i class="ti ti-hash text-xs"></i> ${t.ticket_id}</span>
+                                ${t.created_at?`<span><i class="ti ti-clock text-xs"></i> ${new Date(t.created_at).toLocaleDateString()}</span>`:''}
+                            </div>
+                        </div>
+                        <button onclick="askChatAgent('Check status of ticket ${t.ticket_id} at ${rn}')" class="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg flex-shrink-0" title="Ask AI"><i class="ti ti-message-circle text-gray-400"></i></button>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        function renderSidePanels() {
+            // By restaurant
+            const byR={};
+            allTickets.forEach(t=>{const rid=t.restaurant_id;if(!byR[rid])byR[rid]=[];byR[rid].push(t);});
+            const brEl=document.getElementById('by-restaurant');
+            brEl.innerHTML=allRestaurants.map(r=>{
+                const count=(byR[r.id]||[]).length;
+                const critCount=(byR[r.id]||[]).filter(t=>t.priority==='critical'||t.priority==='high').length;
+                return `<div class="px-4 py-3 flex items-center gap-3 hover:bg-gray-50 dark:hover:bg-gray-800/50">
+                    <div class="flex-1 min-w-0"><p class="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">${r.name}</p><p class="text-[11px] text-gray-500">${r.location||'Georgia'}</p></div>
+                    <div class="flex items-center gap-2">${critCount>0?`<span class="px-1.5 py-0.5 text-[10px] font-medium rounded bg-red-100 text-red-700">${critCount} urgent</span>`:''}
+                    <span class="w-7 h-7 rounded-full ${count>0?'bg-orange-100 text-orange-700':'bg-gray-100 text-gray-400'} flex items-center justify-center text-xs font-semibold">${count}</span></div>
+                </div>`;
+            }).join('');
+
+            // By category
+            const byCat={};
+            allTickets.forEach(t=>{const c=t.category||'equipment';if(!byCat[c])byCat[c]=0;byCat[c]++;});
+            const bcEl=document.getElementById('by-category');
+            const catMeta={equipment:{icon:'ti-cpu',color:'blue'},inventory:{icon:'ti-packages',color:'purple'},staffing:{icon:'ti-users',color:'orange'}};
+            bcEl.innerHTML=Object.entries(byCat).map(([cat,count])=>{
+                const m=catMeta[cat]||{icon:'ti-tool',color:'gray'};
+                const pct=allTickets.length>0?count/allTickets.length*100:0;
+                return `<div class="flex items-center gap-3"><div class="w-8 h-8 rounded bg-${m.color}-100 dark:bg-${m.color}-900/20 flex items-center justify-center"><i class="ti ${m.icon} text-${m.color}-600 text-sm"></i></div>
+                <div class="flex-1"><div class="flex justify-between text-xs mb-1"><span class="font-medium text-gray-700 dark:text-gray-300">${cat.charAt(0).toUpperCase()+cat.slice(1)}</span><span class="text-gray-500">${count}</span></div>
+                <div class="h-1.5 bg-gray-200 dark:bg-gray-700 rounded-full"><div class="bg-${m.color}-500 h-full rounded-full" style="width:${pct}%"></div></div></div></div>`;
+            }).join('');
+        }
+
+        function askChatAgent(p){toggleChat();const i=document.getElementById('chat-input');if(i){i.value=p;sendChat();}}
+        authReady.then(()=>{init();setInterval(init,30000);});
     </script>
 </body>
 </html>
