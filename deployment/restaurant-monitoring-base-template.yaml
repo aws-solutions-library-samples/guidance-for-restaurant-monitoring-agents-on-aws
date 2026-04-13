@@ -10,6 +10,82 @@ Parameters:
     Default: production
 
 Resources:
+  # KMS Key for Lambda environment variable encryption
+  LambdaEnvEncryptionKey:
+    Type: AWS::KMS::Key
+    Properties:
+      Description: !Sub 'KMS key for ${ProjectName} Lambda env var encryption'
+      EnableKeyRotation: true
+      KeyPolicy:
+        Version: '2012-10-17'
+        Statement:
+          - Sid: AllowRootAccount
+            Effect: Allow
+            Principal:
+              AWS: !Sub 'arn:aws:iam::${AWS::AccountId}:root'
+            Action: 'kms:*'
+            Resource: '*'
+          - Sid: AllowLambdaUse
+            Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action:
+              - kms:Decrypt
+              - kms:DescribeKey
+            Resource: '*'
+
+  # KMS Key for DynamoDB table encryption
+  DynamoDBEncryptionKey:
+    Type: AWS::KMS::Key
+    Properties:
+      Description: !Sub 'KMS CMK for ${ProjectName} DynamoDB table encryption'
+      EnableKeyRotation: true
+      KeyPolicy:
+        Version: '2012-10-17'
+        Statement:
+          - Sid: AllowRootAccount
+            Effect: Allow
+            Principal:
+              AWS: !Sub 'arn:aws:iam::${AWS::AccountId}:root'
+            Action: 'kms:*'
+            Resource: '*'
+          - Sid: AllowDynamoDBUse
+            Effect: Allow
+            Principal:
+              Service: dynamodb.amazonaws.com
+            Action:
+              - kms:Decrypt
+              - kms:DescribeKey
+              - kms:Encrypt
+              - kms:GenerateDataKey
+              - kms:ReEncryptFrom
+              - kms:ReEncryptTo
+            Resource: '*'
+
+  # SQS Dead Letter Queue for Lambda error handling
+  ApiLambdaDLQ:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !Sub '${ProjectName}-api-dlq-${Environment}'
+      MessageRetentionPeriod: 1209600
+      SqsManagedSseEnabled: true
+
+  ApiLambdaDLQPolicy:
+    Type: AWS::SQS::QueuePolicy
+    Properties:
+      Queues:
+        - !Ref ApiLambdaDLQ
+      PolicyDocument:
+        Statement:
+          - Sid: EnforceSSLOnly
+            Effect: Deny
+            Principal: '*'
+            Action: 'sqs:*'
+            Resource: !GetAtt ApiLambdaDLQ.Arn
+            Condition:
+              Bool:
+                'aws:SecureTransport': 'false'
+
   # DynamoDB Tables with enhanced security
   RestaurantDataTable:
     Type: AWS::DynamoDB::Table
@@ -24,6 +100,8 @@ Resources:
           KeyType: HASH
       SSESpecification:
         SSEEnabled: true
+        SSEType: KMS
+        KMSMasterKeyId: !GetAtt DynamoDBEncryptionKey.Arn
       PointInTimeRecoverySpecification:
         PointInTimeRecoveryEnabled: true
       Tags:
@@ -51,6 +129,8 @@ Resources:
         StreamViewType: NEW_AND_OLD_IMAGES
       SSESpecification:
         SSEEnabled: true
+        SSEType: KMS
+        KMSMasterKeyId: !GetAtt DynamoDBEncryptionKey.Arn
       PointInTimeRecoverySpecification:
         PointInTimeRecoveryEnabled: true
       Tags:
@@ -72,6 +152,8 @@ Resources:
           KeyType: HASH
       SSESpecification:
         SSEEnabled: true
+        SSEType: KMS
+        KMSMasterKeyId: !GetAtt DynamoDBEncryptionKey.Arn
       PointInTimeRecoverySpecification:
         PointInTimeRecoveryEnabled: true
       Tags:
@@ -100,6 +182,86 @@ Resources:
         Enabled: true
       SSESpecification:
         SSEEnabled: true
+        SSEType: KMS
+        KMSMasterKeyId: !GetAtt DynamoDBEncryptionKey.Arn
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+      Tags:
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Project
+          Value: !Ref ProjectName
+
+  InventoryItemsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub '${ProjectName}-inventory-items-prod'
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: item_id
+          AttributeType: S
+      KeySchema:
+        - AttributeName: item_id
+          KeyType: HASH
+      SSESpecification:
+        SSEEnabled: true
+        SSEType: KMS
+        KMSMasterKeyId: !GetAtt DynamoDBEncryptionKey.Arn
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+      Tags:
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Project
+          Value: !Ref ProjectName
+
+  StaffingRequirementsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub '${ProjectName}-staffing-requirements-prod'
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: restaurant_id
+          AttributeType: S
+        - AttributeName: date
+          AttributeType: S
+      KeySchema:
+        - AttributeName: restaurant_id
+          KeyType: HASH
+        - AttributeName: date
+          KeyType: RANGE
+      SSESpecification:
+        SSEEnabled: true
+        SSEType: KMS
+        KMSMasterKeyId: !GetAtt DynamoDBEncryptionKey.Arn
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+      Tags:
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Project
+          Value: !Ref ProjectName
+
+  # Forecasts table — stores AI/ML demand predictions per restaurant per date
+  ForecastsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub '${ProjectName}-forecasts-prod'
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: restaurant_id
+          AttributeType: S
+        - AttributeName: forecast_date
+          AttributeType: S
+      KeySchema:
+        - AttributeName: restaurant_id
+          KeyType: HASH
+        - AttributeName: forecast_date
+          KeyType: RANGE
+      SSESpecification:
+        SSEEnabled: true
+        SSEType: KMS
+        KMSMasterKeyId: !GetAtt DynamoDBEncryptionKey.Arn
       PointInTimeRecoverySpecification:
         PointInTimeRecoveryEnabled: true
       Tags:
@@ -139,25 +301,52 @@ Resources:
                   - !GetAtt RestaurantDataTable.Arn
                   - !GetAtt EquipmentReadingsTable.Arn
                   - !GetAtt TicketsTable.Arn
+                  - !GetAtt InventoryItemsTable.Arn
+                  - !GetAtt StaffingRequirementsTable.Arn
+                  - !GetAtt ForecastsTable.Arn
+                  - !GetAtt ForecastsTable.Arn
                 Condition:
                   StringEquals:
                     'aws:RequestedRegion': !Ref 'AWS::Region'
+              - Effect: Allow
+                Action:
+                  - bedrock-agentcore:InvokeAgentRuntime
+                  - bedrock-agentcore:InvokeAgentRuntimeWithWebSocketStream
+                Resource: '*'
+              - Effect: Allow
+                Action:
+                  - sqs:SendMessage
+                Resource: !GetAtt ApiLambdaDLQ.Arn
+              - Effect: Allow
+                Action:
+                  - kms:Decrypt
+                  - kms:DescribeKey
+                Resource: !GetAtt DynamoDBEncryptionKey.Arn
 
   # Secure Lambda function
   ApiLambdaFunction:
     Type: AWS::Lambda::Function
     Properties:
       FunctionName: !Sub '${ProjectName}-api-${Environment}'
-      Runtime: python3.11
+      Runtime: python3.13
       Handler: index.lambda_handler
       Role: !GetAtt ApiLambdaRole.Arn
       Timeout: 30
       MemorySize: 256
+      ReservedConcurrentExecutions: 10
+      KmsKeyArn: !GetAtt LambdaEnvEncryptionKey.Arn
+      DeadLetterConfig:
+        TargetArn: !GetAtt ApiLambdaDLQ.Arn
       Environment:
         Variables:
           RESTAURANTS_TABLE: !Ref RestaurantDataTable
           EQUIPMENT_TABLE: !Ref EquipmentReadingsTable
           TICKETS_TABLE: !Ref TicketsTable
+          INVENTORY_TABLE: !Ref InventoryItemsTable
+          STAFFING_TABLE: !Ref StaffingRequirementsTable
+          FORECASTS_TABLE: !Ref ForecastsTable
+          FORECASTS_TABLE: !Ref ForecastsTable
+          AGENT_RUNTIME_ARN: !Sub 'arn:aws:bedrock-agentcore:${AWS::Region}:${AWS::AccountId}:runtime/restaurant_agent'
       Tags:
         - Key: Environment
           Value: !Ref Environment
@@ -236,6 +425,69 @@ Resources:
                           'body': json.dumps(response['Items'], default=decimal_default)
                       }
                   
+                  elif path == '/inventory':
+                      table = dynamodb.Table(os.environ['INVENTORY_TABLE'])
+                      response = table.scan()
+                      return {
+                          'statusCode': 200,
+                          'headers': headers,
+                          'body': json.dumps({'inventory': response['Items']}, default=decimal_default)
+                      }
+                  
+                  elif path == '/staffing':
+                      table = dynamodb.Table(os.environ['STAFFING_TABLE'])
+                      response = table.scan()
+                      return {
+                          'statusCode': 200,
+                          'headers': headers,
+                          'body': json.dumps({'staffing': response['Items']}, default=decimal_default)
+                      }
+                  
+                  elif path == '/forecasts':
+                      table = dynamodb.Table(os.environ['FORECASTS_TABLE'])
+                      # Support optional restaurant_id query param
+                      params = event.get('queryStringParameters') or {}
+                      rid = params.get('restaurant_id', '')
+                      if rid and len(rid) < 20:
+                          response = table.query(
+                              KeyConditionExpression=boto3.dynamodb.conditions.Key('restaurant_id').eq(rid)
+                          )
+                      else:
+                          response = table.scan()
+                      return {
+                          'statusCode': 200,
+                          'headers': headers,
+                          'body': json.dumps({'forecasts': response['Items']}, default=decimal_default)
+                      }
+                  
+                  elif path == '/voice-token':
+                      from urllib.parse import quote as url_quote
+                      from botocore.auth import SigV4QueryAuth
+                      from botocore.awsrequest import AWSRequest
+                      from botocore.session import Session as BotoSession
+                      
+                      agent_arn = os.environ.get('AGENT_RUNTIME_ARN', '')
+                      if not agent_arn:
+                          return {'statusCode': 500, 'headers': headers, 'body': json.dumps({'error': 'AGENT_RUNTIME_ARN not set'})}
+                      
+                      rgn = os.environ.get('AWS_REGION', 'us-east-1')
+                      host = f'bedrock-agentcore.{rgn}.amazonaws.com'
+                      encoded_arn = url_quote(agent_arn, safe='')
+                      url = f'https://{host}/runtimes/{encoded_arn}/ws'
+                      
+                      bsession = BotoSession()
+                      creds = bsession.get_credentials().get_frozen_credentials()
+                      request = AWSRequest(method='GET', url=url, headers={'host': host})
+                      signer = SigV4QueryAuth(creds, 'bedrock-agentcore', rgn, expires=300)
+                      signer.add_auth(request)
+                      ws_url = request.url.replace('https://', 'wss://')
+                      
+                      return {
+                          'statusCode': 200,
+                          'headers': headers,
+                          'body': json.dumps({'wsUrl': ws_url})
+                      }
+                  
                   return {
                       'statusCode': 404,
                       'headers': headers,
@@ -259,6 +511,46 @@ Resources:
         Types:
           - REGIONAL
 
+  ApiRequestValidator:
+    Type: AWS::ApiGateway::RequestValidator
+    Properties:
+      Name: !Sub '${ProjectName}-request-validator'
+      RestApiId: !Ref RestApi
+      ValidateRequestBody: true
+      ValidateRequestParameters: true
+
+  # CORS headers on 4xx responses (auth failures)
+  GatewayResponse4xx:
+    Type: AWS::ApiGateway::GatewayResponse
+    Properties:
+      RestApiId: !Ref RestApi
+      ResponseType: DEFAULT_4XX
+      ResponseParameters:
+        gatewayresponse.header.Access-Control-Allow-Origin: "'*'"
+        gatewayresponse.header.Access-Control-Allow-Headers: "'Content-Type,Authorization,X-Amz-Date,X-Api-Key,X-Amz-Security-Token'"
+        gatewayresponse.header.Access-Control-Allow-Methods: "'GET,POST,OPTIONS'"
+
+  GatewayResponse5xx:
+    Type: AWS::ApiGateway::GatewayResponse
+    Properties:
+      RestApiId: !Ref RestApi
+      ResponseType: DEFAULT_5XX
+      ResponseParameters:
+        gatewayresponse.header.Access-Control-Allow-Origin: "'*'"
+        gatewayresponse.header.Access-Control-Allow-Headers: "'Content-Type,Authorization,X-Amz-Date,X-Api-Key,X-Amz-Security-Token'"
+        gatewayresponse.header.Access-Control-Allow-Methods: "'GET,POST,OPTIONS'"
+
+  # Cognito Authorizer for API Gateway
+  CognitoAuthorizer:
+    Type: AWS::ApiGateway::Authorizer
+    Properties:
+      Name: !Sub '${ProjectName}-cognito-authorizer'
+      Type: COGNITO_USER_POOLS
+      RestApiId: !Ref RestApi
+      IdentitySource: method.request.header.Authorization
+      ProviderARNs:
+        - !GetAtt UserPool.Arn
+
   ApiGatewayDeployment:
     Type: AWS::ApiGateway::Deployment
     DependsOn:
@@ -268,6 +560,14 @@ Resources:
       - TicketsOptionsMethod
       - EquipmentMethod
       - EquipmentOptionsMethod
+      - InventoryMethod
+      - InventoryOptionsMethod
+      - StaffingMethod
+      - StaffingOptionsMethod
+      - VoiceTokenMethod
+      - VoiceTokenOptionsMethod
+      - ForecastsMethod
+      - ForecastsOptionsMethod
     Properties:
       RestApiId: !Ref RestApi
       StageName: prod
@@ -293,13 +593,42 @@ Resources:
       ParentId: !GetAtt RestApi.RootResourceId
       PathPart: equipment
 
+  InventoryResource:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      RestApiId: !Ref RestApi
+      ParentId: !GetAtt RestApi.RootResourceId
+      PathPart: inventory
+
+  StaffingResource:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      RestApiId: !Ref RestApi
+      ParentId: !GetAtt RestApi.RootResourceId
+      PathPart: staffing
+
+  VoiceTokenResource:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      RestApiId: !Ref RestApi
+      ParentId: !GetAtt RestApi.RootResourceId
+      PathPart: voice-token
+
+  ForecastsResource:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      RestApiId: !Ref RestApi
+      ParentId: !GetAtt RestApi.RootResourceId
+      PathPart: forecasts
+
   RestaurantsMethod:
     Type: AWS::ApiGateway::Method
     Properties:
       RestApiId: !Ref RestApi
       ResourceId: !Ref RestaurantsResource
       HttpMethod: GET
-      AuthorizationType: NONE
+      AuthorizationType: COGNITO_USER_POOLS
+      AuthorizerId: !Ref CognitoAuthorizer
       Integration:
         Type: AWS_PROXY
         IntegrationHttpMethod: POST
@@ -340,7 +669,8 @@ Resources:
       RestApiId: !Ref RestApi
       ResourceId: !Ref TicketsResource
       HttpMethod: GET
-      AuthorizationType: NONE
+      AuthorizationType: COGNITO_USER_POOLS
+      AuthorizerId: !Ref CognitoAuthorizer
       Integration:
         Type: AWS_PROXY
         IntegrationHttpMethod: POST
@@ -381,7 +711,8 @@ Resources:
       RestApiId: !Ref RestApi
       ResourceId: !Ref EquipmentResource
       HttpMethod: GET
-      AuthorizationType: NONE
+      AuthorizationType: COGNITO_USER_POOLS
+      AuthorizerId: !Ref CognitoAuthorizer
       Integration:
         Type: AWS_PROXY
         IntegrationHttpMethod: POST
@@ -415,6 +746,164 @@ Resources:
             method.response.header.Access-Control-Allow-Origin: true
           ResponseModels:
             application/json: 'Empty'
+
+  InventoryMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId: !Ref RestApi
+      ResourceId: !Ref InventoryResource
+      HttpMethod: GET
+      AuthorizationType: COGNITO_USER_POOLS
+      AuthorizerId: !Ref CognitoAuthorizer
+      Integration:
+        Type: AWS_PROXY
+        IntegrationHttpMethod: POST
+        Uri: !Sub 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ApiLambdaFunction.Arn}/invocations'
+
+  InventoryOptionsMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId: !Ref RestApi
+      ResourceId: !Ref InventoryResource
+      HttpMethod: OPTIONS
+      AuthorizationType: NONE
+      Integration:
+        Type: MOCK
+        IntegrationResponses:
+          - StatusCode: 200
+            ResponseParameters:
+              method.response.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+              method.response.header.Access-Control-Allow-Methods: "'GET,OPTIONS'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+            ResponseTemplates:
+              application/json: ''
+        PassthroughBehavior: WHEN_NO_MATCH
+        RequestTemplates:
+          application/json: '{"statusCode": 200}'
+      MethodResponses:
+        - StatusCode: 200
+          ResponseParameters:
+            method.response.header.Access-Control-Allow-Headers: true
+            method.response.header.Access-Control-Allow-Methods: true
+            method.response.header.Access-Control-Allow-Origin: true
+          ResponseModels:
+            application/json: 'Empty'
+
+  StaffingMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId: !Ref RestApi
+      ResourceId: !Ref StaffingResource
+      HttpMethod: GET
+      AuthorizationType: COGNITO_USER_POOLS
+      AuthorizerId: !Ref CognitoAuthorizer
+      Integration:
+        Type: AWS_PROXY
+        IntegrationHttpMethod: POST
+        Uri: !Sub 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ApiLambdaFunction.Arn}/invocations'
+
+  StaffingOptionsMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId: !Ref RestApi
+      ResourceId: !Ref StaffingResource
+      HttpMethod: OPTIONS
+      AuthorizationType: NONE
+      Integration:
+        Type: MOCK
+        IntegrationResponses:
+          - StatusCode: 200
+            ResponseParameters:
+              method.response.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+              method.response.header.Access-Control-Allow-Methods: "'GET,OPTIONS'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+            ResponseTemplates:
+              application/json: ''
+        PassthroughBehavior: WHEN_NO_MATCH
+        RequestTemplates:
+          application/json: '{"statusCode": 200}'
+      MethodResponses:
+        - StatusCode: 200
+          ResponseParameters:
+            method.response.header.Access-Control-Allow-Headers: true
+            method.response.header.Access-Control-Allow-Methods: true
+            method.response.header.Access-Control-Allow-Origin: true
+          ResponseModels:
+            application/json: 'Empty'
+
+  VoiceTokenMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId: !Ref RestApi
+      ResourceId: !Ref VoiceTokenResource
+      HttpMethod: GET
+      AuthorizationType: COGNITO_USER_POOLS
+      AuthorizerId: !Ref CognitoAuthorizer
+      Integration:
+        Type: AWS_PROXY
+        IntegrationHttpMethod: POST
+        Uri: !Sub 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ApiLambdaFunction.Arn}/invocations'
+
+  VoiceTokenOptionsMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId: !Ref RestApi
+      ResourceId: !Ref VoiceTokenResource
+      HttpMethod: OPTIONS
+      AuthorizationType: NONE
+      Integration:
+        Type: MOCK
+        IntegrationResponses:
+          - StatusCode: 200
+            ResponseParameters:
+              method.response.header.Access-Control-Allow-Headers: "'Content-Type,Authorization,X-Amz-Date,X-Api-Key,X-Amz-Security-Token'"
+              method.response.header.Access-Control-Allow-Methods: "'GET,OPTIONS'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+        RequestTemplates:
+          application/json: '{"statusCode": 200}'
+      MethodResponses:
+        - StatusCode: 200
+          ResponseParameters:
+            method.response.header.Access-Control-Allow-Headers: true
+            method.response.header.Access-Control-Allow-Methods: true
+            method.response.header.Access-Control-Allow-Origin: true
+
+  ForecastsMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId: !Ref RestApi
+      ResourceId: !Ref ForecastsResource
+      HttpMethod: GET
+      AuthorizationType: COGNITO_USER_POOLS
+      AuthorizerId: !Ref CognitoAuthorizer
+      Integration:
+        Type: AWS_PROXY
+        IntegrationHttpMethod: POST
+        Uri: !Sub 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ApiLambdaFunction.Arn}/invocations'
+
+  ForecastsOptionsMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId: !Ref RestApi
+      ResourceId: !Ref ForecastsResource
+      HttpMethod: OPTIONS
+      AuthorizationType: NONE
+      Integration:
+        Type: MOCK
+        IntegrationResponses:
+          - StatusCode: 200
+            ResponseParameters:
+              method.response.header.Access-Control-Allow-Headers: "'Content-Type,Authorization,X-Amz-Date,X-Api-Key,X-Amz-Security-Token'"
+              method.response.header.Access-Control-Allow-Methods: "'GET,OPTIONS'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+        RequestTemplates:
+          application/json: '{"statusCode": 200}'
+      MethodResponses:
+        - StatusCode: 200
+          ResponseParameters:
+            method.response.header.Access-Control-Allow-Headers: true
+            method.response.header.Access-Control-Allow-Methods: true
+            method.response.header.Access-Control-Allow-Origin: true
 
   ApiLambdaPermission:
     Type: AWS::Lambda::Permission
@@ -457,15 +946,17 @@ Resources:
         Rules:
           - ObjectOwnership: BucketOwnerPreferred
       PublicAccessBlockConfiguration:
-        BlockPublicAcls: false
+        BlockPublicAcls: true
         BlockPublicPolicy: true
-        IgnorePublicAcls: false
+        IgnorePublicAcls: true
         RestrictPublicBuckets: true
       BucketEncryption:
         ServerSideEncryptionConfiguration:
           - ServerSideEncryptionByDefault:
               SSEAlgorithm: AES256
             BucketKeyEnabled: true
+      VersioningConfiguration:
+        Status: Enabled
       LifecycleConfiguration:
         Rules:
           - Id: DeleteOldLogs
@@ -512,6 +1003,12 @@ Resources:
           Compress: true
           ResponseHeadersPolicyId: !Ref SecurityHeadersPolicy
         PriceClass: PriceClass_100
+        ViewerCertificate:
+          CloudFrontDefaultCertificate: true
+          MinimumProtocolVersion: TLSv1.2_2021
+        Restrictions:
+          GeoRestriction:
+            RestrictionType: none
         CustomErrorResponses:
           - ErrorCode: 404
             ResponseCode: 200
@@ -587,7 +1084,8 @@ Resources:
       Bucket: !Ref DashboardBucket
       PolicyDocument:
         Statement:
-          - Effect: Allow
+          - Sid: AllowCloudFrontAccess
+            Effect: Allow
             Principal:
               Service: cloudfront.amazonaws.com
             Action: s3:GetObject
@@ -595,6 +1093,16 @@ Resources:
             Condition:
               StringEquals:
                 'AWS:SourceArn': !Sub 'arn:aws:cloudfront::${AWS::AccountId}:distribution/${CloudFrontDistribution}'
+          - Sid: EnforceSSLOnly
+            Effect: Deny
+            Principal: '*'
+            Action: 's3:*'
+            Resource:
+              - !GetAtt DashboardBucket.Arn
+              - !Sub '${DashboardBucket.Arn}/*'
+            Condition:
+              Bool:
+                'aws:SecureTransport': 'false'
 
   # Bucket Policy for CloudFront Logs
   LogsBucketPolicy:
@@ -603,6 +1111,16 @@ Resources:
       Bucket: !Ref AccessLogsBucket
       PolicyDocument:
         Statement:
+          - Sid: EnforceSSLOnly
+            Effect: Deny
+            Principal: '*'
+            Action: 's3:*'
+            Resource:
+              - !GetAtt AccessLogsBucket.Arn
+              - !Sub '${AccessLogsBucket.Arn}/*'
+            Condition:
+              Bool:
+                'aws:SecureTransport': 'false'
           - Effect: Allow
             Principal:
               AWS: !Sub 'arn:aws:iam::${AWS::AccountId}:root'
@@ -624,17 +1142,24 @@ Resources:
     Type: AWS::Cognito::UserPool
     Properties:
       UserPoolName: !Sub '${ProjectName}-users-${Environment}'
+      AdminCreateUserConfig:
+        AllowAdminCreateUserOnly: true
       AutoVerifiedAttributes:
         - email
       UsernameAttributes:
         - email
       Policies:
         PasswordPolicy:
-          MinimumLength: 8
+          MinimumLength: 12
           RequireUppercase: true
           RequireLowercase: true
           RequireNumbers: true
-          RequireSymbols: false
+          RequireSymbols: true
+      MfaConfiguration: 'ON'
+      EnabledMfas:
+        - SOFTWARE_TOKEN_MFA
+      UserPoolAddOns:
+        AdvancedSecurityMode: ENFORCED
       Schema:
         - Name: email
           AttributeDataType: String
@@ -718,6 +1243,19 @@ Resources:
                 Condition:
                   StringEquals:
                     'aws:RequestedRegion': !Ref 'AWS::Region'
+              - Effect: Allow
+                Action:
+                  - bedrock:InvokeModel
+                  - bedrock:InvokeModelWithResponseStream
+                  - bedrock:InvokeModelWithBidirectionalStream
+                Resource:
+                  - !Sub 'arn:aws:bedrock:${AWS::Region}::foundation-model/amazon.nova-2-sonic-v1:0'
+                  - !Sub 'arn:aws:bedrock:${AWS::Region}::foundation-model/amazon.nova-sonic-v1:0'
+              - Effect: Allow
+                Action:
+                  - bedrock-agentcore:InvokeAgentRuntime
+                  - bedrock-agentcore:InvokeAgentRuntimeWithWebSocketStream
+                Resource: '*'
 
   # Identity Pool Role Attachment
   IdentityPoolRoleAttachment:
@@ -742,6 +1280,11 @@ Outputs:
     Value: !Ref TicketsTable
     Export:
       Name: !Sub '${ProjectName}-tickets-table-${Environment}'
+
+  ForecastsTable:
+    Value: !Ref ForecastsTable
+    Export:
+      Name: !Sub '${ProjectName}-forecasts-table-${Environment}'
 
   ApiLambdaFunction:
     Description: 'Secure Lambda Function ARN'
@@ -792,6 +1335,12 @@ Outputs:
     Value: !Ref UserPool
     Export:
       Name: !Sub '${ProjectName}-UserPoolId-${Environment}'
+
+  UserPoolArn:
+    Description: 'Cognito User Pool ARN'
+    Value: !GetAtt UserPool.Arn
+    Export:
+      Name: !Sub '${ProjectName}-UserPoolArn-${Environment}'
 
   UserPoolClientId:
     Description: 'Cognito User Pool Client ID'

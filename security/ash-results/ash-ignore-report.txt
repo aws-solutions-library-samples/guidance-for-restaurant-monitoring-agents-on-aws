@@ -1,3 +1,4 @@
+######### START CONTENTS: ${SOURCE_DIR}/.gitignore #########
 # System files
 .DS_Store
 .DS_Store?
@@ -56,3 +57,10 @@ logs/
 # AgentCore config (account-specific, regenerated on deploy)
 .bedrock_agentcore.yaml
 .bedrock_agentcore/
+######### END CONTENTS: ${SOURCE_DIR}/.gitignore #########
+
+######### START CONTENTS: ASH_INCLUSIONS #########
+.git
+**/cdk.out/asset.*
+!**/*.template.json
+######### END CONTENTS: ASH_INCLUSIONS #########

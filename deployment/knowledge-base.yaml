@@ -1,0 +1,167 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'Infrastructure for Bedrock Knowledge Base - AOSS collection, S3 bucket, IAM roles'
+
+Parameters:
+  ProjectName:
+    Type: String
+    Default: restaurant-kitchen-assistant
+  CollectionName:
+    Type: String
+    Default: rka-equipment-kb
+
+Resources:
+  # S3 bucket for access logs
+  KBAccessLogsBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      OwnershipControls:
+        Rules:
+          - ObjectOwnership: BucketOwnerPreferred
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+            BucketKeyEnabled: true
+      LifecycleConfiguration:
+        Rules:
+          - Id: DeleteOldLogs
+            Status: Enabled
+            ExpirationInDays: 90
+
+  KBAccessLogsBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref KBAccessLogsBucket
+      PolicyDocument:
+        Statement:
+          - Sid: EnforceSSLOnly
+            Effect: Deny
+            Principal: '*'
+            Action: 's3:*'
+            Resource:
+              - !GetAtt KBAccessLogsBucket.Arn
+              - !Sub '${KBAccessLogsBucket.Arn}/*'
+            Condition:
+              Bool:
+                'aws:SecureTransport': 'false'
+
+  KBDataBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+            BucketKeyEnabled: true
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      VersioningConfiguration:
+        Status: Enabled
+      LoggingConfiguration:
+        DestinationBucketName: !Ref KBAccessLogsBucket
+        LogFilePrefix: kb-data-access-logs/
+
+  KBDataBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref KBDataBucket
+      PolicyDocument:
+        Statement:
+          - Sid: EnforceSSL
+            Effect: Deny
+            Principal: '*'
+            Action: 's3:*'
+            Resource:
+              - !GetAtt KBDataBucket.Arn
+              - !Sub '${KBDataBucket.Arn}/*'
+            Condition:
+              Bool:
+                'aws:SecureTransport': 'false'
+
+  # IAM role for Bedrock Knowledge Base
+  KBServiceRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub '${ProjectName}-kb-role'
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: bedrock.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: KBPolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action: [s3:GetObject, s3:ListBucket]
+                Resource:
+                  - !GetAtt KBDataBucket.Arn
+                  - !Sub '${KBDataBucket.Arn}/*'
+              - Effect: Allow
+                Action: bedrock:InvokeModel
+                Resource: !Sub 'arn:aws:bedrock:${AWS::Region}::foundation-model/amazon.titan-embed-text-v2:0'
+              - Effect: Allow
+                Action: aoss:APIAccessAll
+                Resource: !Sub 'arn:aws:aoss:${AWS::Region}:${AWS::AccountId}:collection/*'
+
+  # AOSS policies
+  AossEncPolicy:
+    Type: AWS::OpenSearchServerless::SecurityPolicy
+    Properties:
+      Name: !Sub '${CollectionName}-enc'
+      Type: encryption
+      Policy: !Sub |
+        {"Rules":[{"ResourceType":"collection","Resource":["collection/${CollectionName}"]}],"AWSOwnedKey":true}
+
+  AossNetPolicy:
+    Type: AWS::OpenSearchServerless::SecurityPolicy
+    Properties:
+      Name: !Sub '${CollectionName}-net'
+      Type: network
+      Policy: !Sub |
+        [{"Rules":[{"ResourceType":"collection","Resource":["collection/${CollectionName}"]},{"ResourceType":"dashboard","Resource":["collection/${CollectionName}"]}],"AllowFromPublic":true}]
+
+  AossAccessPolicy:
+    Type: AWS::OpenSearchServerless::AccessPolicy
+    Properties:
+      Name: !Sub '${CollectionName}-data'
+      Type: data
+      Policy: !Sub |
+        [{"Rules":[{"ResourceType":"index","Resource":["index/${CollectionName}/*"],"Permission":["aoss:CreateIndex","aoss:DeleteIndex","aoss:UpdateIndex","aoss:DescribeIndex","aoss:ReadDocument","aoss:WriteDocument"]},{"ResourceType":"collection","Resource":["collection/${CollectionName}"],"Permission":["aoss:CreateCollectionItems","aoss:DeleteCollectionItems","aoss:UpdateCollectionItems","aoss:DescribeCollectionItems"]}],"Principal":["${KBServiceRole.Arn}","arn:aws:iam::${AWS::AccountId}:root"]}]
+
+  # AOSS collection
+  AossCollection:
+    Type: AWS::OpenSearchServerless::Collection
+    DependsOn: [AossEncPolicy, AossNetPolicy, AossAccessPolicy]
+    Properties:
+      Name: !Ref CollectionName
+      Type: VECTORSEARCH
+
+Outputs:
+  KBBucketName:
+    Value: !Ref KBDataBucket
+    Export:
+      Name: !Sub '${ProjectName}-kb-bucket'
+  KBServiceRoleArn:
+    Value: !GetAtt KBServiceRole.Arn
+    Export:
+      Name: !Sub '${ProjectName}-kb-role-arn'
+  AossCollectionArn:
+    Value: !GetAtt AossCollection.Arn
+    Export:
+      Name: !Sub '${ProjectName}-aoss-collection-arn'
+  AossCollectionEndpoint:
+    Value: !GetAtt AossCollection.CollectionEndpoint
+    Export:
+      Name: !Sub '${ProjectName}-aoss-endpoint'

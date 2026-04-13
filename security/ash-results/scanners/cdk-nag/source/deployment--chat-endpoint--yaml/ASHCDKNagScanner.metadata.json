@@ -1,0 +1,256 @@
+{
+  "/ASHCDKNagScanner/deployment--chat-endpoint.yaml": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "deploymentchatendpointyaml"
+    }
+  ],
+  "/ASHCDKNagScanner/BootstrapVersion": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "BootstrapVersion"
+    }
+  ],
+  "/ASHCDKNagScanner/CheckBootstrapVersion": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "CheckBootstrapVersion"
+    }
+  ],
+  "/ASHCDKNagScanner/deployment--chat-endpoint.yaml/AgentRuntimeArn": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "AgentRuntimeArn"
+    }
+  ],
+  "/ASHCDKNagScanner/deployment--chat-endpoint.yaml/RestApiId": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "RestApiId"
+    }
+  ],
+  "/ASHCDKNagScanner/deployment--chat-endpoint.yaml/RestApiRootResourceId": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "RestApiRootResourceId"
+    }
+  ],
+  "/ASHCDKNagScanner/deployment--chat-endpoint.yaml/UserPoolArn": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "UserPoolArn"
+    }
+  ],
+  "/ASHCDKNagScanner/deployment--chat-endpoint.yaml/ChatLambdaEnvEncryptionKey": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "ChatLambdaEnvEncryptionKey"
+    }
+  ],
+  "/ASHCDKNagScanner/deployment--chat-endpoint.yaml/ChatLambdaDLQ": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "ChatLambdaDLQ"
+    },
+    {
+      "type": "aws:cdk:error",
+      "data": "AwsSolutions-SQS3: The SQS queue is not used as a dead-letter queue (DLQ) and does not have a DLQ enabled.\n",
+      "trace": [
+        "Annotations.addMessage (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/aws-cdk-lib/core/lib/annotations.js:1:2066)",
+        "Annotations.addError (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/aws-cdk-lib/core/lib/annotations.js:1:1528)",
+        "AnnotationLogger.onNonCompliance (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/cdk-nag/lib/nag-logger.js:30:61)",
+        "/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/cdk-nag/lib/nag-pack.js:79:55",
+        "Array.forEach (<anonymous>)",
+        "AwsSolutionsChecks.applyRule (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/cdk-nag/lib/nag-pack.js:79:38)",
+        "AwsSolutionsChecks.checkApplicationIntegration (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/cdk-nag/lib/packs/aws-solutions.js:1106:14)",
+        "AwsSolutionsChecks.visit (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/cdk-nag/lib/packs/aws-solutions.js:73:18)",
+        "recurse (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/aws-cdk-lib/core/lib/private/synthesis.js:2:4537)",
+        "recurse (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/aws-cdk-lib/core/lib/private/synthesis.js:2:4772)",
+        "recurse (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/aws-cdk-lib/core/lib/private/synthesis.js:2:4772)",
+        "recurse (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/aws-cdk-lib/core/lib/private/synthesis.js:2:4772)",
+        "invokeAspectsV2 (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/aws-cdk-lib/core/lib/private/synthesis.js:2:3163)",
+        "synthesize (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/aws-cdk-lib/core/lib/private/synthesis.js:1:1895)",
+        "App.synth (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/aws-cdk-lib/core/lib/stage.js:1:3138)",
+        "/private/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/tmpe5ey7u6l/lib/program.js:3758:171",
+        "Kernel._Kernel_ensureSync (/private/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/tmpe5ey7u6l/lib/program.js:4381:24)",
+        "Kernel.invoke (/private/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/tmpe5ey7u6l/lib/program.js:3758:102)",
+        "KernelHost.processRequest (/private/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/tmpe5ey7u6l/lib/program.js:17342:36)",
+        "KernelHost.run (/private/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/tmpe5ey7u6l/lib/program.js:17302:22)",
+        "Immediate._onImmediate (/private/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/tmpe5ey7u6l/lib/program.js:17303:45)",
+        "process.processImmediate (node:internal/timers:505:21)"
+      ]
+    }
+  ],
+  "/ASHCDKNagScanner/deployment--chat-endpoint.yaml/ChatLambdaDLQPolicy": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "ChatLambdaDLQPolicy"
+    }
+  ],
+  "/ASHCDKNagScanner/deployment--chat-endpoint.yaml/ChatLambdaRole": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "ChatLambdaRole"
+    },
+    {
+      "type": "aws:cdk:error",
+      "data": "AwsSolutions-IAM4[Policy::arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole]: The IAM user, role, or group uses AWS managed policies.\n",
+      "trace": [
+        "Annotations.addMessage (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/aws-cdk-lib/core/lib/annotations.js:1:2066)",
+        "Annotations.addError (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/aws-cdk-lib/core/lib/annotations.js:1:1528)",
+        "AnnotationLogger.onNonCompliance (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/cdk-nag/lib/nag-logger.js:30:61)",
+        "/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/cdk-nag/lib/nag-pack.js:79:55",
+        "Array.forEach (<anonymous>)",
+        "AwsSolutionsChecks.applyRule (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/cdk-nag/lib/nag-pack.js:79:38)",
+        "AwsSolutionsChecks.checkSecurityCompliance (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/cdk-nag/lib/packs/aws-solutions.js:970:14)",
+        "AwsSolutionsChecks.visit (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/cdk-nag/lib/packs/aws-solutions.js:71:18)",
+        "recurse (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/aws-cdk-lib/core/lib/private/synthesis.js:2:4537)",
+        "recurse (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/aws-cdk-lib/core/lib/private/synthesis.js:2:4772)",
+        "recurse (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/aws-cdk-lib/core/lib/private/synthesis.js:2:4772)",
+        "recurse (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/aws-cdk-lib/core/lib/private/synthesis.js:2:4772)",
+        "invokeAspectsV2 (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/aws-cdk-lib/core/lib/private/synthesis.js:2:3163)",
+        "synthesize (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/aws-cdk-lib/core/lib/private/synthesis.js:1:1895)",
+        "App.synth (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/aws-cdk-lib/core/lib/stage.js:1:3138)",
+        "/private/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/tmpe5ey7u6l/lib/program.js:3758:171",
+        "Kernel._Kernel_ensureSync (/private/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/tmpe5ey7u6l/lib/program.js:4381:24)",
+        "Kernel.invoke (/private/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/tmpe5ey7u6l/lib/program.js:3758:102)",
+        "KernelHost.processRequest (/private/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/tmpe5ey7u6l/lib/program.js:17342:36)",
+        "KernelHost.run (/private/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/tmpe5ey7u6l/lib/program.js:17302:22)",
+        "Immediate._onImmediate (/private/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/tmpe5ey7u6l/lib/program.js:17303:45)",
+        "process.processImmediate (node:internal/timers:505:21)"
+      ]
+    },
+    {
+      "type": "aws:cdk:error",
+      "data": "AwsSolutions-IAM5[Resource::*]: The IAM entity contains wildcard permissions and does not have a cdk-nag rule suppression with evidence for those permission.\n",
+      "trace": [
+        "Annotations.addMessage (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/aws-cdk-lib/core/lib/annotations.js:1:2066)",
+        "Annotations.addError (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/aws-cdk-lib/core/lib/annotations.js:1:1528)",
+        "AnnotationLogger.onNonCompliance (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/cdk-nag/lib/nag-logger.js:30:61)",
+        "/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/cdk-nag/lib/nag-pack.js:79:55",
+        "Array.forEach (<anonymous>)",
+        "AwsSolutionsChecks.applyRule (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/cdk-nag/lib/nag-pack.js:79:38)",
+        "AwsSolutionsChecks.checkSecurityCompliance (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/cdk-nag/lib/packs/aws-solutions.js:979:14)",
+        "AwsSolutionsChecks.visit (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/cdk-nag/lib/packs/aws-solutions.js:71:18)",
+        "recurse (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/aws-cdk-lib/core/lib/private/synthesis.js:2:4537)",
+        "recurse (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/aws-cdk-lib/core/lib/private/synthesis.js:2:4772)",
+        "recurse (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/aws-cdk-lib/core/lib/private/synthesis.js:2:4772)",
+        "recurse (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/aws-cdk-lib/core/lib/private/synthesis.js:2:4772)",
+        "invokeAspectsV2 (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/aws-cdk-lib/core/lib/private/synthesis.js:2:3163)",
+        "synthesize (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/aws-cdk-lib/core/lib/private/synthesis.js:1:1895)",
+        "App.synth (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/aws-cdk-lib/core/lib/stage.js:1:3138)",
+        "/private/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/tmpe5ey7u6l/lib/program.js:3758:171",
+        "Kernel._Kernel_ensureSync (/private/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/tmpe5ey7u6l/lib/program.js:4381:24)",
+        "Kernel.invoke (/private/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/tmpe5ey7u6l/lib/program.js:3758:102)",
+        "KernelHost.processRequest (/private/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/tmpe5ey7u6l/lib/program.js:17342:36)",
+        "KernelHost.run (/private/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/tmpe5ey7u6l/lib/program.js:17302:22)",
+        "Immediate._onImmediate (/private/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/tmpe5ey7u6l/lib/program.js:17303:45)",
+        "process.processImmediate (node:internal/timers:505:21)"
+      ]
+    }
+  ],
+  "/ASHCDKNagScanner/deployment--chat-endpoint.yaml/ChatLambda": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "ChatLambda"
+    },
+    {
+      "type": "aws:cdk:error",
+      "data": "AwsSolutions-L1: The non-container Lambda function is not configured to use the latest runtime version.\n",
+      "trace": [
+        "Annotations.addMessage (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/aws-cdk-lib/core/lib/annotations.js:1:2066)",
+        "Annotations.addError (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/aws-cdk-lib/core/lib/annotations.js:1:1528)",
+        "AnnotationLogger.onNonCompliance (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/cdk-nag/lib/nag-logger.js:30:61)",
+        "/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/cdk-nag/lib/nag-pack.js:79:55",
+        "Array.forEach (<anonymous>)",
+        "AwsSolutionsChecks.applyRule (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/cdk-nag/lib/nag-pack.js:79:38)",
+        "AwsSolutionsChecks.checkLambda (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/cdk-nag/lib/packs/aws-solutions.js:1215:14)",
+        "AwsSolutionsChecks.visit (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/cdk-nag/lib/packs/aws-solutions.js:76:18)",
+        "recurse (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/aws-cdk-lib/core/lib/private/synthesis.js:2:4537)",
+        "recurse (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/aws-cdk-lib/core/lib/private/synthesis.js:2:4772)",
+        "recurse (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/aws-cdk-lib/core/lib/private/synthesis.js:2:4772)",
+        "recurse (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/aws-cdk-lib/core/lib/private/synthesis.js:2:4772)",
+        "invokeAspectsV2 (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/aws-cdk-lib/core/lib/private/synthesis.js:2:3163)",
+        "synthesize (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/aws-cdk-lib/core/lib/private/synthesis.js:1:1895)",
+        "App.synth (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/aws-cdk-lib/core/lib/stage.js:1:3138)",
+        "/private/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/tmpe5ey7u6l/lib/program.js:3758:171",
+        "Kernel._Kernel_ensureSync (/private/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/tmpe5ey7u6l/lib/program.js:4381:24)",
+        "Kernel.invoke (/private/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/tmpe5ey7u6l/lib/program.js:3758:102)",
+        "KernelHost.processRequest (/private/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/tmpe5ey7u6l/lib/program.js:17342:36)",
+        "KernelHost.run (/private/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/tmpe5ey7u6l/lib/program.js:17302:22)",
+        "Immediate._onImmediate (/private/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/tmpe5ey7u6l/lib/program.js:17303:45)",
+        "process.processImmediate (node:internal/timers:505:21)"
+      ]
+    }
+  ],
+  "/ASHCDKNagScanner/deployment--chat-endpoint.yaml/ChatCognitoAuthorizer": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "ChatCognitoAuthorizer"
+    }
+  ],
+  "/ASHCDKNagScanner/deployment--chat-endpoint.yaml/ChatResource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "ChatResource"
+    }
+  ],
+  "/ASHCDKNagScanner/deployment--chat-endpoint.yaml/ChatMethod": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "ChatMethod"
+    }
+  ],
+  "/ASHCDKNagScanner/deployment--chat-endpoint.yaml/ChatOptionsMethod": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "ChatOptionsMethod"
+    },
+    {
+      "type": "aws:cdk:error",
+      "data": "AwsSolutions-APIG4: The API does not implement authorization.\n",
+      "trace": [
+        "Annotations.addMessage (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/aws-cdk-lib/core/lib/annotations.js:1:2066)",
+        "Annotations.addError (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/aws-cdk-lib/core/lib/annotations.js:1:1528)",
+        "AnnotationLogger.onNonCompliance (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/cdk-nag/lib/nag-logger.js:30:61)",
+        "/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/cdk-nag/lib/nag-pack.js:79:55",
+        "Array.forEach (<anonymous>)",
+        "AwsSolutionsChecks.applyRule (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/cdk-nag/lib/nag-pack.js:79:38)",
+        "AwsSolutionsChecks.checkNetworkDelivery (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/cdk-nag/lib/packs/aws-solutions.js:693:14)",
+        "AwsSolutionsChecks.visit (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/cdk-nag/lib/packs/aws-solutions.js:67:18)",
+        "recurse (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/aws-cdk-lib/core/lib/private/synthesis.js:2:4537)",
+        "recurse (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/aws-cdk-lib/core/lib/private/synthesis.js:2:4772)",
+        "recurse (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/aws-cdk-lib/core/lib/private/synthesis.js:2:4772)",
+        "recurse (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/aws-cdk-lib/core/lib/private/synthesis.js:2:4772)",
+        "invokeAspectsV2 (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/aws-cdk-lib/core/lib/private/synthesis.js:2:3163)",
+        "synthesize (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/aws-cdk-lib/core/lib/private/synthesis.js:1:1895)",
+        "App.synth (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/aws-cdk-lib/core/lib/stage.js:1:3138)",
+        "/private/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/tmpe5ey7u6l/lib/program.js:3758:171",
+        "Kernel._Kernel_ensureSync (/private/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/tmpe5ey7u6l/lib/program.js:4381:24)",
+        "Kernel.invoke (/private/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/tmpe5ey7u6l/lib/program.js:3758:102)",
+        "KernelHost.processRequest (/private/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/tmpe5ey7u6l/lib/program.js:17342:36)",
+        "KernelHost.run (/private/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/tmpe5ey7u6l/lib/program.js:17302:22)",
+        "Immediate._onImmediate (/private/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/tmpe5ey7u6l/lib/program.js:17303:45)",
+        "process.processImmediate (node:internal/timers:505:21)"
+      ]
+    }
+  ],
+  "/ASHCDKNagScanner/deployment--chat-endpoint.yaml/ChatLambdaPermission": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "ChatLambdaPermission"
+    }
+  ],
+  "/ASHCDKNagScanner/deployment--chat-endpoint.yaml/ApiDeployment": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "ApiDeployment"
+    }
+  ],
+  "/ASHCDKNagScanner/deployment--chat-endpoint.yaml/$Outputs/ChatEndpoint": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "ChatEndpoint"
+    }
+  ]
+}

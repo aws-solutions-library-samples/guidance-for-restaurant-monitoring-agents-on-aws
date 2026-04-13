@@ -1,0 +1,824 @@
+{
+  "/ASHCDKNagScanner/deployment--restaurant-monitoring-base-template.yaml": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "deploymentrestaurantmonitoringbasetemplateyaml"
+    }
+  ],
+  "/ASHCDKNagScanner/BootstrapVersion": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "BootstrapVersion"
+    }
+  ],
+  "/ASHCDKNagScanner/CheckBootstrapVersion": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "CheckBootstrapVersion"
+    }
+  ],
+  "/ASHCDKNagScanner/deployment--restaurant-monitoring-base-template.yaml/ProjectName": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "ProjectName"
+    }
+  ],
+  "/ASHCDKNagScanner/deployment--restaurant-monitoring-base-template.yaml/Environment": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "Environment"
+    }
+  ],
+  "/ASHCDKNagScanner/deployment--restaurant-monitoring-base-template.yaml/LambdaEnvEncryptionKey": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "LambdaEnvEncryptionKey"
+    }
+  ],
+  "/ASHCDKNagScanner/deployment--restaurant-monitoring-base-template.yaml/DynamoDBEncryptionKey": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "DynamoDBEncryptionKey"
+    }
+  ],
+  "/ASHCDKNagScanner/deployment--restaurant-monitoring-base-template.yaml/ApiLambdaDLQ": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "ApiLambdaDLQ"
+    },
+    {
+      "type": "aws:cdk:error",
+      "data": "AwsSolutions-SQS3: The SQS queue is not used as a dead-letter queue (DLQ) and does not have a DLQ enabled.\n",
+      "trace": [
+        "Annotations.addMessage (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/aws-cdk-lib/core/lib/annotations.js:1:2066)",
+        "Annotations.addError (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/aws-cdk-lib/core/lib/annotations.js:1:1528)",
+        "AnnotationLogger.onNonCompliance (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/cdk-nag/lib/nag-logger.js:30:61)",
+        "/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/cdk-nag/lib/nag-pack.js:79:55",
+        "Array.forEach (<anonymous>)",
+        "AwsSolutionsChecks.applyRule (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/cdk-nag/lib/nag-pack.js:79:38)",
+        "AwsSolutionsChecks.checkApplicationIntegration (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/cdk-nag/lib/packs/aws-solutions.js:1106:14)",
+        "AwsSolutionsChecks.visit (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/cdk-nag/lib/packs/aws-solutions.js:73:18)",
+        "recurse (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/aws-cdk-lib/core/lib/private/synthesis.js:2:4537)",
+        "recurse (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/aws-cdk-lib/core/lib/private/synthesis.js:2:4772)",
+        "recurse (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/aws-cdk-lib/core/lib/private/synthesis.js:2:4772)",
+        "recurse (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/aws-cdk-lib/core/lib/private/synthesis.js:2:4772)",
+        "invokeAspectsV2 (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/aws-cdk-lib/core/lib/private/synthesis.js:2:3163)",
+        "synthesize (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/aws-cdk-lib/core/lib/private/synthesis.js:1:1895)",
+        "App.synth (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/aws-cdk-lib/core/lib/stage.js:1:3138)",
+        "/private/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/tmpe5ey7u6l/lib/program.js:3758:171",
+        "Kernel._Kernel_ensureSync (/private/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/tmpe5ey7u6l/lib/program.js:4381:24)",
+        "Kernel.invoke (/private/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/tmpe5ey7u6l/lib/program.js:3758:102)",
+        "KernelHost.processRequest (/private/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/tmpe5ey7u6l/lib/program.js:17342:36)",
+        "KernelHost.run (/private/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/tmpe5ey7u6l/lib/program.js:17302:22)",
+        "Immediate._onImmediate (/private/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/tmpe5ey7u6l/lib/program.js:17303:45)",
+        "process.processImmediate (node:internal/timers:505:21)"
+      ]
+    }
+  ],
+  "/ASHCDKNagScanner/deployment--restaurant-monitoring-base-template.yaml/ApiLambdaDLQPolicy": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "ApiLambdaDLQPolicy"
+    }
+  ],
+  "/ASHCDKNagScanner/deployment--restaurant-monitoring-base-template.yaml/RestaurantDataTable": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "RestaurantDataTable"
+    }
+  ],
+  "/ASHCDKNagScanner/deployment--restaurant-monitoring-base-template.yaml/EquipmentReadingsTable": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "EquipmentReadingsTable"
+    }
+  ],
+  "/ASHCDKNagScanner/deployment--restaurant-monitoring-base-template.yaml/TicketsTable": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "TicketsTable"
+    }
+  ],
+  "/ASHCDKNagScanner/deployment--restaurant-monitoring-base-template.yaml/ChatHistoryTable": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "ChatHistoryTable"
+    }
+  ],
+  "/ASHCDKNagScanner/deployment--restaurant-monitoring-base-template.yaml/InventoryItemsTable": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "InventoryItemsTable"
+    }
+  ],
+  "/ASHCDKNagScanner/deployment--restaurant-monitoring-base-template.yaml/StaffingRequirementsTable": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "StaffingRequirementsTable"
+    }
+  ],
+  "/ASHCDKNagScanner/deployment--restaurant-monitoring-base-template.yaml/ApiLambdaRole": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "ApiLambdaRole"
+    },
+    {
+      "type": "aws:cdk:error",
+      "data": "AwsSolutions-IAM4[Policy::arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole]: The IAM user, role, or group uses AWS managed policies.\n",
+      "trace": [
+        "Annotations.addMessage (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/aws-cdk-lib/core/lib/annotations.js:1:2066)",
+        "Annotations.addError (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/aws-cdk-lib/core/lib/annotations.js:1:1528)",
+        "AnnotationLogger.onNonCompliance (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/cdk-nag/lib/nag-logger.js:30:61)",
+        "/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/cdk-nag/lib/nag-pack.js:79:55",
+        "Array.forEach (<anonymous>)",
+        "AwsSolutionsChecks.applyRule (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/cdk-nag/lib/nag-pack.js:79:38)",
+        "AwsSolutionsChecks.checkSecurityCompliance (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/cdk-nag/lib/packs/aws-solutions.js:970:14)",
+        "AwsSolutionsChecks.visit (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/cdk-nag/lib/packs/aws-solutions.js:71:18)",
+        "recurse (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/aws-cdk-lib/core/lib/private/synthesis.js:2:4537)",
+        "recurse (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/aws-cdk-lib/core/lib/private/synthesis.js:2:4772)",
+        "recurse (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/aws-cdk-lib/core/lib/private/synthesis.js:2:4772)",
+        "recurse (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/aws-cdk-lib/core/lib/private/synthesis.js:2:4772)",
+        "invokeAspectsV2 (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/aws-cdk-lib/core/lib/private/synthesis.js:2:3163)",
+        "synthesize (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/aws-cdk-lib/core/lib/private/synthesis.js:1:1895)",
+        "App.synth (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/aws-cdk-lib/core/lib/stage.js:1:3138)",
+        "/private/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/tmpe5ey7u6l/lib/program.js:3758:171",
+        "Kernel._Kernel_ensureSync (/private/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/tmpe5ey7u6l/lib/program.js:4381:24)",
+        "Kernel.invoke (/private/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/tmpe5ey7u6l/lib/program.js:3758:102)",
+        "KernelHost.processRequest (/private/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/tmpe5ey7u6l/lib/program.js:17342:36)",
+        "KernelHost.run (/private/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/tmpe5ey7u6l/lib/program.js:17302:22)",
+        "Immediate._onImmediate (/private/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/tmpe5ey7u6l/lib/program.js:17303:45)",
+        "process.processImmediate (node:internal/timers:505:21)"
+      ]
+    },
+    {
+      "type": "aws:cdk:error",
+      "data": "AwsSolutions-IAM5[Resource::*]: The IAM entity contains wildcard permissions and does not have a cdk-nag rule suppression with evidence for those permission.\n",
+      "trace": [
+        "Annotations.addMessage (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/aws-cdk-lib/core/lib/annotations.js:1:2066)",
+        "Annotations.addError (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/aws-cdk-lib/core/lib/annotations.js:1:1528)",
+        "AnnotationLogger.onNonCompliance (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/cdk-nag/lib/nag-logger.js:30:61)",
+        "/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/cdk-nag/lib/nag-pack.js:79:55",
+        "Array.forEach (<anonymous>)",
+        "AwsSolutionsChecks.applyRule (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/cdk-nag/lib/nag-pack.js:79:38)",
+        "AwsSolutionsChecks.checkSecurityCompliance (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/cdk-nag/lib/packs/aws-solutions.js:979:14)",
+        "AwsSolutionsChecks.visit (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/cdk-nag/lib/packs/aws-solutions.js:71:18)",
+        "recurse (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/aws-cdk-lib/core/lib/private/synthesis.js:2:4537)",
+        "recurse (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/aws-cdk-lib/core/lib/private/synthesis.js:2:4772)",
+        "recurse (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/aws-cdk-lib/core/lib/private/synthesis.js:2:4772)",
+        "recurse (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/aws-cdk-lib/core/lib/private/synthesis.js:2:4772)",
+        "invokeAspectsV2 (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/aws-cdk-lib/core/lib/private/synthesis.js:2:3163)",
+        "synthesize (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/aws-cdk-lib/core/lib/private/synthesis.js:1:1895)",
+        "App.synth (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/aws-cdk-lib/core/lib/stage.js:1:3138)",
+        "/private/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/tmpe5ey7u6l/lib/program.js:3758:171",
+        "Kernel._Kernel_ensureSync (/private/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/tmpe5ey7u6l/lib/program.js:4381:24)",
+        "Kernel.invoke (/private/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/tmpe5ey7u6l/lib/program.js:3758:102)",
+        "KernelHost.processRequest (/private/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/tmpe5ey7u6l/lib/program.js:17342:36)",
+        "KernelHost.run (/private/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/tmpe5ey7u6l/lib/program.js:17302:22)",
+        "Immediate._onImmediate (/private/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/tmpe5ey7u6l/lib/program.js:17303:45)",
+        "process.processImmediate (node:internal/timers:505:21)"
+      ]
+    }
+  ],
+  "/ASHCDKNagScanner/deployment--restaurant-monitoring-base-template.yaml/ApiLambdaFunction": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "ApiLambdaFunction"
+    },
+    {
+      "type": "aws:cdk:error",
+      "data": "AwsSolutions-L1: The non-container Lambda function is not configured to use the latest runtime version.\n",
+      "trace": [
+        "Annotations.addMessage (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/aws-cdk-lib/core/lib/annotations.js:1:2066)",
+        "Annotations.addError (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/aws-cdk-lib/core/lib/annotations.js:1:1528)",
+        "AnnotationLogger.onNonCompliance (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/cdk-nag/lib/nag-logger.js:30:61)",
+        "/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/cdk-nag/lib/nag-pack.js:79:55",
+        "Array.forEach (<anonymous>)",
+        "AwsSolutionsChecks.applyRule (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/cdk-nag/lib/nag-pack.js:79:38)",
+        "AwsSolutionsChecks.checkLambda (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/cdk-nag/lib/packs/aws-solutions.js:1215:14)",
+        "AwsSolutionsChecks.visit (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/cdk-nag/lib/packs/aws-solutions.js:76:18)",
+        "recurse (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/aws-cdk-lib/core/lib/private/synthesis.js:2:4537)",
+        "recurse (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/aws-cdk-lib/core/lib/private/synthesis.js:2:4772)",
+        "recurse (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/aws-cdk-lib/core/lib/private/synthesis.js:2:4772)",
+        "recurse (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/aws-cdk-lib/core/lib/private/synthesis.js:2:4772)",
+        "invokeAspectsV2 (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/aws-cdk-lib/core/lib/private/synthesis.js:2:3163)",
+        "synthesize (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/aws-cdk-lib/core/lib/private/synthesis.js:1:1895)",
+        "App.synth (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/aws-cdk-lib/core/lib/stage.js:1:3138)",
+        "/private/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/tmpe5ey7u6l/lib/program.js:3758:171",
+        "Kernel._Kernel_ensureSync (/private/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/tmpe5ey7u6l/lib/program.js:4381:24)",
+        "Kernel.invoke (/private/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/tmpe5ey7u6l/lib/program.js:3758:102)",
+        "KernelHost.processRequest (/private/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/tmpe5ey7u6l/lib/program.js:17342:36)",
+        "KernelHost.run (/private/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/tmpe5ey7u6l/lib/program.js:17302:22)",
+        "Immediate._onImmediate (/private/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/tmpe5ey7u6l/lib/program.js:17303:45)",
+        "process.processImmediate (node:internal/timers:505:21)"
+      ]
+    }
+  ],
+  "/ASHCDKNagScanner/deployment--restaurant-monitoring-base-template.yaml/RestApi": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "RestApi"
+    }
+  ],
+  "/ASHCDKNagScanner/deployment--restaurant-monitoring-base-template.yaml/ApiRequestValidator": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "ApiRequestValidator"
+    }
+  ],
+  "/ASHCDKNagScanner/deployment--restaurant-monitoring-base-template.yaml/UserPool": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "UserPool"
+    }
+  ],
+  "/ASHCDKNagScanner/deployment--restaurant-monitoring-base-template.yaml/CognitoAuthorizer": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "CognitoAuthorizer"
+    }
+  ],
+  "/ASHCDKNagScanner/deployment--restaurant-monitoring-base-template.yaml/ApiGatewayDeployment": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "ApiGatewayDeployment"
+    }
+  ],
+  "/ASHCDKNagScanner/deployment--restaurant-monitoring-base-template.yaml/RestaurantsResource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "RestaurantsResource"
+    }
+  ],
+  "/ASHCDKNagScanner/deployment--restaurant-monitoring-base-template.yaml/RestaurantsMethod": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "RestaurantsMethod"
+    }
+  ],
+  "/ASHCDKNagScanner/deployment--restaurant-monitoring-base-template.yaml/RestaurantsOptionsMethod": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "RestaurantsOptionsMethod"
+    },
+    {
+      "type": "aws:cdk:error",
+      "data": "AwsSolutions-APIG4: The API does not implement authorization.\n",
+      "trace": [
+        "Annotations.addMessage (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/aws-cdk-lib/core/lib/annotations.js:1:2066)",
+        "Annotations.addError (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/aws-cdk-lib/core/lib/annotations.js:1:1528)",
+        "AnnotationLogger.onNonCompliance (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/cdk-nag/lib/nag-logger.js:30:61)",
+        "/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/cdk-nag/lib/nag-pack.js:79:55",
+        "Array.forEach (<anonymous>)",
+        "AwsSolutionsChecks.applyRule (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/cdk-nag/lib/nag-pack.js:79:38)",
+        "AwsSolutionsChecks.checkNetworkDelivery (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/cdk-nag/lib/packs/aws-solutions.js:693:14)",
+        "AwsSolutionsChecks.visit (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/cdk-nag/lib/packs/aws-solutions.js:67:18)",
+        "recurse (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/aws-cdk-lib/core/lib/private/synthesis.js:2:4537)",
+        "recurse (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/aws-cdk-lib/core/lib/private/synthesis.js:2:4772)",
+        "recurse (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/aws-cdk-lib/core/lib/private/synthesis.js:2:4772)",
+        "recurse (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/aws-cdk-lib/core/lib/private/synthesis.js:2:4772)",
+        "invokeAspectsV2 (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/aws-cdk-lib/core/lib/private/synthesis.js:2:3163)",
+        "synthesize (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/aws-cdk-lib/core/lib/private/synthesis.js:1:1895)",
+        "App.synth (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/aws-cdk-lib/core/lib/stage.js:1:3138)",
+        "/private/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/tmpe5ey7u6l/lib/program.js:3758:171",
+        "Kernel._Kernel_ensureSync (/private/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/tmpe5ey7u6l/lib/program.js:4381:24)",
+        "Kernel.invoke (/private/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/tmpe5ey7u6l/lib/program.js:3758:102)",
+        "KernelHost.processRequest (/private/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/tmpe5ey7u6l/lib/program.js:17342:36)",
+        "KernelHost.run (/private/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/tmpe5ey7u6l/lib/program.js:17302:22)",
+        "Immediate._onImmediate (/private/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/tmpe5ey7u6l/lib/program.js:17303:45)",
+        "process.processImmediate (node:internal/timers:505:21)"
+      ]
+    }
+  ],
+  "/ASHCDKNagScanner/deployment--restaurant-monitoring-base-template.yaml/TicketsResource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "TicketsResource"
+    }
+  ],
+  "/ASHCDKNagScanner/deployment--restaurant-monitoring-base-template.yaml/TicketsMethod": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "TicketsMethod"
+    }
+  ],
+  "/ASHCDKNagScanner/deployment--restaurant-monitoring-base-template.yaml/TicketsOptionsMethod": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "TicketsOptionsMethod"
+    },
+    {
+      "type": "aws:cdk:error",
+      "data": "AwsSolutions-APIG4: The API does not implement authorization.\n",
+      "trace": [
+        "Annotations.addMessage (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/aws-cdk-lib/core/lib/annotations.js:1:2066)",
+        "Annotations.addError (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/aws-cdk-lib/core/lib/annotations.js:1:1528)",
+        "AnnotationLogger.onNonCompliance (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/cdk-nag/lib/nag-logger.js:30:61)",
+        "/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/cdk-nag/lib/nag-pack.js:79:55",
+        "Array.forEach (<anonymous>)",
+        "AwsSolutionsChecks.applyRule (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/cdk-nag/lib/nag-pack.js:79:38)",
+        "AwsSolutionsChecks.checkNetworkDelivery (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/cdk-nag/lib/packs/aws-solutions.js:693:14)",
+        "AwsSolutionsChecks.visit (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/cdk-nag/lib/packs/aws-solutions.js:67:18)",
+        "recurse (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/aws-cdk-lib/core/lib/private/synthesis.js:2:4537)",
+        "recurse (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/aws-cdk-lib/core/lib/private/synthesis.js:2:4772)",
+        "recurse (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/aws-cdk-lib/core/lib/private/synthesis.js:2:4772)",
+        "recurse (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/aws-cdk-lib/core/lib/private/synthesis.js:2:4772)",
+        "invokeAspectsV2 (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/aws-cdk-lib/core/lib/private/synthesis.js:2:3163)",
+        "synthesize (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/aws-cdk-lib/core/lib/private/synthesis.js:1:1895)",
+        "App.synth (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/aws-cdk-lib/core/lib/stage.js:1:3138)",
+        "/private/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/tmpe5ey7u6l/lib/program.js:3758:171",
+        "Kernel._Kernel_ensureSync (/private/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/tmpe5ey7u6l/lib/program.js:4381:24)",
+        "Kernel.invoke (/private/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/tmpe5ey7u6l/lib/program.js:3758:102)",
+        "KernelHost.processRequest (/private/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/tmpe5ey7u6l/lib/program.js:17342:36)",
+        "KernelHost.run (/private/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/tmpe5ey7u6l/lib/program.js:17302:22)",
+        "Immediate._onImmediate (/private/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/tmpe5ey7u6l/lib/program.js:17303:45)",
+        "process.processImmediate (node:internal/timers:505:21)"
+      ]
+    }
+  ],
+  "/ASHCDKNagScanner/deployment--restaurant-monitoring-base-template.yaml/EquipmentResource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "EquipmentResource"
+    }
+  ],
+  "/ASHCDKNagScanner/deployment--restaurant-monitoring-base-template.yaml/EquipmentMethod": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "EquipmentMethod"
+    }
+  ],
+  "/ASHCDKNagScanner/deployment--restaurant-monitoring-base-template.yaml/EquipmentOptionsMethod": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "EquipmentOptionsMethod"
+    },
+    {
+      "type": "aws:cdk:error",
+      "data": "AwsSolutions-APIG4: The API does not implement authorization.\n",
+      "trace": [
+        "Annotations.addMessage (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/aws-cdk-lib/core/lib/annotations.js:1:2066)",
+        "Annotations.addError (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/aws-cdk-lib/core/lib/annotations.js:1:1528)",
+        "AnnotationLogger.onNonCompliance (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/cdk-nag/lib/nag-logger.js:30:61)",
+        "/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/cdk-nag/lib/nag-pack.js:79:55",
+        "Array.forEach (<anonymous>)",
+        "AwsSolutionsChecks.applyRule (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/cdk-nag/lib/nag-pack.js:79:38)",
+        "AwsSolutionsChecks.checkNetworkDelivery (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/cdk-nag/lib/packs/aws-solutions.js:693:14)",
+        "AwsSolutionsChecks.visit (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/cdk-nag/lib/packs/aws-solutions.js:67:18)",
+        "recurse (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/aws-cdk-lib/core/lib/private/synthesis.js:2:4537)",
+        "recurse (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/aws-cdk-lib/core/lib/private/synthesis.js:2:4772)",
+        "recurse (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/aws-cdk-lib/core/lib/private/synthesis.js:2:4772)",
+        "recurse (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/aws-cdk-lib/core/lib/private/synthesis.js:2:4772)",
+        "invokeAspectsV2 (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/aws-cdk-lib/core/lib/private/synthesis.js:2:3163)",
+        "synthesize (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/aws-cdk-lib/core/lib/private/synthesis.js:1:1895)",
+        "App.synth (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/aws-cdk-lib/core/lib/stage.js:1:3138)",
+        "/private/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/tmpe5ey7u6l/lib/program.js:3758:171",
+        "Kernel._Kernel_ensureSync (/private/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/tmpe5ey7u6l/lib/program.js:4381:24)",
+        "Kernel.invoke (/private/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/tmpe5ey7u6l/lib/program.js:3758:102)",
+        "KernelHost.processRequest (/private/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/tmpe5ey7u6l/lib/program.js:17342:36)",
+        "KernelHost.run (/private/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/tmpe5ey7u6l/lib/program.js:17302:22)",
+        "Immediate._onImmediate (/private/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/tmpe5ey7u6l/lib/program.js:17303:45)",
+        "process.processImmediate (node:internal/timers:505:21)"
+      ]
+    }
+  ],
+  "/ASHCDKNagScanner/deployment--restaurant-monitoring-base-template.yaml/InventoryResource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "InventoryResource"
+    }
+  ],
+  "/ASHCDKNagScanner/deployment--restaurant-monitoring-base-template.yaml/InventoryMethod": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "InventoryMethod"
+    }
+  ],
+  "/ASHCDKNagScanner/deployment--restaurant-monitoring-base-template.yaml/InventoryOptionsMethod": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "InventoryOptionsMethod"
+    },
+    {
+      "type": "aws:cdk:error",
+      "data": "AwsSolutions-APIG4: The API does not implement authorization.\n",
+      "trace": [
+        "Annotations.addMessage (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/aws-cdk-lib/core/lib/annotations.js:1:2066)",
+        "Annotations.addError (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/aws-cdk-lib/core/lib/annotations.js:1:1528)",
+        "AnnotationLogger.onNonCompliance (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/cdk-nag/lib/nag-logger.js:30:61)",
+        "/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/cdk-nag/lib/nag-pack.js:79:55",
+        "Array.forEach (<anonymous>)",
+        "AwsSolutionsChecks.applyRule (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/cdk-nag/lib/nag-pack.js:79:38)",
+        "AwsSolutionsChecks.checkNetworkDelivery (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/cdk-nag/lib/packs/aws-solutions.js:693:14)",
+        "AwsSolutionsChecks.visit (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/cdk-nag/lib/packs/aws-solutions.js:67:18)",
+        "recurse (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/aws-cdk-lib/core/lib/private/synthesis.js:2:4537)",
+        "recurse (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/aws-cdk-lib/core/lib/private/synthesis.js:2:4772)",
+        "recurse (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/aws-cdk-lib/core/lib/private/synthesis.js:2:4772)",
+        "recurse (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/aws-cdk-lib/core/lib/private/synthesis.js:2:4772)",
+        "invokeAspectsV2 (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/aws-cdk-lib/core/lib/private/synthesis.js:2:3163)",
+        "synthesize (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/aws-cdk-lib/core/lib/private/synthesis.js:1:1895)",
+        "App.synth (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/aws-cdk-lib/core/lib/stage.js:1:3138)",
+        "/private/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/tmpe5ey7u6l/lib/program.js:3758:171",
+        "Kernel._Kernel_ensureSync (/private/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/tmpe5ey7u6l/lib/program.js:4381:24)",
+        "Kernel.invoke (/private/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/tmpe5ey7u6l/lib/program.js:3758:102)",
+        "KernelHost.processRequest (/private/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/tmpe5ey7u6l/lib/program.js:17342:36)",
+        "KernelHost.run (/private/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/tmpe5ey7u6l/lib/program.js:17302:22)",
+        "Immediate._onImmediate (/private/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/tmpe5ey7u6l/lib/program.js:17303:45)",
+        "process.processImmediate (node:internal/timers:505:21)"
+      ]
+    }
+  ],
+  "/ASHCDKNagScanner/deployment--restaurant-monitoring-base-template.yaml/StaffingResource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "StaffingResource"
+    }
+  ],
+  "/ASHCDKNagScanner/deployment--restaurant-monitoring-base-template.yaml/StaffingMethod": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "StaffingMethod"
+    }
+  ],
+  "/ASHCDKNagScanner/deployment--restaurant-monitoring-base-template.yaml/StaffingOptionsMethod": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "StaffingOptionsMethod"
+    },
+    {
+      "type": "aws:cdk:error",
+      "data": "AwsSolutions-APIG4: The API does not implement authorization.\n",
+      "trace": [
+        "Annotations.addMessage (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/aws-cdk-lib/core/lib/annotations.js:1:2066)",
+        "Annotations.addError (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/aws-cdk-lib/core/lib/annotations.js:1:1528)",
+        "AnnotationLogger.onNonCompliance (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/cdk-nag/lib/nag-logger.js:30:61)",
+        "/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/cdk-nag/lib/nag-pack.js:79:55",
+        "Array.forEach (<anonymous>)",
+        "AwsSolutionsChecks.applyRule (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/cdk-nag/lib/nag-pack.js:79:38)",
+        "AwsSolutionsChecks.checkNetworkDelivery (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/cdk-nag/lib/packs/aws-solutions.js:693:14)",
+        "AwsSolutionsChecks.visit (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/cdk-nag/lib/packs/aws-solutions.js:67:18)",
+        "recurse (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/aws-cdk-lib/core/lib/private/synthesis.js:2:4537)",
+        "recurse (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/aws-cdk-lib/core/lib/private/synthesis.js:2:4772)",
+        "recurse (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/aws-cdk-lib/core/lib/private/synthesis.js:2:4772)",
+        "recurse (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/aws-cdk-lib/core/lib/private/synthesis.js:2:4772)",
+        "invokeAspectsV2 (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/aws-cdk-lib/core/lib/private/synthesis.js:2:3163)",
+        "synthesize (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/aws-cdk-lib/core/lib/private/synthesis.js:1:1895)",
+        "App.synth (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/aws-cdk-lib/core/lib/stage.js:1:3138)",
+        "/private/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/tmpe5ey7u6l/lib/program.js:3758:171",
+        "Kernel._Kernel_ensureSync (/private/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/tmpe5ey7u6l/lib/program.js:4381:24)",
+        "Kernel.invoke (/private/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/tmpe5ey7u6l/lib/program.js:3758:102)",
+        "KernelHost.processRequest (/private/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/tmpe5ey7u6l/lib/program.js:17342:36)",
+        "KernelHost.run (/private/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/tmpe5ey7u6l/lib/program.js:17302:22)",
+        "Immediate._onImmediate (/private/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/tmpe5ey7u6l/lib/program.js:17303:45)",
+        "process.processImmediate (node:internal/timers:505:21)"
+      ]
+    }
+  ],
+  "/ASHCDKNagScanner/deployment--restaurant-monitoring-base-template.yaml/VoiceTokenResource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "VoiceTokenResource"
+    }
+  ],
+  "/ASHCDKNagScanner/deployment--restaurant-monitoring-base-template.yaml/VoiceTokenMethod": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "VoiceTokenMethod"
+    }
+  ],
+  "/ASHCDKNagScanner/deployment--restaurant-monitoring-base-template.yaml/VoiceTokenOptionsMethod": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "VoiceTokenOptionsMethod"
+    },
+    {
+      "type": "aws:cdk:error",
+      "data": "AwsSolutions-APIG4: The API does not implement authorization.\n",
+      "trace": [
+        "Annotations.addMessage (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/aws-cdk-lib/core/lib/annotations.js:1:2066)",
+        "Annotations.addError (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/aws-cdk-lib/core/lib/annotations.js:1:1528)",
+        "AnnotationLogger.onNonCompliance (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/cdk-nag/lib/nag-logger.js:30:61)",
+        "/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/cdk-nag/lib/nag-pack.js:79:55",
+        "Array.forEach (<anonymous>)",
+        "AwsSolutionsChecks.applyRule (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/cdk-nag/lib/nag-pack.js:79:38)",
+        "AwsSolutionsChecks.checkNetworkDelivery (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/cdk-nag/lib/packs/aws-solutions.js:693:14)",
+        "AwsSolutionsChecks.visit (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/cdk-nag/lib/packs/aws-solutions.js:67:18)",
+        "recurse (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/aws-cdk-lib/core/lib/private/synthesis.js:2:4537)",
+        "recurse (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/aws-cdk-lib/core/lib/private/synthesis.js:2:4772)",
+        "recurse (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/aws-cdk-lib/core/lib/private/synthesis.js:2:4772)",
+        "recurse (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/aws-cdk-lib/core/lib/private/synthesis.js:2:4772)",
+        "invokeAspectsV2 (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/aws-cdk-lib/core/lib/private/synthesis.js:2:3163)",
+        "synthesize (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/aws-cdk-lib/core/lib/private/synthesis.js:1:1895)",
+        "App.synth (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/aws-cdk-lib/core/lib/stage.js:1:3138)",
+        "/private/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/tmpe5ey7u6l/lib/program.js:3758:171",
+        "Kernel._Kernel_ensureSync (/private/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/tmpe5ey7u6l/lib/program.js:4381:24)",
+        "Kernel.invoke (/private/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/tmpe5ey7u6l/lib/program.js:3758:102)",
+        "KernelHost.processRequest (/private/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/tmpe5ey7u6l/lib/program.js:17342:36)",
+        "KernelHost.run (/private/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/tmpe5ey7u6l/lib/program.js:17302:22)",
+        "Immediate._onImmediate (/private/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/tmpe5ey7u6l/lib/program.js:17303:45)",
+        "process.processImmediate (node:internal/timers:505:21)"
+      ]
+    }
+  ],
+  "/ASHCDKNagScanner/deployment--restaurant-monitoring-base-template.yaml/ApiLambdaPermission": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "ApiLambdaPermission"
+    }
+  ],
+  "/ASHCDKNagScanner/deployment--restaurant-monitoring-base-template.yaml/AccessLogsBucket": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "AccessLogsBucket"
+    }
+  ],
+  "/ASHCDKNagScanner/deployment--restaurant-monitoring-base-template.yaml/DashboardBucket": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "DashboardBucket"
+    },
+    {
+      "type": "aws:cdk:error",
+      "data": "AwsSolutions-S5: The S3 static website bucket either has an open world bucket policy or does not use a CloudFront Origin Access Identity (OAI) in the bucket policy for limited getObject and/or putObject permissions.\n",
+      "trace": [
+        "Annotations.addMessage (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/aws-cdk-lib/core/lib/annotations.js:1:2066)",
+        "Annotations.addError (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/aws-cdk-lib/core/lib/annotations.js:1:1528)",
+        "AnnotationLogger.onNonCompliance (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/cdk-nag/lib/nag-logger.js:30:61)",
+        "/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/cdk-nag/lib/nag-pack.js:79:55",
+        "Array.forEach (<anonymous>)",
+        "AwsSolutionsChecks.applyRule (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/cdk-nag/lib/nag-pack.js:79:38)",
+        "AwsSolutionsChecks.checkStorage (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/cdk-nag/lib/packs/aws-solutions.js:261:14)",
+        "AwsSolutionsChecks.visit (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/cdk-nag/lib/packs/aws-solutions.js:65:18)",
+        "recurse (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/aws-cdk-lib/core/lib/private/synthesis.js:2:4537)",
+        "recurse (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/aws-cdk-lib/core/lib/private/synthesis.js:2:4772)",
+        "recurse (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/aws-cdk-lib/core/lib/private/synthesis.js:2:4772)",
+        "recurse (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/aws-cdk-lib/core/lib/private/synthesis.js:2:4772)",
+        "invokeAspectsV2 (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/aws-cdk-lib/core/lib/private/synthesis.js:2:3163)",
+        "synthesize (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/aws-cdk-lib/core/lib/private/synthesis.js:1:1895)",
+        "App.synth (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/aws-cdk-lib/core/lib/stage.js:1:3138)",
+        "/private/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/tmpe5ey7u6l/lib/program.js:3758:171",
+        "Kernel._Kernel_ensureSync (/private/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/tmpe5ey7u6l/lib/program.js:4381:24)",
+        "Kernel.invoke (/private/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/tmpe5ey7u6l/lib/program.js:3758:102)",
+        "KernelHost.processRequest (/private/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/tmpe5ey7u6l/lib/program.js:17342:36)",
+        "KernelHost.run (/private/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/tmpe5ey7u6l/lib/program.js:17302:22)",
+        "Immediate._onImmediate (/private/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/tmpe5ey7u6l/lib/program.js:17303:45)",
+        "process.processImmediate (node:internal/timers:505:21)"
+      ]
+    }
+  ],
+  "/ASHCDKNagScanner/deployment--restaurant-monitoring-base-template.yaml/OriginAccessControl": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "OriginAccessControl"
+    }
+  ],
+  "/ASHCDKNagScanner/deployment--restaurant-monitoring-base-template.yaml/SecurityHeadersPolicy": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "SecurityHeadersPolicy"
+    }
+  ],
+  "/ASHCDKNagScanner/deployment--restaurant-monitoring-base-template.yaml/WebACL": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "WebACL"
+    }
+  ],
+  "/ASHCDKNagScanner/deployment--restaurant-monitoring-base-template.yaml/CloudFrontDistribution": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "CloudFrontDistribution"
+    },
+    {
+      "type": "aws:cdk:warning",
+      "data": "AwsSolutions-CFR1: The CloudFront distribution may require Geo restrictions.\n",
+      "trace": [
+        "Annotations.addMessage (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/aws-cdk-lib/core/lib/annotations.js:1:2066)",
+        "Annotations.addWarning (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/aws-cdk-lib/core/lib/annotations.js:1:1090)",
+        "AnnotationLogger.onNonCompliance (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/cdk-nag/lib/nag-logger.js:33:61)",
+        "/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/cdk-nag/lib/nag-pack.js:79:55",
+        "Array.forEach (<anonymous>)",
+        "AwsSolutionsChecks.applyRule (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/cdk-nag/lib/nag-pack.js:79:38)",
+        "AwsSolutionsChecks.checkNetworkDelivery (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/cdk-nag/lib/packs/aws-solutions.js:613:14)",
+        "AwsSolutionsChecks.visit (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/cdk-nag/lib/packs/aws-solutions.js:67:18)",
+        "recurse (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/aws-cdk-lib/core/lib/private/synthesis.js:2:4537)",
+        "recurse (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/aws-cdk-lib/core/lib/private/synthesis.js:2:4772)",
+        "recurse (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/aws-cdk-lib/core/lib/private/synthesis.js:2:4772)",
+        "recurse (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/aws-cdk-lib/core/lib/private/synthesis.js:2:4772)",
+        "invokeAspectsV2 (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/aws-cdk-lib/core/lib/private/synthesis.js:2:3163)",
+        "synthesize (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/aws-cdk-lib/core/lib/private/synthesis.js:1:1895)",
+        "App.synth (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/aws-cdk-lib/core/lib/stage.js:1:3138)",
+        "/private/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/tmpe5ey7u6l/lib/program.js:3758:171",
+        "Kernel._Kernel_ensureSync (/private/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/tmpe5ey7u6l/lib/program.js:4381:24)",
+        "Kernel.invoke (/private/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/tmpe5ey7u6l/lib/program.js:3758:102)",
+        "KernelHost.processRequest (/private/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/tmpe5ey7u6l/lib/program.js:17342:36)",
+        "KernelHost.run (/private/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/tmpe5ey7u6l/lib/program.js:17302:22)",
+        "Immediate._onImmediate (/private/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/tmpe5ey7u6l/lib/program.js:17303:45)",
+        "process.processImmediate (node:internal/timers:505:21)"
+      ]
+    },
+    {
+      "type": "aws:cdk:error",
+      "data": "AwsSolutions-CFR4: The CloudFront distribution allows for SSLv3 or TLSv1 for HTTPS viewer connections.\n",
+      "trace": [
+        "Annotations.addMessage (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/aws-cdk-lib/core/lib/annotations.js:1:2066)",
+        "Annotations.addError (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/aws-cdk-lib/core/lib/annotations.js:1:1528)",
+        "AnnotationLogger.onNonCompliance (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/cdk-nag/lib/nag-logger.js:30:61)",
+        "/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/cdk-nag/lib/nag-pack.js:79:55",
+        "Array.forEach (<anonymous>)",
+        "AwsSolutionsChecks.applyRule (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/cdk-nag/lib/nag-pack.js:79:38)",
+        "AwsSolutionsChecks.checkNetworkDelivery (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/cdk-nag/lib/packs/aws-solutions.js:637:14)",
+        "AwsSolutionsChecks.visit (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/cdk-nag/lib/packs/aws-solutions.js:67:18)",
+        "recurse (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/aws-cdk-lib/core/lib/private/synthesis.js:2:4537)",
+        "recurse (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/aws-cdk-lib/core/lib/private/synthesis.js:2:4772)",
+        "recurse (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/aws-cdk-lib/core/lib/private/synthesis.js:2:4772)",
+        "recurse (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/aws-cdk-lib/core/lib/private/synthesis.js:2:4772)",
+        "invokeAspectsV2 (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/aws-cdk-lib/core/lib/private/synthesis.js:2:3163)",
+        "synthesize (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/aws-cdk-lib/core/lib/private/synthesis.js:1:1895)",
+        "App.synth (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/aws-cdk-lib/core/lib/stage.js:1:3138)",
+        "/private/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/tmpe5ey7u6l/lib/program.js:3758:171",
+        "Kernel._Kernel_ensureSync (/private/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/tmpe5ey7u6l/lib/program.js:4381:24)",
+        "Kernel.invoke (/private/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/tmpe5ey7u6l/lib/program.js:3758:102)",
+        "KernelHost.processRequest (/private/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/tmpe5ey7u6l/lib/program.js:17342:36)",
+        "KernelHost.run (/private/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/tmpe5ey7u6l/lib/program.js:17302:22)",
+        "Immediate._onImmediate (/private/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/tmpe5ey7u6l/lib/program.js:17303:45)",
+        "process.processImmediate (node:internal/timers:505:21)"
+      ]
+    }
+  ],
+  "/ASHCDKNagScanner/deployment--restaurant-monitoring-base-template.yaml/BucketPolicy": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "BucketPolicy"
+    }
+  ],
+  "/ASHCDKNagScanner/deployment--restaurant-monitoring-base-template.yaml/LogsBucketPolicy": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "LogsBucketPolicy"
+    }
+  ],
+  "/ASHCDKNagScanner/deployment--restaurant-monitoring-base-template.yaml/UserPoolClient": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "UserPoolClient"
+    }
+  ],
+  "/ASHCDKNagScanner/deployment--restaurant-monitoring-base-template.yaml/IdentityPool": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "IdentityPool"
+    }
+  ],
+  "/ASHCDKNagScanner/deployment--restaurant-monitoring-base-template.yaml/AuthenticatedRole": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "AuthenticatedRole"
+    },
+    {
+      "type": "aws:cdk:error",
+      "data": "AwsSolutions-IAM5[Resource::arn:aws:cognito-sync:<AWS::Region>:<AWS::AccountId>:identitypool/<IdentityPool>/*]: The IAM entity contains wildcard permissions and does not have a cdk-nag rule suppression with evidence for those permission.\n",
+      "trace": [
+        "Annotations.addMessage (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/aws-cdk-lib/core/lib/annotations.js:1:2066)",
+        "Annotations.addError (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/aws-cdk-lib/core/lib/annotations.js:1:1528)",
+        "AnnotationLogger.onNonCompliance (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/cdk-nag/lib/nag-logger.js:30:61)",
+        "/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/cdk-nag/lib/nag-pack.js:79:55",
+        "Array.forEach (<anonymous>)",
+        "AwsSolutionsChecks.applyRule (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/cdk-nag/lib/nag-pack.js:79:38)",
+        "AwsSolutionsChecks.checkSecurityCompliance (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/cdk-nag/lib/packs/aws-solutions.js:979:14)",
+        "AwsSolutionsChecks.visit (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/cdk-nag/lib/packs/aws-solutions.js:71:18)",
+        "recurse (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/aws-cdk-lib/core/lib/private/synthesis.js:2:4537)",
+        "recurse (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/aws-cdk-lib/core/lib/private/synthesis.js:2:4772)",
+        "recurse (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/aws-cdk-lib/core/lib/private/synthesis.js:2:4772)",
+        "recurse (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/aws-cdk-lib/core/lib/private/synthesis.js:2:4772)",
+        "invokeAspectsV2 (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/aws-cdk-lib/core/lib/private/synthesis.js:2:3163)",
+        "synthesize (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/aws-cdk-lib/core/lib/private/synthesis.js:1:1895)",
+        "App.synth (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/aws-cdk-lib/core/lib/stage.js:1:3138)",
+        "/private/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/tmpe5ey7u6l/lib/program.js:3758:171",
+        "Kernel._Kernel_ensureSync (/private/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/tmpe5ey7u6l/lib/program.js:4381:24)",
+        "Kernel.invoke (/private/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/tmpe5ey7u6l/lib/program.js:3758:102)",
+        "KernelHost.processRequest (/private/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/tmpe5ey7u6l/lib/program.js:17342:36)",
+        "KernelHost.run (/private/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/tmpe5ey7u6l/lib/program.js:17302:22)",
+        "Immediate._onImmediate (/private/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/tmpe5ey7u6l/lib/program.js:17303:45)",
+        "process.processImmediate (node:internal/timers:505:21)"
+      ]
+    },
+    {
+      "type": "aws:cdk:error",
+      "data": "AwsSolutions-IAM5[Resource::*]: The IAM entity contains wildcard permissions and does not have a cdk-nag rule suppression with evidence for those permission.\n",
+      "trace": [
+        "Annotations.addMessage (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/aws-cdk-lib/core/lib/annotations.js:1:2066)",
+        "Annotations.addError (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/aws-cdk-lib/core/lib/annotations.js:1:1528)",
+        "AnnotationLogger.onNonCompliance (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/cdk-nag/lib/nag-logger.js:30:61)",
+        "/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/cdk-nag/lib/nag-pack.js:79:55",
+        "Array.forEach (<anonymous>)",
+        "AwsSolutionsChecks.applyRule (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/cdk-nag/lib/nag-pack.js:79:38)",
+        "AwsSolutionsChecks.checkSecurityCompliance (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/cdk-nag/lib/packs/aws-solutions.js:979:14)",
+        "AwsSolutionsChecks.visit (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/cdk-nag/lib/packs/aws-solutions.js:71:18)",
+        "recurse (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/aws-cdk-lib/core/lib/private/synthesis.js:2:4537)",
+        "recurse (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/aws-cdk-lib/core/lib/private/synthesis.js:2:4772)",
+        "recurse (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/aws-cdk-lib/core/lib/private/synthesis.js:2:4772)",
+        "recurse (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/aws-cdk-lib/core/lib/private/synthesis.js:2:4772)",
+        "invokeAspectsV2 (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/aws-cdk-lib/core/lib/private/synthesis.js:2:3163)",
+        "synthesize (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/aws-cdk-lib/core/lib/private/synthesis.js:1:1895)",
+        "App.synth (/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/jsii-kernel-KSPNHq/node_modules/aws-cdk-lib/core/lib/stage.js:1:3138)",
+        "/private/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/tmpe5ey7u6l/lib/program.js:3758:171",
+        "Kernel._Kernel_ensureSync (/private/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/tmpe5ey7u6l/lib/program.js:4381:24)",
+        "Kernel.invoke (/private/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/tmpe5ey7u6l/lib/program.js:3758:102)",
+        "KernelHost.processRequest (/private/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/tmpe5ey7u6l/lib/program.js:17342:36)",
+        "KernelHost.run (/private/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/tmpe5ey7u6l/lib/program.js:17302:22)",
+        "Immediate._onImmediate (/private/var/folders/8x/qkblbjh93kl97zhf7j1dz6xh0000gq/T/tmpe5ey7u6l/lib/program.js:17303:45)",
+        "process.processImmediate (node:internal/timers:505:21)"
+      ]
+    }
+  ],
+  "/ASHCDKNagScanner/deployment--restaurant-monitoring-base-template.yaml/IdentityPoolRoleAttachment": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "IdentityPoolRoleAttachment"
+    }
+  ],
+  "/ASHCDKNagScanner/deployment--restaurant-monitoring-base-template.yaml/$Outputs/RestaurantDataTable": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "RestaurantDataTable"
+    }
+  ],
+  "/ASHCDKNagScanner/deployment--restaurant-monitoring-base-template.yaml/$Outputs/EquipmentReadingsTable": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "EquipmentReadingsTable"
+    }
+  ],
+  "/ASHCDKNagScanner/deployment--restaurant-monitoring-base-template.yaml/$Outputs/TicketsTable": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "TicketsTable"
+    }
+  ],
+  "/ASHCDKNagScanner/deployment--restaurant-monitoring-base-template.yaml/$Outputs/ApiLambdaFunction": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "ApiLambdaFunction"
+    }
+  ],
+  "/ASHCDKNagScanner/deployment--restaurant-monitoring-base-template.yaml/$Outputs/RestApiId": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "RestApiId"
+    }
+  ],
+  "/ASHCDKNagScanner/deployment--restaurant-monitoring-base-template.yaml/$Outputs/RestApiRootResourceId": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "RestApiRootResourceId"
+    }
+  ],
+  "/ASHCDKNagScanner/deployment--restaurant-monitoring-base-template.yaml/$Outputs/ApiUrl": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "ApiUrl"
+    }
+  ],
+  "/ASHCDKNagScanner/deployment--restaurant-monitoring-base-template.yaml/$Outputs/BucketName": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "BucketName"
+    }
+  ],
+  "/ASHCDKNagScanner/deployment--restaurant-monitoring-base-template.yaml/$Outputs/CloudFrontURL": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "CloudFrontURL"
+    }
+  ],
+  "/ASHCDKNagScanner/deployment--restaurant-monitoring-base-template.yaml/$Outputs/DistributionId": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "DistributionId"
+    }
+  ],
+  "/ASHCDKNagScanner/deployment--restaurant-monitoring-base-template.yaml/$Outputs/UserPoolId": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "UserPoolId"
+    }
+  ],
+  "/ASHCDKNagScanner/deployment--restaurant-monitoring-base-template.yaml/$Outputs/UserPoolArn": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "UserPoolArn"
+    }
+  ],
+  "/ASHCDKNagScanner/deployment--restaurant-monitoring-base-template.yaml/$Outputs/UserPoolClientId": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "UserPoolClientId"
+    }
+  ],
+  "/ASHCDKNagScanner/deployment--restaurant-monitoring-base-template.yaml/$Outputs/IdentityPoolId": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "IdentityPoolId"
+    }
+  ]
+}

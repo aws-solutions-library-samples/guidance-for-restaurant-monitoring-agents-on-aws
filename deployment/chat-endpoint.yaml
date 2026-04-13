@@ -1,0 +1,248 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'Chat endpoint Lambda for AgentCore integration'
+
+Parameters:
+  AgentRuntimeArn:
+    Type: String
+    Description: ARN of the AgentCore runtime
+  
+  RestApiId:
+    Type: String
+    Description: API Gateway REST API ID
+  
+  RestApiRootResourceId:
+    Type: String
+    Description: API Gateway root resource ID
+
+  UserPoolArn:
+    Type: String
+    Description: Cognito User Pool ARN for API authorization
+
+Resources:
+  # KMS Key for Chat Lambda environment variable encryption
+  ChatLambdaEnvEncryptionKey:
+    Type: AWS::KMS::Key
+    Properties:
+      Description: 'KMS key for Chat Lambda env var encryption'
+      EnableKeyRotation: true
+      KeyPolicy:
+        Version: '2012-10-17'
+        Statement:
+          - Sid: AllowRootAccount
+            Effect: Allow
+            Principal:
+              AWS: !Sub 'arn:aws:iam::${AWS::AccountId}:root'
+            Action: 'kms:*'
+            Resource: '*'
+          - Sid: AllowLambdaUse
+            Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action:
+              - kms:Decrypt
+              - kms:DescribeKey
+            Resource: '*'
+
+  # SQS Dead Letter Queue for Chat Lambda
+  ChatLambdaDLQ:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: RestaurantAgent-Chat-DLQ
+      MessageRetentionPeriod: 1209600
+      SqsManagedSseEnabled: true
+
+  ChatLambdaDLQPolicy:
+    Type: AWS::SQS::QueuePolicy
+    Properties:
+      Queues:
+        - !Ref ChatLambdaDLQ
+      PolicyDocument:
+        Statement:
+          - Sid: EnforceSSLOnly
+            Effect: Deny
+            Principal: '*'
+            Action: 'sqs:*'
+            Resource: !GetAtt ChatLambdaDLQ.Arn
+            Condition:
+              Bool:
+                'aws:SecureTransport': 'false'
+
+  ChatLambdaRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: RestaurantAgent-ChatLambda-Role
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Policies:
+        - PolicyName: InvokeAgentCore
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - bedrock-agentcore:InvokeAgentRuntime
+                  - bedrock-agentcore:Invoke
+                Resource: '*'
+              - Effect: Allow
+                Action:
+                  - sqs:SendMessage
+                Resource: !GetAtt ChatLambdaDLQ.Arn
+
+  ChatLambda:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: RestaurantAgent-Chat
+      Runtime: python3.13
+      Handler: index.handler
+      Role: !GetAtt ChatLambdaRole.Arn
+      Timeout: 300
+      MemorySize: 512
+      ReservedConcurrentExecutions: 10
+      KmsKeyArn: !GetAtt ChatLambdaEnvEncryptionKey.Arn
+      DeadLetterConfig:
+        TargetArn: !GetAtt ChatLambdaDLQ.Arn
+      Environment:
+        Variables:
+          AGENT_RUNTIME_ARN: !Ref AgentRuntimeArn
+      Code:
+        ZipFile: |
+          import json
+          import boto3
+          import os
+          
+          def handler(event, context):
+              try:
+                  body = json.loads(event.get('body', '{}'))
+                  prompt = body.get('prompt', '')
+                  session_id = body.get('sessionId', f"session-{context.aws_request_id}")
+                  
+                  if not prompt:
+                      return {
+                          'statusCode': 400,
+                          'headers': cors_headers(),
+                          'body': json.dumps({'error': 'prompt required'})
+                      }
+                  
+                  # Invoke AgentCore
+                  client = boto3.client('bedrock-agentcore')
+                  agent_arn = os.environ['AGENT_RUNTIME_ARN']
+                  
+                  response = client.invoke_agent_runtime(
+                      agentRuntimeArn=agent_arn,
+                      payload=json.dumps({
+                          'prompt': prompt,
+                          'sessionId': session_id
+                      }).encode('utf-8')
+                  )
+                  
+                  # Read response
+                  response_body = response['response'].read().decode('utf-8')
+                  result = json.loads(response_body)
+                  
+                  return {
+                      'statusCode': 200,
+                      'headers': cors_headers(),
+                      'body': json.dumps({
+                          'result': result.get('result', ''),
+                          'sessionId': session_id
+                      })
+                  }
+              except Exception as e:
+                  print(f"Error: {str(e)}")
+                  return {
+                      'statusCode': 500,
+                      'headers': cors_headers(),
+                      'body': json.dumps({'error': str(e)})
+                  }
+          
+          def cors_headers():
+              return {
+                  'Content-Type': 'application/json',
+                  'Access-Control-Allow-Origin': '*',
+                  'Access-Control-Allow-Headers': 'Content-Type,Authorization,X-Amz-Date,X-Api-Key,X-Amz-Security-Token',
+                  'Access-Control-Allow-Methods': 'POST,OPTIONS'
+              }
+
+  # API Gateway Resources
+  ChatCognitoAuthorizer:
+    Type: AWS::ApiGateway::Authorizer
+    Properties:
+      Name: ChatCognitoAuthorizer
+      Type: COGNITO_USER_POOLS
+      RestApiId: !Ref RestApiId
+      IdentitySource: method.request.header.Authorization
+      ProviderARNs:
+        - !Ref UserPoolArn
+
+  ChatResource:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      RestApiId: !Ref RestApiId
+      ParentId: !Ref RestApiRootResourceId
+      PathPart: chat
+
+  ChatMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId: !Ref RestApiId
+      ResourceId: !Ref ChatResource
+      HttpMethod: POST
+      AuthorizationType: COGNITO_USER_POOLS
+      AuthorizerId: !Ref ChatCognitoAuthorizer
+      Integration:
+        Type: AWS_PROXY
+        IntegrationHttpMethod: POST
+        Uri: !Sub 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ChatLambda.Arn}/invocations'
+
+  ChatOptionsMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId: !Ref RestApiId
+      ResourceId: !Ref ChatResource
+      HttpMethod: OPTIONS
+      AuthorizationType: NONE
+      Integration:
+        Type: MOCK
+        IntegrationResponses:
+          - StatusCode: 200
+            ResponseParameters:
+              method.response.header.Access-Control-Allow-Headers: "'Content-Type,Authorization,X-Amz-Date,X-Api-Key,X-Amz-Security-Token'"
+              method.response.header.Access-Control-Allow-Methods: "'POST,OPTIONS'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+        RequestTemplates:
+          application/json: '{"statusCode": 200}'
+      MethodResponses:
+        - StatusCode: 200
+          ResponseParameters:
+            method.response.header.Access-Control-Allow-Headers: true
+            method.response.header.Access-Control-Allow-Methods: true
+            method.response.header.Access-Control-Allow-Origin: true
+
+  ChatLambdaPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref ChatLambda
+      Action: lambda:InvokeFunction
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub 'arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${RestApiId}/*/*'
+
+  ApiDeployment:
+    Type: AWS::ApiGateway::Deployment
+    DependsOn:
+      - ChatMethod
+      - ChatOptionsMethod
+    Properties:
+      RestApiId: !Ref RestApiId
+      StageName: prod
+
+Outputs:
+  ChatEndpoint:
+    Description: Chat API Endpoint
+    Value: !Sub 'https://${RestApiId}.execute-api.${AWS::Region}.amazonaws.com/prod/chat'

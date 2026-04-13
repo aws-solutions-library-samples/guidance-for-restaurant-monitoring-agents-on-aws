@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inventory - AnyCompany Restaurant Monitoring</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <script>
+        if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark');
+        }
+    </script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', system-ui, -apple-system, sans-serif; }
+        .fade-in { animation: fadeIn 0.3s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }
+        @media (min-width: 1024px) { #sidebar { transform: translateX(0) !important; } main { margin-left: 16rem; } }
+        @media (max-width: 1023px) { #sidebar { transform: translateX(-100%); } #sidebar.open { transform: translateX(0) !important; } }
+    </style>
+</head>
+<body class="bg-gray-50 dark:bg-gray-950 min-h-screen">
+    <aside id="sidebar" style="position:fixed;left:0;top:0;height:100%;width:16rem;background:#111827;z-index:50;display:flex;flex-direction:column;">
+        <a href="index.html" style="display:flex;align-items:center;gap:0.75rem;padding:1.25rem 1.5rem;border-bottom:1px solid #374151;text-decoration:none;">
+            <div style="width:2.5rem;height:2.5rem;border-radius:0.5rem;background:#f97316;display:flex;align-items:center;justify-content:center;font-size:1.25rem;">🍔</div>
+            <div><div style="color:#fff;font-size:1.1rem;font-weight:600;">AnyCompany</div><div style="color:#9ca3af;font-size:0.75rem;">Restaurant Monitoring</div></div>
+        </a>
+        <nav style="padding:1rem;display:flex;flex-direction:column;gap:0.25rem;flex:1;">
+            <a href="index.html" style="display:flex;align-items:center;gap:0.75rem;padding:0.75rem 1rem;border-radius:0.5rem;color:#d1d5db;text-decoration:none;font-size:14px;font-weight:500;"><i class="ti ti-map-2" style="font-size:1.25rem;"></i><span>Location Performance</span></a>
+            <a href="3d-twin.html" style="display:flex;align-items:center;gap:0.75rem;padding:0.75rem 1rem;border-radius:0.5rem;color:#d1d5db;text-decoration:none;font-size:14px;font-weight:500;"><i class="ti ti-cpu" style="font-size:1.25rem;"></i><span>Equipment 3D Twin</span></a>
+            <a href="inventory.html" style="display:flex;align-items:center;gap:0.75rem;padding:0.75rem 1rem;border-radius:0.5rem;color:#fff;background:#f97316;text-decoration:none;font-size:14px;font-weight:500;"><i class="ti ti-packages" style="font-size:1.25rem;"></i><span>Inventory</span></a>
+            <a href="staffing.html" style="display:flex;align-items:center;gap:0.75rem;padding:0.75rem 1rem;border-radius:0.5rem;color:#d1d5db;text-decoration:none;font-size:14px;font-weight:500;"><i class="ti ti-users" style="font-size:1.25rem;"></i><span>Staffing</span></a>
+            <a href="tickets.html" style="display:flex;align-items:center;gap:0.75rem;padding:0.75rem 1rem;border-radius:0.5rem;color:#d1d5db;text-decoration:none;font-size:14px;font-weight:500;"><i class="ti ti-ticket" style="font-size:1.25rem;"></i><span>Tickets</span></a>
+            <a href="forecasting.html" style="display:flex;align-items:center;gap:0.75rem;padding:0.75rem 1rem;border-radius:0.5rem;color:#d1d5db;text-decoration:none;font-size:14px;font-weight:500;"><i class="ti ti-chart-line" style="font-size:1.25rem;"></i><span>Forecasting</span></a>
+        </nav>
+        <div style="padding:1rem;border-top:1px solid #374151;">
+            <div onclick="sharedSignOut()" style="display:flex;align-items:center;gap:0.75rem;padding:0.75rem;border-radius:0.5rem;cursor:pointer;">
+                <div style="width:2.5rem;height:2.5rem;border-radius:50%;background:rgba(249,115,22,0.2);display:flex;align-items:center;justify-content:center;"><i class="ti ti-logout" style="font-size:1.25rem;color:#fb923c;"></i></div>
+                <div><div id="sidebar-user-name" style="color:#fff;font-weight:500;font-size:0.875rem;">User</div><div style="color:#6b7280;font-size:0.75rem;">Sign Out</div></div>
+            </div>
+        </div>
+    </aside>
+    <div id="sidebar-overlay" class="fixed inset-0 bg-black/50 z-40 hidden" onclick="toggleSidebar()"></div>
+
+    <!-- Main Content -->
+    <main style="margin-left:16rem;min-height:100vh;">
+        <header class="sticky top-0 z-30 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 px-4 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center gap-4">
+                <button onclick="toggleSidebar()" class="lg:hidden p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800"><i class="ti ti-menu-2 text-xl text-gray-600 dark:text-gray-400"></i></button>
+                <div>
+                    <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Inventory Management</h2>
+                    <p class="text-sm text-gray-500 dark:text-gray-400 hidden sm:block">Stock levels and reorder tracking</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-3">
+                <button onclick="toggleDarkMode()" class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800">
+                    <i class="ti ti-sun text-xl text-gray-600 dark:hidden"></i>
+                    <i class="ti ti-moon text-xl text-gray-400 hidden dark:inline"></i>
+                </button>
+            </div>
+        </header>
+
+        <div class="p-4 lg:p-8">
+            <!-- Alert Banner for Critical Items -->
+            <div id="critical-alert" class="hidden mb-6 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-4">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-full bg-red-100 dark:bg-red-900/40 flex items-center justify-center">
+                        <i class="ti ti-alert-triangle text-red-600 dark:text-red-400 text-xl"></i>
+                    </div>
+                    <div>
+                        <h4 class="font-semibold text-red-800 dark:text-red-300">Critical Stock Alert</h4>
+                        <p class="text-sm text-red-600 dark:text-red-400" id="critical-alert-msg"></p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Summary Metrics -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 p-5 fade-in">
+                    <div class="flex items-center justify-between mb-3">
+                        <div class="w-10 h-10 rounded-lg bg-blue-100 dark:bg-blue-900/20 flex items-center justify-center"><i class="ti ti-packages text-blue-600 dark:text-blue-400 text-xl"></i></div>
+                    </div>
+                    <p class="text-2xl font-bold text-gray-900 dark:text-gray-100" id="total-items">-</p>
+                    <p class="text-sm text-gray-500 dark:text-gray-400">Total Items</p>
+                </div>
+                <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 p-5 fade-in">
+                    <div class="flex items-center justify-between mb-3">
+                        <div class="w-10 h-10 rounded-lg bg-green-100 dark:bg-green-900/20 flex items-center justify-center"><i class="ti ti-circle-check text-green-600 dark:text-green-400 text-xl"></i></div>
+                    </div>
+                    <p class="text-2xl font-bold text-gray-900 dark:text-gray-100" id="adequate-count">-</p>
+                    <p class="text-sm text-gray-500 dark:text-gray-400">Adequate Stock</p>
+                </div>
+                <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 p-5 fade-in">
+                    <div class="flex items-center justify-between mb-3">
+                        <div class="w-10 h-10 rounded-lg bg-yellow-100 dark:bg-yellow-900/20 flex items-center justify-center"><i class="ti ti-alert-triangle text-yellow-600 dark:text-yellow-400 text-xl"></i></div>
+                    </div>
+                    <p class="text-2xl font-bold text-gray-900 dark:text-gray-100" id="low-count">-</p>
+                    <p class="text-sm text-gray-500 dark:text-gray-400">Low Stock</p>
+                </div>
+                <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 p-5 fade-in">
+                    <div class="flex items-center justify-between mb-3">
+                        <div class="w-10 h-10 rounded-lg bg-red-100 dark:bg-red-900/20 flex items-center justify-center"><i class="ti ti-alert-circle text-red-600 dark:text-red-400 text-xl"></i></div>
+                    </div>
+                    <p class="text-2xl font-bold text-gray-900 dark:text-gray-100" id="critical-count">-</p>
+                    <p class="text-sm text-gray-500 dark:text-gray-400">Critical Stock</p>
+                </div>
+            </div>
+
+            <!-- Restaurant Cards -->
+            <div class="mb-6">
+                <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">By Restaurant</h3>
+                <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4" id="restaurant-summary"></div>
+            </div>
+
+            <!-- Filters -->
+            <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 p-4 mb-6">
+                <div class="flex flex-wrap gap-4 items-center">
+                    <select id="restaurant-filter" onchange="filterInventory()" class="px-4 py-2.5 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg text-sm text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-orange-500">
+                        <option value="">All Restaurants</option>
+                    </select>
+                    <select id="status-filter" onchange="filterInventory()" class="px-4 py-2.5 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg text-sm text-gray-900 dark:text-gray-100">
+                        <option value="">All Status</option>
+                        <option value="critical">Critical Only</option>
+                        <option value="low">Low Stock</option>
+                        <option value="adequate">Adequate</option>
+                    </select>
+                    <select id="category-filter" onchange="filterInventory()" class="px-4 py-2.5 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg text-sm text-gray-900 dark:text-gray-100">
+                        <option value="">All Categories</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Inventory Display -->
+            <div id="inventory-body" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                <div class="col-span-full text-center py-8 text-gray-500 dark:text-gray-400">Loading inventory data...</div>
+            </div>
+        </div>
+    </main>
+
+    <script src="shared.js?v=1775130000"></script>
+    <script src="api.js?v=1775130000"></script>
+    <script>
+        renderChatWidget();
+
+        authReady.then(() => {
+            if (auth && auth.currentUser) {
+                auth.currentUser.getUserAttributes((e, attrs) => {
+                    if (!e && attrs) {
+                        const n = attrs.find(a => a.getName() === 'name');
+                        if (n) document.getElementById('sidebar-user-name').textContent = n.getValue();
+                    }
+                });
+            }
+        });
+
+        // ---- DATA LOGIC (preserved from original) ----
+        let allInventory = [];
+        let restaurants = [];
+
+        async function init() {
+            try { await Promise.all([loadRestaurants(), loadInventory()]); }
+            catch (e) { document.getElementById('inventory-body').innerHTML = `<tr><td colspan="7" class="px-4 py-8 text-center text-red-500">${e.message}</td></tr>`; }
+        }
+
+        async function loadRestaurants() {
+            const response = await authFetch(`${API_URL}/restaurants`);
+            const data = await response.json();
+            restaurants = data.restaurants || data || [];
+            const select = document.getElementById('restaurant-filter');
+            restaurants.forEach(r => { const o = document.createElement('option'); o.value = r.id; o.textContent = r.name; select.appendChild(o); });
+        }
+
+        async function loadInventory() {
+            const response = await authFetch(`${API_URL}/inventory`);
+            if (!response.ok) throw new Error('API returned ' + response.status);
+            const data = await response.json();
+            allInventory = data.inventory || data || [];
+            const categories = [...new Set(allInventory.map(i => i.category).filter(c => c))];
+            const catSelect = document.getElementById('category-filter');
+            categories.forEach(cat => { const o = document.createElement('option'); o.value = cat; o.textContent = cat.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()); catSelect.appendChild(o); });
+            updateSummary(); updateRestaurantSummary(); renderInventory(allInventory);
+        }
+
+        function normalizeItem(item) {
+            return { ...item, item_name: item.item_name || item.name || 'Unknown', quantity: item.quantity ?? item.current_stock ?? 0, unit_of_measure: item.unit_of_measure || item.unit || 'units', restaurant_id: item.restaurant_id || 'ALL' };
+        }
+
+        function getItemStatus(item) {
+            const n = normalizeItem(item);
+            const qty = parseFloat(n.quantity || 0), reorder = parseFloat(item.reorder_point || 1);
+            const pct = (qty / reorder) * 100;
+            if (pct < 50) return { status: 'critical', pct, class: 'critical' };
+            if (pct < 100) return { status: 'low', pct, class: 'warning' };
+            return { status: 'adequate', pct, class: 'good' };
+        }
+
+        function updateSummary() {
+            let crit = 0, low = 0, adeq = 0;
+            allInventory.forEach(i => { const { status } = getItemStatus(i); if (status === 'critical') crit++; else if (status === 'low') low++; else adeq++; });
+            document.getElementById('total-items').textContent = allInventory.length;
+            document.getElementById('adequate-count').textContent = adeq;
+            document.getElementById('low-count').textContent = low;
+            document.getElementById('critical-count').textContent = crit;
+            // Show alert banner if critical items exist
+            const alertEl = document.getElementById('critical-alert');
+            if (crit > 0) {
+                alertEl.classList.remove('hidden');
+                document.getElementById('critical-alert-msg').textContent = `${crit} item${crit > 1 ? 's' : ''} below 50% of reorder point — immediate restock needed`;
+            } else { alertEl.classList.add('hidden'); }
+        }
+
+        function updateRestaurantSummary() {
+            const container = document.getElementById('restaurant-summary');
+            const byR = {};
+            allInventory.forEach(i => {
+                const n = normalizeItem(i);
+                if (!byR[n.restaurant_id]) byR[n.restaurant_id] = { crit: 0, low: 0, adeq: 0 };
+                const { status } = getItemStatus(i);
+                byR[n.restaurant_id][status === 'critical' ? 'crit' : status === 'low' ? 'low' : 'adeq']++;
+            });
+            container.innerHTML = Object.entries(byR).map(([rid, c]) => {
+                const r = restaurants.find(x => x.id === rid);
+                const name = r ? r.name : (rid === 'ALL' ? 'All Locations' : rid);
+                const color = c.crit > 0 ? 'red' : c.low > 0 ? 'yellow' : 'green';
+                const icon = c.crit > 0 ? 'ti-alert-circle' : c.low > 0 ? 'ti-alert-triangle' : 'ti-circle-check';
+                return `<div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 p-4 text-center fade-in">
+                    <p class="text-sm text-gray-500 dark:text-gray-400 truncate">${name}</p>
+                    <div class="my-2"><i class="ti ${icon} text-2xl text-${color}-500"></i></div>
+                    <p class="text-xs text-gray-400">${c.crit} critical, ${c.low} low</p>
+                </div>`;
+            }).join('');
+        }
+
+        function filterInventory() {
+            const rF = document.getElementById('restaurant-filter').value;
+            const sF = document.getElementById('status-filter').value;
+            const cF = document.getElementById('category-filter').value;
+            let f = allInventory;
+            if (rF) f = f.filter(i => normalizeItem(i).restaurant_id === rF);
+            if (cF) f = f.filter(i => i.category === cF);
+            if (sF) f = f.filter(i => getItemStatus(i).status === sF);
+            renderInventory(f);
+        }
+
+        function renderInventory(inventory) {
+            const container = document.getElementById('inventory-body');
+            if (!inventory.length) { container.innerHTML = '<div class="col-span-full text-center py-8 text-gray-500 dark:text-gray-400">No inventory items found</div>'; return; }
+            inventory.sort((a, b) => { const o = { critical: 0, low: 1, adequate: 2 }; return o[getItemStatus(a).status] - o[getItemStatus(b).status]; });
+            container.innerHTML = inventory.map(item => {
+                const n = normalizeItem(item);
+                const { status, pct } = getItemStatus(item);
+                const r = restaurants.find(x => x.id === n.restaurant_id);
+                const rName = r ? r.name : (n.restaurant_id === 'ALL' ? 'All Locations' : n.restaurant_id);
+                const borderColor = status === 'critical' ? 'border-red-400 dark:border-red-600' : status === 'low' ? 'border-yellow-400 dark:border-yellow-600' : 'border-gray-200 dark:border-gray-700';
+                const barColor = status === 'critical' ? 'bg-red-500' : status === 'low' ? 'bg-yellow-500' : 'bg-green-500';
+                const badgeColor = status === 'critical' ? 'red' : status === 'low' ? 'yellow' : 'green';
+                const catIcon = (item.category||'').includes('meat') || (item.category||'').includes('protein') ? 'ti-meat' : (item.category||'').includes('produce') ? 'ti-leaf' : (item.category||'').includes('dairy') ? 'ti-milk' : (item.category||'').includes('bev') ? 'ti-cup' : (item.category||'').includes('oil') || (item.category||'').includes('condiment') ? 'ti-bottle' : 'ti-package';
+                return `<div class="bg-white dark:bg-gray-900 rounded-xl border-l-4 ${borderColor} border border-gray-200 dark:border-gray-700 p-4 hover:shadow-md transition-shadow">
+                    <div class="flex items-start justify-between mb-3">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-lg bg-gray-100 dark:bg-gray-800 flex items-center justify-center"><i class="ti ${catIcon} text-gray-600 dark:text-gray-400 text-xl"></i></div>
+                            <div><p class="font-semibold text-gray-900 dark:text-gray-100 text-sm">${n.item_name}</p><p class="text-xs text-gray-500">${rName}</p></div>
+                        </div>
+                        <span class="px-2 py-0.5 rounded-full text-xs font-medium bg-${badgeColor}-100 dark:bg-${badgeColor}-900/20 text-${badgeColor}-800 dark:text-${badgeColor}-300">${status.toUpperCase()}</span>
+                    </div>
+                    <div class="flex items-center gap-3 mb-2">
+                        <div class="flex-1 h-2.5 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden"><div class="${barColor} h-full rounded-full transition-all" style="width:${Math.min(pct,100)}%"></div></div>
+                        <span class="text-sm font-semibold text-gray-700 dark:text-gray-300 w-12 text-right">${pct.toFixed(0)}%</span>
+                    </div>
+                    <div class="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
+                        <span><i class="ti ti-box text-xs"></i> ${parseFloat(n.quantity).toFixed(1)} ${n.unit_of_measure}</span>
+                        <span>Reorder: ${item.reorder_point} ${n.unit_of_measure}</span>
+                    </div>
+                    ${status === 'critical' ? '<button onclick="askChatAgent(\'Reorder ' + n.item_name + ' for ' + rName + '. Stock at ' + pct.toFixed(0) + '%, need ' + Math.ceil(parseFloat(item.reorder_point||1) - parseFloat(n.quantity)) + ' ' + n.unit_of_measure + '.\')" class="mt-3 w-full py-2 text-xs font-medium rounded-lg bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 hover:bg-red-100 dark:hover:bg-red-900/40 transition-colors"><i class="ti ti-shopping-cart text-sm"></i> Reorder Now</button>' : ''}
+                </div>`;
+            }).join('');
+        }
+
+        function askChatAgent(prompt) { toggleChat(); const input = document.getElementById('chat-input'); if (input) { input.value = prompt; sendChat(); } }
+
+        window.onload = init;
+    </script>
+</body>
+</html>

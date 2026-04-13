@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Staffing - AnyCompany Restaurant Monitoring</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <script>
+        if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark');
+        }
+    </script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', system-ui, -apple-system, sans-serif; }
+        .fade-in { animation: fadeIn 0.3s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }
+        @media (min-width: 1024px) { #sidebar { transform: translateX(0) !important; } main { margin-left: 16rem; } }
+        @media (max-width: 1023px) { #sidebar { transform: translateX(-100%); } #sidebar.open { transform: translateX(0) !important; } }
+    </style>
+</head>
+<body class="bg-gray-50 dark:bg-gray-950 min-h-screen">
+    <aside id="sidebar" style="position:fixed;left:0;top:0;height:100%;width:16rem;background:#111827;z-index:50;display:flex;flex-direction:column;">
+        <a href="index.html" style="display:flex;align-items:center;gap:0.75rem;padding:1.25rem 1.5rem;border-bottom:1px solid #374151;text-decoration:none;">
+            <div style="width:2.5rem;height:2.5rem;border-radius:0.5rem;background:#f97316;display:flex;align-items:center;justify-content:center;font-size:1.25rem;">🍔</div>
+            <div><div style="color:#fff;font-size:1.1rem;font-weight:600;">AnyCompany</div><div style="color:#9ca3af;font-size:0.75rem;">Restaurant Monitoring</div></div>
+        </a>
+        <nav style="padding:1rem;display:flex;flex-direction:column;gap:0.25rem;flex:1;">
+            <a href="index.html" style="display:flex;align-items:center;gap:0.75rem;padding:0.75rem 1rem;border-radius:0.5rem;color:#d1d5db;text-decoration:none;font-size:14px;font-weight:500;"><i class="ti ti-map-2" style="font-size:1.25rem;"></i><span>Location Performance</span></a>
+            <a href="3d-twin.html" style="display:flex;align-items:center;gap:0.75rem;padding:0.75rem 1rem;border-radius:0.5rem;color:#d1d5db;text-decoration:none;font-size:14px;font-weight:500;"><i class="ti ti-cpu" style="font-size:1.25rem;"></i><span>Equipment 3D Twin</span></a>
+            <a href="inventory.html" style="display:flex;align-items:center;gap:0.75rem;padding:0.75rem 1rem;border-radius:0.5rem;color:#d1d5db;text-decoration:none;font-size:14px;font-weight:500;"><i class="ti ti-packages" style="font-size:1.25rem;"></i><span>Inventory</span></a>
+            <a href="staffing.html" style="display:flex;align-items:center;gap:0.75rem;padding:0.75rem 1rem;border-radius:0.5rem;color:#fff;background:#f97316;text-decoration:none;font-size:14px;font-weight:500;"><i class="ti ti-users" style="font-size:1.25rem;"></i><span>Staffing</span></a>
+            <a href="tickets.html" style="display:flex;align-items:center;gap:0.75rem;padding:0.75rem 1rem;border-radius:0.5rem;color:#d1d5db;text-decoration:none;font-size:14px;font-weight:500;"><i class="ti ti-ticket" style="font-size:1.25rem;"></i><span>Tickets</span></a>
+            <a href="forecasting.html" style="display:flex;align-items:center;gap:0.75rem;padding:0.75rem 1rem;border-radius:0.5rem;color:#d1d5db;text-decoration:none;font-size:14px;font-weight:500;"><i class="ti ti-chart-line" style="font-size:1.25rem;"></i><span>Forecasting</span></a>
+        </nav>
+        <div style="padding:1rem;border-top:1px solid #374151;">
+            <div onclick="sharedSignOut()" style="display:flex;align-items:center;gap:0.75rem;padding:0.75rem;border-radius:0.5rem;cursor:pointer;">
+                <div style="width:2.5rem;height:2.5rem;border-radius:50%;background:rgba(249,115,22,0.2);display:flex;align-items:center;justify-content:center;"><i class="ti ti-logout" style="font-size:1.25rem;color:#fb923c;"></i></div>
+                <div><div id="sidebar-user-name" style="color:#fff;font-weight:500;font-size:0.875rem;">User</div><div style="color:#6b7280;font-size:0.75rem;">Sign Out</div></div>
+            </div>
+        </div>
+    </aside>
+    <div id="sidebar-overlay" class="fixed inset-0 bg-black/50 z-40 hidden" onclick="toggleSidebar()"></div>
+
+    <!-- Main Content -->
+    <main style="margin-left:16rem;min-height:100vh;">
+        <header class="sticky top-0 z-30 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 px-4 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center gap-4">
+                <button onclick="toggleSidebar()" class="lg:hidden p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800"><i class="ti ti-menu-2 text-xl text-gray-600 dark:text-gray-400"></i></button>
+                <div>
+                    <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Staffing Schedule</h2>
+                    <p class="text-sm text-gray-500 dark:text-gray-400 hidden sm:block">Coverage tracking across all Georgia locations</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-3">
+                <button onclick="toggleDarkMode()" class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800">
+                    <i class="ti ti-sun text-xl text-gray-600 dark:hidden"></i>
+                    <i class="ti ti-moon text-xl text-gray-400 hidden dark:inline"></i>
+                </button>
+            </div>
+        </header>
+
+        <div class="p-4 lg:p-8">
+            <!-- Summary Metrics -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 p-5 fade-in">
+                    <div class="flex items-center justify-between mb-3">
+                        <div class="w-10 h-10 rounded-lg bg-blue-100 dark:bg-blue-900/20 flex items-center justify-center"><i class="ti ti-calendar text-blue-600 dark:text-blue-400 text-xl"></i></div>
+                    </div>
+                    <p class="text-2xl font-bold text-gray-900 dark:text-gray-100" id="total-shifts">-</p>
+                    <p class="text-sm text-gray-500 dark:text-gray-400">Total Shifts</p>
+                </div>
+                <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 p-5 fade-in">
+                    <div class="flex items-center justify-between mb-3">
+                        <div class="w-10 h-10 rounded-lg bg-green-100 dark:bg-green-900/20 flex items-center justify-center"><i class="ti ti-circle-check text-green-600 dark:text-green-400 text-xl"></i></div>
+                    </div>
+                    <p class="text-2xl font-bold text-gray-900 dark:text-gray-100" id="fully-staffed">-</p>
+                    <p class="text-sm text-gray-500 dark:text-gray-400">Fully Staffed</p>
+                </div>
+                <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 p-5 fade-in">
+                    <div class="flex items-center justify-between mb-3">
+                        <div class="w-10 h-10 rounded-lg bg-yellow-100 dark:bg-yellow-900/20 flex items-center justify-center"><i class="ti ti-alert-triangle text-yellow-600 dark:text-yellow-400 text-xl"></i></div>
+                    </div>
+                    <p class="text-2xl font-bold text-gray-900 dark:text-gray-100" id="understaffed">-</p>
+                    <p class="text-sm text-gray-500 dark:text-gray-400">Understaffed</p>
+                </div>
+                <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 p-5 fade-in">
+                    <div class="flex items-center justify-between mb-3">
+                        <div class="w-10 h-10 rounded-lg bg-red-100 dark:bg-red-900/20 flex items-center justify-center"><i class="ti ti-alert-circle text-red-600 dark:text-red-400 text-xl"></i></div>
+                    </div>
+                    <p class="text-2xl font-bold text-gray-900 dark:text-gray-100" id="critical-gaps">-</p>
+                    <p class="text-sm text-gray-500 dark:text-gray-400">Critical Gaps</p>
+                </div>
+            </div>
+
+            <!-- Overall Coverage -->
+            <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 p-5 mb-6">
+                <div class="flex items-center justify-between mb-3">
+                    <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Overall Coverage</h3>
+                    <span class="text-sm font-medium text-gray-500 dark:text-gray-400" id="coverage-ratio">-</span>
+                </div>
+                <div class="w-full h-3 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+                    <div class="h-full rounded-full transition-all duration-500" id="coverage-bar" style="width:0%"></div>
+                </div>
+            </div>
+
+            <!-- Restaurant Cards -->
+            <div class="mb-6">
+                <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">By Restaurant</h3>
+                <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4" id="restaurant-summary"></div>
+            </div>
+
+            <!-- Filters -->
+            <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 p-4 mb-6">
+                <div class="flex flex-wrap gap-4 items-center">
+                    <select id="restaurant-filter" onchange="filterStaffing()" class="px-4 py-2.5 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg text-sm text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-orange-500">
+                        <option value="">All Restaurants</option>
+                    </select>
+                    <input type="date" id="date-filter" onchange="filterStaffing()" class="px-4 py-2.5 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg text-sm text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-orange-500">
+                    <select id="shift-filter" onchange="filterStaffing()" class="px-4 py-2.5 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg text-sm text-gray-900 dark:text-gray-100">
+                        <option value="">All Shifts</option>
+                        <option value="morning">Morning</option>
+                        <option value="afternoon">Afternoon</option>
+                        <option value="evening">Evening</option>
+                    </select>
+                    <select id="status-filter" onchange="filterStaffing()" class="px-4 py-2.5 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg text-sm text-gray-900 dark:text-gray-100">
+                        <option value="">All Status</option>
+                        <option value="critical">Critical Gaps</option>
+                        <option value="warning">Understaffed</option>
+                        <option value="good">Fully Staffed</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Staffing Display -->
+            <div id="staffing-body" class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                <div class="col-span-full text-center py-8 text-gray-500 dark:text-gray-400">Loading staffing data...</div>
+            </div>
+        </div>
+    </main>
+
+    <script src="shared.js?v=1775130000"></script>
+    <script src="api.js?v=1775130000"></script>
+    <script>
+        renderChatWidget();
+
+        // Auth user name in sidebar
+        authReady.then(() => {
+            if (auth && auth.currentUser) {
+                auth.currentUser.getUserAttributes((e, attrs) => {
+                    if (!e && attrs) {
+                        const n = attrs.find(a => a.getName() === 'name');
+                        if (n) document.getElementById('sidebar-user-name').textContent = n.getValue();
+                    }
+                });
+            }
+        });
+
+        // ---- DATA LOGIC (preserved from original) ----
+        let allStaffing = [];
+        let restaurants = [];
+
+        async function init() {
+            document.getElementById('date-filter').value = new Date().toISOString().split('T')[0];
+            try { await Promise.all([loadRestaurants(), loadStaffing()]); }
+            catch (e) { document.getElementById('staffing-body').innerHTML = `<tr><td colspan="9" class="px-4 py-8 text-center text-red-500">${e.message}</td></tr>`; }
+        }
+
+        async function loadRestaurants() {
+            const response = await authFetch(`${API_URL}/restaurants`);
+            const data = await response.json();
+            restaurants = data.restaurants || data || [];
+            const select = document.getElementById('restaurant-filter');
+            restaurants.forEach(r => { const o = document.createElement('option'); o.value = r.id; o.textContent = r.name; select.appendChild(o); });
+        }
+
+        async function loadStaffing() {
+            const response = await authFetch(`${API_URL}/staffing`);
+            if (!response.ok) throw new Error('API returned ' + response.status);
+            const data = await response.json();
+            const raw = data.staffing || data || [];
+            allStaffing = [];
+            raw.forEach(record => {
+                if (record.staffing && Array.isArray(record.staffing)) {
+                    record.staffing.forEach(s => { allStaffing.push({ restaurant_id: record.restaurant_id, shift_date: record.date || record.shift_date, shift: s.shift, role: s.role, required_count: s.required_count, scheduled_count: s.scheduled_count }); });
+                } else if (record.shifts && typeof record.shifts === 'object') {
+                    Object.entries(record.shifts).forEach(([name, d]) => { allStaffing.push({ restaurant_id: record.restaurant_id, shift_date: record.date || record.shift_date, shift: name, role: 'All Staff', required_count: d.required, scheduled_count: d.scheduled }); });
+                } else {
+                    allStaffing.push({ ...record, shift_date: record.date || record.shift_date });
+                }
+            });
+            const today = document.getElementById('date-filter').value;
+            if (allStaffing.filter(s => s.shift_date === today).length === 0 && allStaffing.length > 0) {
+                const dates = [...new Set(allStaffing.map(s => s.shift_date))].sort().reverse();
+                if (dates.length) document.getElementById('date-filter').value = dates[0];
+            }
+            updateSummary(); updateRestaurantSummary(); filterStaffing();
+        }
+
+        function getShiftStatus(shift) {
+            const req = parseInt(shift.required_count || 0), sched = parseInt(shift.scheduled_count || 0);
+            const gap = req - sched, cov = req > 0 ? (sched / req) * 100 : 100;
+            let status = 'good';
+            if (gap > 2 || cov < 70) status = 'critical';
+            else if (gap > 0) status = 'warning';
+            return { gap, coverage: cov, status };
+        }
+
+        function updateSummary() {
+            const today = document.getElementById('date-filter').value;
+            const todayData = allStaffing.filter(s => s.shift_date === today);
+            let full = 0, under = 0, crit = 0, totalReq = 0, totalSched = 0;
+            todayData.forEach(s => {
+                const { gap, status } = getShiftStatus(s);
+                totalReq += parseInt(s.required_count || 0); totalSched += parseInt(s.scheduled_count || 0);
+                if (status === 'critical') crit++; else if (status === 'warning') under++; else full++;
+            });
+            document.getElementById('total-shifts').textContent = todayData.length;
+            document.getElementById('fully-staffed').textContent = full;
+            document.getElementById('understaffed').textContent = under;
+            document.getElementById('critical-gaps').textContent = crit;
+            const pct = totalReq > 0 ? (totalSched / totalReq) * 100 : 100;
+            document.getElementById('coverage-ratio').textContent = `${totalSched} / ${totalReq} (${pct.toFixed(0)}%)`;
+            const bar = document.getElementById('coverage-bar');
+            bar.style.width = Math.min(pct, 100) + '%';
+            bar.className = `h-full rounded-full transition-all duration-500 ${pct >= 100 ? 'bg-green-500' : pct >= 80 ? 'bg-yellow-500' : 'bg-red-500'}`;
+        }
+
+        function updateRestaurantSummary() {
+            const container = document.getElementById('restaurant-summary');
+            const today = document.getElementById('date-filter').value;
+            const todayData = allStaffing.filter(s => s.shift_date === today);
+            const byR = {};
+            todayData.forEach(s => {
+                if (!byR[s.restaurant_id]) byR[s.restaurant_id] = { req: 0, sched: 0 };
+                byR[s.restaurant_id].req += parseInt(s.required_count || 0);
+                byR[s.restaurant_id].sched += parseInt(s.scheduled_count || 0);
+            });
+            container.innerHTML = Object.entries(byR).map(([rid, d]) => {
+                const r = restaurants.find(x => x.id === rid);
+                const name = r ? r.name : rid;
+                const pct = d.req > 0 ? (d.sched / d.req) * 100 : 100;
+                const color = pct >= 100 ? 'green' : pct >= 80 ? 'yellow' : 'red';
+                return `<div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 p-4 text-center fade-in">
+                    <p class="text-sm text-gray-500 dark:text-gray-400 truncate">${name}</p>
+                    <p class="text-2xl font-bold mt-1 text-${color}-600 dark:text-${color}-400">${pct.toFixed(0)}%</p>
+                    <p class="text-xs text-gray-400 mt-1">${d.sched}/${d.req} staff</p>
+                </div>`;
+            }).join('');
+        }
+
+        function filterStaffing() {
+            const rF = document.getElementById('restaurant-filter').value;
+            const dF = document.getElementById('date-filter').value;
+            const sF = document.getElementById('shift-filter').value;
+            const stF = document.getElementById('status-filter').value;
+            let f = allStaffing;
+            if (rF) f = f.filter(s => s.restaurant_id === rF);
+            if (dF) f = f.filter(s => s.shift_date === dF);
+            if (sF) f = f.filter(s => s.shift === sF);
+            if (stF) f = f.filter(s => getShiftStatus(s).status === stF);
+            updateSummary(); updateRestaurantSummary(); renderStaffing(f);
+        }
+
+        function renderStaffing(staffing) {
+            const container = document.getElementById('staffing-body');
+            if (!staffing.length) { container.innerHTML = '<div class="text-center py-8 text-gray-500 dark:text-gray-400">No staffing data for selected filters</div>'; return; }
+
+            // Group by restaurant, then by date
+            const byRestaurant = {};
+            staffing.forEach(s => {
+                const rid = s.restaurant_id;
+                if (!byRestaurant[rid]) byRestaurant[rid] = {};
+                const d = s.shift_date || 'Unknown';
+                if (!byRestaurant[rid][d]) byRestaurant[rid][d] = [];
+                byRestaurant[rid][d].push(s);
+            });
+
+            // Sort restaurants: worst coverage first
+            const sortedRids = Object.keys(byRestaurant).sort((a, b) => {
+                const aShifts = Object.values(byRestaurant[a]).flat();
+                const bShifts = Object.values(byRestaurant[b]).flat();
+                const aCov = aShifts.reduce((s,x) => s + parseInt(x.scheduled_count||0), 0) / Math.max(aShifts.reduce((s,x) => s + parseInt(x.required_count||0), 0), 1);
+                const bCov = bShifts.reduce((s,x) => s + parseInt(x.scheduled_count||0), 0) / Math.max(bShifts.reduce((s,x) => s + parseInt(x.required_count||0), 0), 1);
+                return aCov - bCov;
+            });
+
+            container.innerHTML = sortedRids.map(rid => {
+                const r = restaurants.find(x => x.id === rid);
+                const name = r ? r.name : rid;
+                const loc = r ? r.location : '';
+                const dates = byRestaurant[rid];
+                const allShifts = Object.values(dates).flat();
+                const totalReq = allShifts.reduce((s,x) => s + parseInt(x.required_count||0), 0);
+                const totalSched = allShifts.reduce((s,x) => s + parseInt(x.scheduled_count||0), 0);
+                const pct = totalReq > 0 ? (totalSched/totalReq*100) : 100;
+                const color = pct >= 100 ? 'green' : pct >= 80 ? 'yellow' : 'red';
+                const barColor = pct >= 100 ? 'bg-green-500' : pct >= 80 ? 'bg-yellow-500' : 'bg-red-500';
+                const sortedDates = Object.keys(dates).sort();
+
+                return `<div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
+                    <div class="px-4 py-3 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between">
+                        <div class="flex items-center gap-2">
+                            <div class="w-8 h-8 rounded-lg bg-${color}-100 dark:bg-${color}-900/20 flex items-center justify-center"><i class="ti ti-building-store text-${color}-600 dark:text-${color}-400 text-sm"></i></div>
+                            <div><p class="text-sm font-semibold text-gray-900 dark:text-gray-100">${name}</p>${loc ? `<p class="text-[11px] text-gray-400">${loc}</p>` : ''}</div>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <div class="w-16 h-1.5 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden"><div class="${barColor} h-full rounded-full" style="width:${Math.min(pct,100)}%"></div></div>
+                            <span class="text-xs font-semibold text-${color}-600 dark:text-${color}-400">${pct.toFixed(0)}%</span>
+                        </div>
+                    </div>
+                    ${sortedDates.map(date => {
+                        const dateLabel = new Date(date + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+                        const shifts = dates[date];
+                        return `<div class="px-4 py-2 ${sortedDates.indexOf(date) > 0 ? 'border-t border-gray-50 dark:border-gray-800' : ''}">
+                            <p class="text-[11px] font-medium text-gray-400 mb-1.5">${dateLabel}</p>
+                            <div class="flex flex-wrap gap-1.5">
+                                ${shifts.map(s => {
+                                    const { gap, coverage, status } = getShiftStatus(s);
+                                    const sc = status === 'critical' ? 'red' : status === 'warning' ? 'yellow' : 'green';
+                                    const icon = (s.shift||'') === 'morning' ? '☀️' : (s.shift||'') === 'afternoon' ? '🌤' : '🌙';
+                                    return `<div class="inline-flex items-center gap-1.5 px-2 py-1 rounded-md bg-${sc}-50 dark:bg-${sc}-900/10 border border-${sc}-200 dark:border-${sc}-800/30 text-[11px]">
+                                        <span>${icon}</span>
+                                        <span class="font-medium text-gray-700 dark:text-gray-300">${(s.shift||'').charAt(0).toUpperCase()+(s.shift||'').slice(1)}</span>
+                                        <span class="text-${sc}-700 dark:text-${sc}-400 font-semibold">${s.scheduled_count}/${s.required_count}</span>
+                                        ${gap > 0 ? `<span class="text-red-600 dark:text-red-400 font-bold">-${gap}</span>` : ''}
+                                    </div>`;
+                                }).join('')}
+                            </div>
+                        </div>`;
+                    }).join('')}
+                    ${totalReq - totalSched > 2 ? `<div class="px-4 py-2 border-t border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-gray-800/30"><button onclick="askChatAgent('Request staff for ${name}. Need ${totalReq - totalSched} more across shifts. Currently ${totalSched}/${totalReq} scheduled.')" class="w-full py-1.5 text-[11px] font-medium rounded-md bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 hover:bg-red-100 transition-colors"><i class="ti ti-user-plus text-xs"></i> Request ${totalReq - totalSched} Staff</button></div>` : ''}
+                </div>`;
+            }).join('');
+        }
+
+        function askChatAgent(prompt) { toggleChat(); const input = document.getElementById('chat-input'); if (input) { input.value = prompt; sendChat(); } }
+
+        window.onload = init;
+    </script>
+</body>
+</html>

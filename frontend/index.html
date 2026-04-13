@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Location Performance - AnyCompany Restaurant Monitoring</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <script>if(localStorage.theme==='dark'||(!('theme' in localStorage)&&window.matchMedia('(prefers-color-scheme:dark)').matches))document.documentElement.classList.add('dark');</script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <style>body{font-family:'Inter',system-ui,sans-serif;}@media(min-width:1024px){#sidebar{transform:translateX(0)!important;}main{margin-left:16rem;}}@media(max-width:1023px){#sidebar{transform:translateX(-100%);}#sidebar.open{transform:translateX(0)!important;}}.detail-panel{transition:transform 300ms ease;}.detail-panel.open{transform:translateX(0);}.detail-panel.closed{transform:translateX(100%);}.custom-marker{width:36px;height:36px;border-radius:50%;border:3px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,0.3);display:flex;align-items:center;justify-content:center;font-weight:700;color:#fff;font-size:11px;}.marker-green{background:#16a34a;}.marker-yellow{background:#eab308;color:#1f2937;}.marker-red{background:#dc2626;}</style>
+</head>
+<body class="bg-gray-50 dark:bg-gray-950 min-h-screen">
+    <aside id="sidebar" style="position:fixed;left:0;top:0;height:100%;width:16rem;background:#111827;z-index:50;display:flex;flex-direction:column;">
+        <a href="index.html" style="display:flex;align-items:center;gap:0.75rem;padding:1.25rem 1.5rem;border-bottom:1px solid #374151;text-decoration:none;"><div style="width:2.5rem;height:2.5rem;border-radius:0.5rem;background:#f97316;display:flex;align-items:center;justify-content:center;font-size:1.25rem;">🍔</div><div><div style="color:#fff;font-size:1.1rem;font-weight:600;">AnyCompany</div><div style="color:#9ca3af;font-size:0.75rem;">Restaurant Monitoring</div></div></a>
+        <nav style="padding:1rem;display:flex;flex-direction:column;gap:0.25rem;flex:1;">
+            <a href="index.html" style="display:flex;align-items:center;gap:0.75rem;padding:0.75rem 1rem;border-radius:0.5rem;color:#fff;background:#f97316;text-decoration:none;font-size:14px;font-weight:500;"><i class="ti ti-map-2" style="font-size:1.25rem;"></i><span>Location Performance</span></a>
+            <a href="3d-twin.html" style="display:flex;align-items:center;gap:0.75rem;padding:0.75rem 1rem;border-radius:0.5rem;color:#d1d5db;text-decoration:none;font-size:14px;font-weight:500;"><i class="ti ti-cpu" style="font-size:1.25rem;"></i><span>Equipment 3D Twin</span></a>
+            <a href="inventory.html" style="display:flex;align-items:center;gap:0.75rem;padding:0.75rem 1rem;border-radius:0.5rem;color:#d1d5db;text-decoration:none;font-size:14px;font-weight:500;"><i class="ti ti-packages" style="font-size:1.25rem;"></i><span>Inventory</span></a>
+            <a href="staffing.html" style="display:flex;align-items:center;gap:0.75rem;padding:0.75rem 1rem;border-radius:0.5rem;color:#d1d5db;text-decoration:none;font-size:14px;font-weight:500;"><i class="ti ti-users" style="font-size:1.25rem;"></i><span>Staffing</span></a>
+            <a href="tickets.html" style="display:flex;align-items:center;gap:0.75rem;padding:0.75rem 1rem;border-radius:0.5rem;color:#d1d5db;text-decoration:none;font-size:14px;font-weight:500;"><i class="ti ti-ticket" style="font-size:1.25rem;"></i><span>Tickets</span></a>
+            <a href="forecasting.html" style="display:flex;align-items:center;gap:0.75rem;padding:0.75rem 1rem;border-radius:0.5rem;color:#d1d5db;text-decoration:none;font-size:14px;font-weight:500;"><i class="ti ti-chart-line" style="font-size:1.25rem;"></i><span>Forecasting</span></a>
+        </nav>
+        <div style="padding:1rem;border-top:1px solid #374151;"><div onclick="sharedSignOut()" style="display:flex;align-items:center;gap:0.75rem;padding:0.75rem;border-radius:0.5rem;cursor:pointer;"><div style="width:2.5rem;height:2.5rem;border-radius:50%;background:rgba(249,115,22,0.2);display:flex;align-items:center;justify-content:center;"><i class="ti ti-logout" style="font-size:1.25rem;color:#fb923c;"></i></div><div><div id="sidebar-user-name" style="color:#fff;font-weight:500;font-size:0.875rem;">User</div><div style="color:#6b7280;font-size:0.75rem;">Sign Out</div></div></div></div>
+    </aside>
+
+    <main style="margin-left:16rem;min-height:100vh;">
+        <header class="sticky top-0 z-30 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 px-4 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center gap-4">
+                <button onclick="toggleSidebar()" class="lg:hidden p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800"><i class="ti ti-menu-2 text-xl text-gray-600 dark:text-gray-400"></i></button>
+                <div><h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Location Performance Map</h2><p class="text-sm text-gray-500 dark:text-gray-400 hidden sm:block">Real-time monitoring across 10 Georgia restaurant locations</p></div>
+            </div>
+            <button onclick="toggleDarkMode()" class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800"><i class="ti ti-sun text-xl text-gray-600 dark:hidden"></i><i class="ti ti-moon text-xl text-gray-400 hidden dark:inline"></i></button>
+        </header>
+
+        <!-- Aggregate Stats Bar -->
+        <div class="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 px-4 lg:px-8 py-3">
+            <div class="flex flex-wrap items-center gap-6">
+                <div class="flex items-center gap-2"><div class="w-8 h-8 rounded-lg bg-blue-100 dark:bg-blue-900/20 flex items-center justify-center"><i class="ti ti-building-store text-blue-600 dark:text-blue-400"></i></div><div><p class="text-xs text-gray-500">Locations</p><p class="text-lg font-semibold text-gray-900 dark:text-gray-100" id="s-total">-</p></div></div>
+                <div class="flex items-center gap-2"><div class="w-8 h-8 rounded-lg bg-green-100 dark:bg-green-900/20 flex items-center justify-center"><i class="ti ti-circle-check text-green-600"></i></div><div><p class="text-xs text-gray-500">Operational</p><p class="text-lg font-semibold text-green-600" id="s-ok">-</p></div></div>
+                <div class="flex items-center gap-2"><div class="w-8 h-8 rounded-lg bg-yellow-100 dark:bg-yellow-900/20 flex items-center justify-center"><i class="ti ti-alert-triangle text-yellow-600"></i></div><div><p class="text-xs text-gray-500">Warning</p><p class="text-lg font-semibold text-yellow-600" id="s-warn">-</p></div></div>
+                <div class="flex items-center gap-2"><div class="w-8 h-8 rounded-lg bg-red-100 dark:bg-red-900/20 flex items-center justify-center"><i class="ti ti-alert-circle text-red-600"></i></div><div><p class="text-xs text-gray-500">Critical</p><p class="text-lg font-semibold text-red-600" id="s-crit">-</p></div></div>
+                <div class="flex items-center gap-2"><div class="w-8 h-8 rounded-lg bg-orange-100 dark:bg-orange-900/20 flex items-center justify-center"><i class="ti ti-ticket text-orange-600"></i></div><div><p class="text-xs text-gray-500">Open Tickets</p><p class="text-lg font-semibold text-orange-600" id="s-tickets">-</p></div></div>
+                <div class="flex items-center gap-2"><div class="w-8 h-8 rounded-lg bg-purple-100 dark:bg-purple-900/20 flex items-center justify-center"><i class="ti ti-packages text-purple-600"></i></div><div><p class="text-xs text-gray-500">Low Stock Items</p><p class="text-lg font-semibold text-purple-600" id="s-lowstock">-</p></div></div>
+            </div>
+        </div>
+
+        <div class="p-4 lg:p-8">
+            <!-- Performance Benchmarks -->
+            <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 mb-6" id="benchmarks">
+                <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 p-4 text-center">
+                    <div class="w-9 h-9 rounded-lg bg-green-100 dark:bg-green-900/20 flex items-center justify-center mx-auto mb-2"><i class="ti ti-thermometer text-green-600 text-lg"></i></div>
+                    <p class="text-xl font-bold text-gray-900 dark:text-gray-100" id="b-equip-health">-</p>
+                    <p class="text-[11px] text-gray-500">Equipment Health</p>
+                </div>
+                <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 p-4 text-center">
+                    <div class="w-9 h-9 rounded-lg bg-blue-100 dark:bg-blue-900/20 flex items-center justify-center mx-auto mb-2"><i class="ti ti-packages text-blue-600 text-lg"></i></div>
+                    <p class="text-xl font-bold text-gray-900 dark:text-gray-100" id="b-inv-score">-</p>
+                    <p class="text-[11px] text-gray-500">Inventory Score</p>
+                </div>
+                <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 p-4 text-center">
+                    <div class="w-9 h-9 rounded-lg bg-orange-100 dark:bg-orange-900/20 flex items-center justify-center mx-auto mb-2"><i class="ti ti-users text-orange-600 text-lg"></i></div>
+                    <p class="text-xl font-bold text-gray-900 dark:text-gray-100" id="b-staff-cov">-</p>
+                    <p class="text-[11px] text-gray-500">Staff Coverage</p>
+                </div>
+                <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 p-4 text-center">
+                    <div class="w-9 h-9 rounded-lg bg-purple-100 dark:bg-purple-900/20 flex items-center justify-center mx-auto mb-2"><i class="ti ti-clock text-purple-600 text-lg"></i></div>
+                    <p class="text-xl font-bold text-gray-900 dark:text-gray-100" id="b-ticket-res">-</p>
+                    <p class="text-[11px] text-gray-500">Ticket Resolution</p>
+                </div>
+                <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 p-4 text-center">
+                    <div class="w-9 h-9 rounded-lg bg-yellow-100 dark:bg-yellow-900/20 flex items-center justify-center mx-auto mb-2"><i class="ti ti-trophy text-yellow-600 text-lg"></i></div>
+                    <p class="text-xl font-bold text-gray-900 dark:text-gray-100" id="b-overall">-</p>
+                    <p class="text-[11px] text-gray-500">Overall Score</p>
+                </div>
+                <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 p-4 text-center">
+                    <div class="w-9 h-9 rounded-lg bg-red-100 dark:bg-red-900/20 flex items-center justify-center mx-auto mb-2"><i class="ti ti-arrow-down-right text-red-600 text-lg"></i></div>
+                    <p class="text-xl font-bold text-gray-900 dark:text-gray-100" id="b-at-risk">-</p>
+                    <p class="text-[11px] text-gray-500">At-Risk Locations</p>
+                </div>
+            </div>
+
+            <!-- Map + AI Recommendations Row -->
+            <div class="grid grid-cols-1 xl:grid-cols-3 gap-6 mb-6">
+                <!-- Map -->
+                <div class="xl:col-span-2 bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
+                    <div class="px-5 py-3 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
+                        <div><h3 class="font-semibold text-gray-900 dark:text-gray-100">Georgia Location Map</h3><p class="text-xs text-gray-500">Click markers for details</p></div>
+                        <div class="flex gap-3 text-xs">
+                            <span class="flex items-center gap-1"><span style="width:10px;height:10px;border-radius:50%;background:#16a34a;display:inline-block;"></span> Operational</span>
+                            <span class="flex items-center gap-1"><span style="width:10px;height:10px;border-radius:50%;background:#eab308;display:inline-block;"></span> Warning</span>
+                            <span class="flex items-center gap-1"><span style="width:10px;height:10px;border-radius:50%;background:#dc2626;display:inline-block;"></span> Critical</span>
+                        </div>
+                    </div>
+                    <div id="map" style="height:420px;"></div>
+                </div>
+                <!-- AI Recommendations -->
+                <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden flex flex-col">
+                    <div class="px-5 py-3 border-b border-gray-200 dark:border-gray-700 flex items-center gap-3">
+                        <div class="w-8 h-8 rounded-lg bg-orange-100 dark:bg-orange-900/20 flex items-center justify-center"><i class="ti ti-bulb text-orange-600"></i></div>
+                        <div><h3 class="font-semibold text-gray-900 dark:text-gray-100">AI Recommendations</h3><p class="text-[11px] text-gray-500">Proactive actions based on current status</p></div>
+                        <span class="ml-auto px-2 py-0.5 text-xs font-medium rounded-full bg-red-100 dark:bg-red-900/20 text-red-700" id="rec-count">-</span>
+                    </div>
+                    <div class="divide-y divide-gray-100 dark:divide-gray-800 flex-1 overflow-y-auto" id="recommendations" style="max-height:370px;"></div>
+                </div>
+            </div>
+
+            <!-- Location Cards Grid -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4" id="locations"></div>
+        </div>
+    </main>
+
+    <!-- Location Detail Slide Panel -->
+    <div id="detail-overlay" class="fixed inset-0 bg-black/50 z-40 hidden" onclick="closeDetail()"></div>
+    <div id="detail-panel" class="detail-panel closed fixed right-0 top-0 h-full w-full max-w-lg bg-white dark:bg-gray-900 shadow-2xl z-50 overflow-y-auto">
+        <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between sticky top-0 bg-white dark:bg-gray-900 z-10">
+            <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100" id="detail-title">-</h3>
+            <button onclick="closeDetail()" class="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg"><i class="ti ti-x text-gray-500"></i></button>
+        </div>
+        <div id="detail-content" class="p-6"></div>
+    </div>
+
+    <script src="shared.js?v=1775160000"></script>
+    <script src="api.js?v=1775160000"></script>
+    <script>
+        function toggleSidebar(){document.getElementById('sidebar').classList.toggle('open');}
+        function toggleDarkMode(){document.documentElement.classList.toggle('dark');localStorage.theme=document.documentElement.classList.contains('dark')?'dark':'light';}
+        renderChatWidget();
+
+        let allData = {};
+
+        async function loadDashboard() {
+          try {
+            const [restaurants, tickets, equipment, inventory, staffing] = await Promise.all([
+                apiClient.getRestaurants(), apiClient.getTickets(), apiClient.getEquipment(), apiClient.getInventory(), apiClient.getStaffing()
+            ]);
+            allData = { restaurants, tickets, equipment, inventory, staffing };
+
+            // Georgia restaurant coordinates (from DynamoDB location data)
+            const coords = {
+                'AFC-001': [33.749, -84.388], 'AFC-002': [32.084, -81.100], 'AFC-003': [33.474, -82.011],
+                'AFC-004': [32.841, -83.632], 'AFC-005': [33.952, -83.358], 'AFC-006': [32.461, -84.988],
+                'AFC-007': [31.150, -81.391], 'AFC-008': [31.580, -84.156], 'AFC-009': [30.833, -83.279],
+                'AFC-010': [34.207, -84.140]
+            };
+
+            // Initialize map
+            if (!window._map) {
+                window._map = L.map('map').setView([32.7, -83.2], 7);
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '© OpenStreetMap', maxZoom: 18
+                }).addTo(window._map);
+                window._markers = [];
+            }
+            window._markers.forEach(m => window._map.removeLayer(m));
+            window._markers = [];
+
+            // Map markers
+            restaurants.forEach(r => {
+                const ll = coords[r.id]; if (!ll) return;
+                const st = r.status || 'operational';
+                const clr = st === 'critical' ? '#dc2626' : st === 'warning' ? '#eab308' : '#16a34a';
+                const rT = tickets.filter(t => t.restaurant_id === r.id).length;
+                const rE = equipment.filter(e => e.restaurant_id === r.id && e.status === 'critical').length;
+                const ic = L.divIcon({ className: '', html: '<div style="background:'+clr+';width:36px;height:36px;border-radius:50%;border:3px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,0.3);display:flex;align-items:center;justify-content:center;font-weight:700;color:#fff;font-size:11px;">'+(rT>0?rT:'✓')+'</div>', iconSize:[36,36], iconAnchor:[18,18] });
+                const mk = L.marker(ll, {icon:ic}).addTo(window._map);
+                mk.bindPopup('<div style="font-family:Inter,sans-serif;min-width:200px;"><b>'+(r.name||r.id)+'</b><br><span style="color:#666;font-size:12px;">'+(r.location||'Georgia')+'</span><br><span style="display:inline-block;margin-top:4px;padding:2px 8px;border-radius:4px;background:'+clr+';color:#fff;font-size:11px;font-weight:600;">'+st.toUpperCase()+'</span><br><span style="font-size:12px;color:#666;margin-top:4px;display:block;">🎫 '+rT+' tickets · ⚠️ '+rE+' critical</span></div>');
+                mk.on('click', function(){ openDetail(r.id); });
+                window._markers.push(mk);
+            });
+
+            // Stats bar
+            const critR = restaurants.filter(r => r.status === 'critical').length;
+            const warnR = restaurants.filter(r => r.status === 'warning').length;
+            document.getElementById('s-total').textContent = restaurants.length;
+            document.getElementById('s-ok').textContent = restaurants.length - critR - warnR;
+            document.getElementById('s-warn').textContent = warnR;
+            document.getElementById('s-crit').textContent = critR;
+            document.getElementById('s-tickets').textContent = tickets.length;
+            const lowStock = inventory.filter(i => { const q=parseFloat(i.quantity??i.current_stock??0); const rp=parseFloat(i.reorder_point||1); return (q/rp)*100<100; }).length;
+            document.getElementById('s-lowstock').textContent = lowStock;
+
+            // Performance Benchmarks (computed from live DynamoDB data)
+            const totalEquip = equipment.length;
+            const normalEquip = equipment.filter(e => e.status === 'normal' || !e.status).length;
+            const equipHealth = totalEquip > 0 ? Math.round(normalEquip / totalEquip * 100) : 100;
+            document.getElementById('b-equip-health').textContent = equipHealth + '%';
+
+            const totalInv = inventory.length;
+            const adequateInv = inventory.filter(i => { const q=parseFloat(i.quantity??i.current_stock??0); const rp=parseFloat(i.reorder_point||1); return (q/rp)*100>=100; }).length;
+            const invScore = totalInv > 0 ? Math.round(adequateInv / totalInv * 100) : 100;
+            document.getElementById('b-inv-score').textContent = invScore + '%';
+
+            // Staffing coverage
+            let totalReq = 0, totalSched = 0;
+            (staffing||[]).forEach(rec => {
+                if (rec.shifts && typeof rec.shifts === 'object') {
+                    Object.values(rec.shifts).forEach(d => { totalReq += parseInt(d.required||0); totalSched += parseInt(d.scheduled||0); });
+                } else if (rec.staffing && Array.isArray(rec.staffing)) {
+                    rec.staffing.forEach(s => { totalReq += parseInt(s.required_count||0); totalSched += parseInt(s.scheduled_count||0); });
+                }
+            });
+            const staffCov = totalReq > 0 ? Math.round(totalSched / totalReq * 100) : 100;
+            document.getElementById('b-staff-cov').textContent = Math.min(staffCov, 100) + '%';
+
+            const resolvedTickets = tickets.filter(t => t.status === 'resolved' || t.status === 'closed').length;
+            const ticketRes = tickets.length > 0 ? Math.round(resolvedTickets / tickets.length * 100) : 100;
+            document.getElementById('b-ticket-res').textContent = ticketRes + '%';
+
+            const overall = Math.round((equipHealth + invScore + Math.min(staffCov,100) + ticketRes) / 4);
+            document.getElementById('b-overall').textContent = overall + '/100';
+
+            const atRisk = restaurants.filter(r => r.status === 'critical' || r.status === 'warning').length;
+            document.getElementById('b-at-risk').textContent = atRisk + '/' + restaurants.length;
+
+            // AI Recommendations
+            const recs = [];
+            equipment.filter(e => e.status==='critical').forEach(e => {
+                const r=restaurants.find(x=>x.id===e.restaurant_id); const rn=r?.name||e.restaurant_id;
+                const ht=tickets.some(t=>t.restaurant_id===e.restaurant_id&&(t.equipment_id===e.equipment_id));
+                if(!ht) recs.push({sev:'critical',icon:'ti-alert-circle',color:'red',title:`${e.appliance_name} at ${rn}`,desc:`Temp ${e.temperature}°F (target ${e.target_temperature}°F)`,prompt:`Create ticket for ${e.appliance_name} at ${rn}. Temp ${e.temperature}°F, target ${e.target_temperature}°F.`});
+            });
+            inventory.forEach(i => {
+                const q=parseFloat(i.quantity??i.current_stock??0); const rp=parseFloat(i.reorder_point||1); const pct=(q/rp)*100;
+                if(pct<50){const r=restaurants.find(x=>x.id===(i.restaurant_id||'ALL')); const rn=r?.name||'All'; const nm=i.item_name||i.name;
+                recs.push({sev:'critical',icon:'ti-package',color:'red',title:`Reorder ${nm} — ${rn}`,desc:`Stock at ${pct.toFixed(0)}%`,prompt:`Reorder ${nm} for ${rn}. Stock at ${pct.toFixed(0)}%, need ${Math.ceil(rp-q)} more.`});}
+                else if(pct<100){const r=restaurants.find(x=>x.id===(i.restaurant_id||'ALL')); const rn=r?.name||'All'; const nm=i.item_name||i.name;
+                recs.push({sev:'warning',icon:'ti-package',color:'yellow',title:`Low: ${nm} — ${rn}`,desc:`Stock at ${pct.toFixed(0)}%`,prompt:null});}
+            });
+            recs.sort((a,b)=>(a.sev==='critical'?0:1)-(b.sev==='critical'?0:1));
+            window.recPrompts = recs.map(r=>r.prompt);
+            document.getElementById('rec-count').textContent = recs.length;
+            const recsEl = document.getElementById('recommendations');
+            recsEl.innerHTML = recs.length===0 ? '<div style="padding:12px 16px;font-size:14px;color:#16a34a;display:flex;align-items:center;gap:8px;"><i class="ti ti-circle-check"></i> All systems operational.</div>' :
+                recs.map((r,i)=>{
+                    const bg = r.color==='red'?'#fef2f2':'#fefce8';
+                    const fg = r.color==='red'?'#dc2626':'#a16207';
+                    return `<div style="padding:10px 16px;display:flex;align-items:flex-start;gap:12px;">
+                    <div style="width:28px;height:28px;border-radius:6px;background:${bg};display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px;"><i class="ti ${r.icon}" style="font-size:12px;color:${fg};"></i></div>
+                    <div style="flex:1;min-width:0;"><p style="font-size:12px;font-weight:500;color:#111827;">${r.title}</p><p style="font-size:10px;color:#6b7280;margin-top:2px;">${r.desc}</p></div>
+                    ${r.prompt?`<button onclick="askChatAgent(recPrompts[${i}])" style="padding:2px 8px;font-size:10px;font-weight:500;border-radius:4px;background:#fff7ed;color:#c2410c;border:none;cursor:pointer;flex-shrink:0;">Act</button>`:`<span style="padding:2px 6px;font-size:10px;border-radius:4px;background:${bg};color:${fg};flex-shrink:0;">${r.sev}</span>`}
+                </div>`;}).join('');
+
+            // Location cards
+            document.getElementById('locations').innerHTML = restaurants.map(r => {
+                const rT=tickets.filter(t=>t.restaurant_id===r.id);
+                const rE=equipment.filter(e=>e.restaurant_id===r.id);
+                const crit=rE.filter(e=>e.status==='critical').length; const warn=rE.filter(e=>e.status==='warning').length;
+                const rI=inventory.filter(i=>(i.restaurant_id||'ALL')===r.id);
+                const lowI=rI.filter(i=>{const q=parseFloat(i.quantity??i.current_stock??0);const rp=parseFloat(i.reorder_point||1);return(q/rp)*100<100;}).length;
+                const st=r.status||'operational';
+                const clr=st==='critical'?'#dc2626':st==='warning'?'#eab308':'#16a34a';
+                const bg=st==='critical'?'#fef2f2':st==='warning'?'#fefce8':'#f0fdf4';
+                return `<div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 hover:shadow-lg transition-all cursor-pointer" onclick="openDetail('${r.id}')">
+                    <div class="p-5">
+                        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+                            <div style="display:flex;align-items:center;gap:12px;"><div style="width:40px;height:40px;border-radius:50%;background:${bg};display:flex;align-items:center;justify-content:center;"><i class="ti ti-building-store" style="color:${clr};"></i></div>
+                            <div><p style="font-weight:600;color:#111827;">${r.name||r.id}</p><p style="font-size:12px;color:#6b7280;"><i class="ti ti-map-pin" style="font-size:12px;"></i> ${r.location||'Georgia'}</p></div></div>
+                            <span style="padding:2px 10px;border-radius:9999px;font-size:11px;font-weight:500;background:${bg};color:${clr};">${st.toUpperCase()}</span>
+                        </div>
+                        <div class="grid grid-cols-4 gap-3 mt-4">
+                            <div class="text-center p-2 rounded-lg bg-gray-50 dark:bg-gray-800"><p class="text-lg font-bold text-gray-900 dark:text-gray-100">${rE.length}</p><p style="font-size:10px;color:#6b7280;">Equipment</p></div>
+                            <div class="text-center p-2 rounded-lg" style="background:${crit>0?'#fef2f2':'#f9fafb'};"><p class="text-lg font-bold" style="color:${crit>0?'#dc2626':'#111827'};">${crit}</p><p style="font-size:10px;color:#6b7280;">Critical</p></div>
+                            <div class="text-center p-2 rounded-lg" style="background:${rT.length>0?'#fff7ed':'#f9fafb'};"><p class="text-lg font-bold" style="color:${rT.length>0?'#ea580c':'#111827'};">${rT.length}</p><p style="font-size:10px;color:#6b7280;">Tickets</p></div>
+                            <div class="text-center p-2 rounded-lg" style="background:${lowI>0?'#fefce8':'#f9fafb'};"><p class="text-lg font-bold" style="color:${lowI>0?'#a16207':'#111827'};">${lowI}</p><p style="font-size:10px;color:#6b7280;">Low Stock</p></div>
+                        </div>
+                    </div>
+                </div>`;
+            }).join('');
+          } catch(err) {
+            console.error('Dashboard error:', err);
+            document.getElementById('locations').innerHTML = '<div class="col-span-full text-center py-8 text-red-500">Error: ' + err.message + '</div>';
+          }
+        }
+
+        function openDetail(rid) {
+            const r=allData.restaurants.find(x=>x.id===rid); if(!r) return;
+            const rE=allData.equipment.filter(e=>e.restaurant_id===rid);
+            const rT=allData.tickets.filter(t=>t.restaurant_id===rid);
+            const rI=allData.inventory.filter(i=>i.restaurant_id===rid);
+            document.getElementById('detail-title').textContent = r.name||rid;
+            document.getElementById('detail-content').innerHTML = `
+                <div class="space-y-5">
+                    <div><p class="text-sm text-gray-500"><i class="ti ti-map-pin"></i> ${r.location||'Georgia'}</p><p class="text-sm text-gray-500"><i class="ti ti-user"></i> ${r.manager||'N/A'}</p></div>
+                    <div><h4 class="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-2"><i class="ti ti-cpu"></i> Equipment (${rE.length})</h4>
+                    <div class="space-y-2">${rE.map(e=>{const sc=e.status==='critical'?'red':e.status==='warning'?'yellow':'green';
+                        return `<div class="flex items-center gap-3 p-3 rounded-lg bg-gray-50 dark:bg-gray-800"><div class="w-8 h-8 rounded bg-${sc}-100 dark:bg-${sc}-900/20 flex items-center justify-center"><i class="ti ti-thermometer text-${sc}-600 text-sm"></i></div><div class="flex-1"><p class="text-sm font-medium text-gray-900 dark:text-gray-100">${e.appliance_name}</p><p class="text-xs text-gray-500">${e.temperature}°F / ${e.target_temperature}°F target</p></div><span class="px-2 py-0.5 rounded text-[10px] font-medium bg-${sc}-100 text-${sc}-700">${(e.status||'normal').toUpperCase()}</span></div>`;}).join('')}</div></div>
+                    <div><h4 class="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-2"><i class="ti ti-ticket"></i> Tickets (${rT.length})</h4>
+                    ${rT.length===0?'<p class="text-sm text-green-600"><i class="ti ti-circle-check"></i> No active tickets</p>':
+                    `<div class="space-y-2">${rT.map(t=>{const pc=t.priority==='critical'||t.priority==='high'?'red':t.priority==='medium'?'yellow':'green';
+                        return `<div class="p-3 rounded-lg border-l-3 border-${pc}-400 bg-${pc}-50 dark:bg-${pc}-900/10"><p class="text-sm font-medium text-gray-900 dark:text-gray-100">${t.issue||t.description||'Issue'}</p><div class="flex gap-2 mt-1"><span class="text-[10px] px-1.5 py-0.5 rounded bg-${pc}-100 text-${pc}-700">${t.priority}</span><span class="text-[10px] text-gray-500">${t.status}</span></div></div>`;}).join('')}</div>`}
+                    </div>
+                    <div><h4 class="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-2"><i class="ti ti-packages"></i> Inventory (${rI.length} items)</h4>
+                    <div class="space-y-1">${rI.slice(0,10).map(i=>{const q=parseFloat(i.quantity??i.current_stock??0);const rp=parseFloat(i.reorder_point||1);const pct=Math.min((q/rp)*100,100);const bc=pct<50?'bg-red-500':pct<100?'bg-yellow-500':'bg-green-500';
+                        return `<div class="flex items-center gap-2 py-1"><span class="text-xs text-gray-700 dark:text-gray-300 w-28 truncate">${i.item_name||i.name}</span><div class="flex-1 h-1.5 bg-gray-200 dark:bg-gray-700 rounded-full"><div class="${bc} h-full rounded-full" style="width:${pct}%"></div></div><span class="text-[10px] text-gray-500 w-8 text-right">${pct.toFixed(0)}%</span></div>`;}).join('')}</div></div>
+                </div>`;
+            document.getElementById('detail-panel').classList.remove('closed');
+            document.getElementById('detail-panel').classList.add('open');
+            document.getElementById('detail-overlay').classList.remove('hidden');
+        }
+        function closeDetail(){document.getElementById('detail-panel').classList.add('closed');document.getElementById('detail-panel').classList.remove('open');document.getElementById('detail-overlay').classList.add('hidden');}
+        function askChatAgent(p){toggleChat();const i=document.getElementById('chat-input');if(i){i.value=p;sendChat();}}
+        authReady.then(()=>loadDashboard());
+    </script>
+</body>
+</html>

@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign In - AnyCompany Restaurant Monitoring</title>
+    <script src="https://unpkg.com/amazon-cognito-identity-js@6.3.12/dist/amazon-cognito-identity.min.js" integrity="sha384-YkDOkBg8dBira7f28t9KbD0tG5OnnuU540fRBz8JgorAXLJOwtakyHNV7m36RDG4" crossorigin="anonymous"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box;}
+        body{font-family:'Inter',system-ui,sans-serif;background:linear-gradient(135deg,#111827 0%,#1f2937 50%,#111827 100%);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:1rem;}
+        .card{background:#fff;border-radius:1rem;box-shadow:0 20px 60px rgba(0,0,0,0.3);width:100%;max-width:420px;overflow:hidden;}
+        .card-header{background:#111827;padding:2rem 2rem 1.75rem;text-align:center;}
+        .logo-row{display:flex;align-items:center;justify-content:center;gap:0.75rem;margin-bottom:1rem;}
+        .logo-icon{width:3rem;height:3rem;border-radius:0.75rem;background:#f97316;display:flex;align-items:center;justify-content:center;font-size:1.5rem;}
+        .logo-text h1{color:#fff;font-size:1.35rem;font-weight:700;}
+        .logo-text p{color:#9ca3af;font-size:0.75rem;}
+        .subtitle{color:#6b7280;font-size:0.85rem;margin-top:0.25rem;}
+        .tabs{display:flex;border-bottom:1px solid #e5e7eb;}
+        .tab{flex:1;padding:0.85rem;text-align:center;font-size:0.9rem;font-weight:600;cursor:pointer;border:none;background:none;color:#9ca3af;font-family:inherit;transition:all 0.2s;}
+        .tab.active{color:#f97316;border-bottom:2px solid #f97316;}
+        .tab:hover:not(.active){color:#6b7280;}
+        .card-body{padding:1.75rem 2rem;}
+        .form-group{margin-bottom:1.1rem;}
+        .form-group label{display:block;margin-bottom:0.35rem;font-weight:600;color:#374151;font-size:0.85rem;}
+        .form-group input{width:100%;padding:0.7rem 1rem;border:1.5px solid #d1d5db;border-radius:0.5rem;font-size:0.9rem;font-family:inherit;outline:none;transition:border-color 0.2s,box-shadow 0.2s;}
+        .form-group input:focus{border-color:#f97316;box-shadow:0 0 0 3px rgba(249,115,22,0.15);}
+        .btn{width:100%;background:#f97316;color:#fff;border:none;padding:0.75rem;border-radius:0.5rem;font-size:0.95rem;font-weight:600;font-family:inherit;cursor:pointer;transition:background 0.2s;margin-top:0.5rem;}
+        .btn:hover{background:#ea580c;}
+        .btn:disabled{background:#d1d5db;cursor:not-allowed;}
+        .btn-outline{background:none;border:1.5px solid #d1d5db;color:#374151;}
+        .btn-outline:hover{background:#f9fafb;}
+        .message{margin-top:0.75rem;padding:0.7rem 1rem;border-radius:0.5rem;text-align:center;font-size:0.85rem;display:none;}
+        .card-footer{text-align:center;padding:0 2rem 1.5rem;color:#9ca3af;font-size:0.75rem;}
+        .powered-by{display:flex;align-items:center;justify-content:center;gap:0.5rem;margin-top:1rem;opacity:0.5;}
+        .powered-by img{height:28px;}
+        .hidden{display:none!important;}
+        .mfa-section{margin-top:1rem;}
+    </style>
+</head>
+<body>
+    <div class="card">
+        <div class="card-header">
+            <div class="logo-row">
+                <div class="logo-icon">🍔</div>
+                <div class="logo-text"><h1>AnyCompany</h1><p>Restaurant Monitoring</p></div>
+            </div>
+            <p class="subtitle">AI-Powered Kitchen Management</p>
+        </div>
+
+        <div class="tabs">
+            <button class="tab active" id="tab-signin" onclick="showTab('signin')">Sign In</button>
+            <button class="tab" id="tab-register" onclick="showTab('register')">Register</button>
+        </div>
+
+        <!-- Sign In Form -->
+        <div class="card-body" id="form-signin">
+            <form onsubmit="event.preventDefault();signIn();">
+                <div class="form-group"><label for="si-email">Email</label><input type="email" id="si-email" placeholder="demo@anycompany.com" autocomplete="username" required></div>
+                <div class="form-group"><label for="si-password">Password</label><input type="password" id="si-password" placeholder="Enter your password" autocomplete="current-password" required></div>
+                <button type="submit" class="btn" id="si-btn">Sign In</button>
+            </form>
+            <div id="si-mfa" class="mfa-section hidden">
+                <div class="form-group"><label for="si-mfa-code">MFA Code</label><input type="text" id="si-mfa-code" placeholder="Enter 6-digit code from authenticator" autocomplete="one-time-code" maxlength="6"></div>
+                <button class="btn" onclick="verifyMfa()">Verify</button>
+            </div>
+            <div id="si-msg" class="message"></div>
+        </div>
+
+        <!-- Register Form -->
+        <div class="card-body hidden" id="form-register">
+            <form onsubmit="event.preventDefault();register();">
+                <div class="form-group"><label for="reg-name">Full Name</label><input type="text" id="reg-name" placeholder="John Smith" required></div>
+                <div class="form-group"><label for="reg-email">Email</label><input type="email" id="reg-email" placeholder="john@anycompany.com" autocomplete="username" required></div>
+                <div class="form-group"><label for="reg-password">Password</label><input type="password" id="reg-password" placeholder="Min 12 chars, uppercase, lowercase, number, symbol" autocomplete="new-password" required></div>
+                <button type="submit" class="btn" id="reg-btn">Create Account</button>
+            </form>
+            <div id="reg-confirm" class="hidden">
+                <p style="font-size:0.85rem;color:#374151;margin-bottom:0.75rem;">We sent a verification code to your email. Enter it below:</p>
+                <div class="form-group"><label for="reg-code">Verification Code</label><input type="text" id="reg-code" placeholder="Enter 6-digit code" maxlength="6"></div>
+                <button class="btn" onclick="confirmRegistration()">Verify & Sign In</button>
+            </div>
+            <div id="reg-msg" class="message"></div>
+        </div>
+
+        <div class="card-footer">
+            Secure access to restaurant operations dashboard
+            <div class="powered-by"><img src="https://d0.awsstatic.com/logos/powered-by-aws.png" alt="Powered by AWS"></div>
+        </div>
+    </div>
+
+    <script>
+        const userPool = new AmazonCognitoIdentity.CognitoUserPool({
+            UserPoolId: 'us-east-1_irtVFCmZ4',
+            ClientId: '76oq6mah56p6t4tchkfej1vmg8'
+        });
+        let pendingUser = null;
+        let pendingEmail = null;
+
+        function showTab(tab) {
+            document.getElementById('tab-signin').className = tab === 'signin' ? 'tab active' : 'tab';
+            document.getElementById('tab-register').className = tab === 'register' ? 'tab active' : 'tab';
+            document.getElementById('form-signin').className = tab === 'signin' ? 'card-body' : 'card-body hidden';
+            document.getElementById('form-register').className = tab === 'register' ? 'card-body' : 'card-body hidden';
+        }
+
+        function showMsg(id, msg, type) {
+            const el = document.getElementById(id);
+            el.textContent = msg; el.style.display = 'block';
+            el.style.background = type === 'error' ? '#fef2f2' : type === 'success' ? '#f0fdf4' : '#eff6ff';
+            el.style.color = type === 'error' ? '#991b1b' : type === 'success' ? '#166534' : '#1e40af';
+            el.style.border = type === 'error' ? '1px solid #fecaca' : type === 'success' ? '1px solid #bbf7d0' : '1px solid #bfdbfe';
+        }
+
+        function signIn() {
+            const email = document.getElementById('si-email').value;
+            const password = document.getElementById('si-password').value;
+            const btn = document.getElementById('si-btn');
+            if (!email || !password) { showMsg('si-msg', 'Please enter email and password', 'error'); return; }
+            btn.disabled = true; btn.textContent = 'Signing in...';
+
+            const cognitoUser = new AmazonCognitoIdentity.CognitoUser({ Username: email, Pool: userPool });
+            const authDetails = new AmazonCognitoIdentity.AuthenticationDetails({ Username: email, Password: password });
+
+            cognitoUser.authenticateUser(authDetails, {
+                onSuccess: function() { window.location.href = 'index.html'; },
+                onFailure: function(err) {
+                    showMsg('si-msg', err.message, 'error');
+                    btn.disabled = false; btn.textContent = 'Sign In';
+                },
+                newPasswordRequired: function(userAttributes) {
+                    delete userAttributes.email_verified; delete userAttributes.email;
+                    cognitoUser.completeNewPasswordChallenge(password, userAttributes, {
+                        onSuccess: function() { window.location.href = 'index.html'; },
+                        onFailure: function(err) { showMsg('si-msg', err.message, 'error'); btn.disabled = false; btn.textContent = 'Sign In'; }
+                    });
+                },
+                totpRequired: function() {
+                    pendingUser = cognitoUser;
+                    document.getElementById('si-mfa').classList.remove('hidden');
+                    showMsg('si-msg', 'Enter the code from your authenticator app', 'info');
+                    btn.disabled = false; btn.textContent = 'Sign In';
+                },
+                mfaSetup: function() {
+                    cognitoUser.associateSoftwareToken({
+                        associateSecretCode: function(secretCode) {
+                            pendingUser = cognitoUser;
+                            showMsg('si-msg', 'MFA Setup Required. Scan this code in your authenticator app: ' + secretCode, 'info');
+                            document.getElementById('si-mfa').classList.remove('hidden');
+                            btn.disabled = false; btn.textContent = 'Sign In';
+                        },
+                        onFailure: function(err) { showMsg('si-msg', err.message, 'error'); btn.disabled = false; btn.textContent = 'Sign In'; }
+                    });
+                }
+            });
+        }
+
+        function verifyMfa() {
+            const code = document.getElementById('si-mfa-code').value;
+            if (!code || !pendingUser) return;
+            pendingUser.sendMFACode(code, {
+                onSuccess: function() { window.location.href = 'index.html'; },
+                onFailure: function(err) { showMsg('si-msg', err.message, 'error'); }
+            }, 'SOFTWARE_TOKEN_MFA');
+        }
+
+        function register() {
+            const name = document.getElementById('reg-name').value;
+            const email = document.getElementById('reg-email').value;
+            const password = document.getElementById('reg-password').value;
+            const btn = document.getElementById('reg-btn');
+            if (!name || !email || !password) { showMsg('reg-msg', 'Please fill in all fields', 'error'); return; }
+            btn.disabled = true; btn.textContent = 'Creating account...';
+
+            const attributes = [
+                new AmazonCognitoIdentity.CognitoUserAttribute({ Name: 'email', Value: email }),
+                new AmazonCognitoIdentity.CognitoUserAttribute({ Name: 'name', Value: name })
+            ];
+
+            userPool.signUp(email, password, attributes, null, function(err, result) {
+                if (err) {
+                    showMsg('reg-msg', err.message, 'error');
+                    btn.disabled = false; btn.textContent = 'Create Account';
+                    return;
+                }
+                pendingEmail = email;
+                showMsg('reg-msg', 'Account created! Check your email for a verification code.', 'success');
+                document.getElementById('reg-confirm').classList.remove('hidden');
+                btn.style.display = 'none';
+            });
+        }
+
+        function confirmRegistration() {
+            const code = document.getElementById('reg-code').value;
+            if (!code || !pendingEmail) return;
+            const cognitoUser = new AmazonCognitoIdentity.CognitoUser({ Username: pendingEmail, Pool: userPool });
+            cognitoUser.confirmRegistration(code, true, function(err) {
+                if (err) { showMsg('reg-msg', err.message, 'error'); return; }
+                showMsg('reg-msg', 'Email verified! You can now sign in.', 'success');
+                setTimeout(function() { showTab('signin'); document.getElementById('si-email').value = pendingEmail; }, 1500);
+            });
+        }
+
+        // Auto-redirect if already authenticated
+        const currentUser = userPool.getCurrentUser();
+        if (currentUser) {
+            currentUser.getSession(function(err, session) {
+                if (!err && session.isValid()) window.location.href = 'index.html';
+            });
+        }
+        document.getElementById('si-email').focus();
+    </script>
+</body>
+</html>

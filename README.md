@@ -1,268 +1,264 @@
-# Guidance for Restaurant Monitoring Agents on AWS
-
-## Table of Contents
-
-1. [Overview](#overview)
-   - [Cost](#cost)
-2. [Prerequisites](#prerequisites)
-   - [Operating System](#operating-system)
-3. [Deployment Steps](#deployment-steps)
-4. [Deployment Validation](#deployment-validation)
-5. [Running the Guidance](#running-the-guidance)
-6. [Next Steps](#next-steps)
-7. [Cleanup](#cleanup)
-8. [Notices](#notices)
-9. [Authors](#authors)
+# Guidance for AI-Powered Restaurant Visibility on AWS
 
 ## Overview
 
-⚠️ **SECURITY WARNING**: This guidance has been assessed and contains significant security vulnerabilities. **DO NOT deploy to production** without addressing the critical security issues identified in the security assessment reports. See `security-remediation-summary.md` for details.
+AI-powered restaurant equipment monitoring system using Amazon Bedrock AgentCore, Nova Sonic speech-to-speech, and DynamoDB. Monitors 5 Georgia restaurant locations with real-time anomaly detection, automated ticket creation, and both text and voice conversational AI interfaces.
 
-This guidance demonstrates how to build an AI-powered restaurant monitoring system using AWS services. The solution uses intelligent agents to monitor restaurant equipment across 10 Georgia locations with real-time anomaly detection, automated ticket creation, and conversational AI interfaces for restaurant operations management.
+### Key Features
 
-![Architecture Diagram](assets/architecture-diagram.png)
+- **AI Agent**: Strands SDK agent on Bedrock AgentCore with 9 tools (equipment, inventory, staffing, tickets, knowledge base)
+- **Knowledge Base**: Bedrock Knowledge Base with 6 equipment manuals (usage, maintenance, warranty, troubleshooting)
+- **AgentCore Memory**: Short-term + long-term memory for conversation continuity
+- **Voice Chat**: Nova Sonic BidiAgent for real-time speech-to-speech conversations via WebSocket
+- **Text Chat**: Nova Lite model for text-based queries via API Gateway
+- **3D Digital Twin**: Interactive Three.js visualization of restaurants and equipment status
+- **Real-time Monitoring**: Equipment temperature tracking, inventory levels, staffing schedules
+- **Automated Tickets**: Agent creates maintenance tickets with category tagging
+- **Security Hardened**: Cognito auth (MFA), KMS CMK encryption, WAF, TLS 1.2, DLQ, least privilege IAM
 
-The system provides:
-- **Intelligent Monitoring Agents**: AI-powered agents that analyze equipment data and detect anomalies
-- **Real-time Equipment Monitoring**: Track temperature data across 10 appliances per location
-- **Automated Ticket Creation**: Agents automatically create maintenance tickets for equipment issues
-- **Interactive Dashboard**: 3D visualization with live data and agent chat interface
-- **Secure Authentication**: Cognito-based user management with self-registration
+### Architecture
 
-**Security Status**: 🔴 **CRITICAL ISSUES IDENTIFIED** - 32 critical security vulnerabilities across Lambda, IAM, S3, and DynamoDB services require immediate remediation before production use.
+```
+┌─────────────────────────────────────────────────────────────────────┐
+│                         Frontend (S3 + CloudFront)                  │
+│  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐ │
+│  │Dashboard │ │3D Twin   │ │Inventory │ │Staffing  │ │Tickets   │ │
+│  └────┬─────┘ └────┬─────┘ └────┬─────┘ └────┬─────┘ └────┬─────┘ │
+│       │    Chat Widget (Text + Voice)         │             │       │
+└───────┼────────────┼──────────────────────────┼─────────────┼───────┘
+        │            │                          │             │
+        ▼            ▼                          ▼             ▼
+┌───────────────────────────────────────────────────────────────────┐
+│                    Amazon API Gateway (REST)                       │
+│  /restaurants  /equipment  /inventory  /staffing  /tickets         │
+│  /chat (POST)                         /voice-token (GET)          │
+└───────┬───────────────────────────────────┬───────────────────────┘
+        │                                   │
+        ▼                                   ▼
+┌───────────────────┐            ┌─────────────────────────┐
+│  API Lambda        │            │  Chat Lambda             │
+│  (DynamoDB CRUD +  │            │  (invoke_agent_runtime)  │
+│   voice-token)     │            └──────────┬──────────────┘
+└───────┬───────────┘                        │
+        │                                    ▼
+        ▼                         ┌─────────────────────────┐
+┌───────────────────┐             │  Bedrock AgentCore       │
+│  Amazon DynamoDB   │◄───────────│  ┌───────────────────┐   │
+│  • restaurants     │   tools    │  │ Strands Agent      │   │
+│  • equipment       │◄──────────│  │ (Python 3.12)      │   │
+│  • inventory       │            │  │ • Text: Nova Lite  │   │
+│  • staffing        │            │  │ • Voice: Nova Sonic│   │
+│  • tickets         │            │  │ • 8 DynamoDB tools │   │
+│  • chat-history    │            │  └───────────────────┘   │
+└───────────────────┘             └──────────┬──────────────┘
+                                             │ WebSocket /ws
+                                             ▼
+                                  ┌─────────────────────────┐
+                                  │  Browser (Voice Client)  │
+                                  │  Mic → PCM 16kHz →       │
+                                  │  AgentCore WebSocket →   │
+                                  │  Nova Sonic BidiAgent →  │
+                                  │  Audio Playback          │
+                                  └─────────────────────────┘
+
+Authentication: Amazon Cognito (User Pool + Identity Pool)
+```
+
 
 ### Cost
 
-You are responsible for the cost of the AWS services used while running this Guidance. As of October 2025, the cost for running this Guidance with the default settings in the US East (Ohio) Region is approximately $2,482.41 per month for processing 10 restaurant locations with 70 equipment sensors and AI-powered monitoring agents.
+Approximate monthly cost for 5 restaurant locations in US East (N. Virginia):
 
-We recommend creating a [Budget](https://docs.aws.amazon.com/cost-management/latest/userguide/budgets-managing-costs.html) through [AWS Cost Explorer](https://aws.amazon.com/aws-cost-management/aws-cost-explorer/) to help manage costs. Prices are subject to change. For full details, refer to the pricing webpage for each AWS service used in this Guidance.
-
-The following table provides a sample cost breakdown for deploying this Guidance with the default parameters in the US East (Ohio) Region for one month.
-
-| AWS service  | Dimensions | Cost [USD] |
-| ----------- | ------------ | ------------ |
-| Amazon DynamoDB (on-demand) | Standard table class, 1 KB average item size | $0.12 |
-| Amazon DynamoDB (provisioned) | Standard table class, 14 KB average item size, 1 GB storage, reserved capacity | $18.86 |
-| AWS Lambda | 864,000 requests per month, x86 architecture, 512 MB ephemeral storage | $29.33 |
-| Amazon S3 | 5 GB storage, 10,000 PUT requests, 50,000 GET requests per month | $0.18 |
-| Amazon CloudFront | 20 GB data transfer out per month | $1.70 |
-| Amazon Cognito | 200 monthly active users with advanced security features | $10.00 |
-| Amazon Bedrock (Workload 1) | 60 requests/min, 8 hours/day, 1000 input tokens, 500 output tokens per request | $2,419.20 |
-| Amazon API Gateway | 864,000 REST API requests per month, 34 KB average request size | $3.02 |
-| **Total monthly cost** | | **$2,482.41** |
+| AWS Service | Usage | Cost |
+|---|---|---|
+| Amazon Bedrock (Nova Lite + Nova Sonic) | Text + voice queries | ~$2,400 |
+| Amazon DynamoDB (on-demand) | 6 tables, low throughput | ~$19 |
+| AWS Lambda | API + Chat functions | ~$30 |
+| Amazon S3 + CloudFront | Static frontend hosting | ~$2 |
+| Amazon Cognito | User authentication | ~$10 |
+| Amazon API Gateway | REST API | ~$3 |
+| Bedrock AgentCore | Agent runtime | ~$18 |
+| **Total** | | **~$2,482/month** |
 
 ## Prerequisites
 
-### Operating System
+- AWS CLI v2 configured with appropriate permissions
+- Python 3.12+
+- Bash shell
+- `uv` (Python package manager): `curl -LsSf https://astral.sh/uv/install.sh | sh`
+- AgentCore CLI: `pipx install bedrock-agentcore-starter-toolkit`
+- Amazon Bedrock model access enabled for Nova Lite, Nova Sonic, and Titan Embed Text v2
 
-These deployment instructions are optimized to best work on **Amazon Linux 2 AMI**. Deployment in another OS may require additional steps.
+## Deployment
 
-Before deploying this solution, ensure you have:
+### Quick Start
 
-- AWS CLI configured with appropriate permissions
-- AWS account with access to the required services
-- Python 3.9 or later
-- Bash shell (for deployment scripts)
+```bash
+git clone <repo-url>
+cd guidance-for-ai-powered-restaurant-visibility-on-aws
+./deployment/deploy-all.sh
+```
 
-### AWS account requirements
+This runs 7 steps:
+1. **Infrastructure** — CloudFormation: DynamoDB (KMS CMK), API Gateway (Cognito auth), S3, CloudFront (WAF + TLS 1.2), Cognito (MFA), KMS keys, SQS DLQ
+2. **Sample Data** — Loads restaurants, equipment (with issues), inventory, staffing, tickets
+3. **Knowledge Base** — Deploys Bedrock KB with OpenSearch Serverless, uploads 6 equipment manuals, triggers ingestion
+4. **AgentCore Agent** — Deploys Strands agent with text + voice endpoints + STM/LTM memory
+5. **Chat Endpoint** — Lambda + API Gateway `/chat` with Cognito authorizer
+6. **Frontend** — Syncs to S3, updates API/Cognito credentials, invalidates CloudFront
+7. **Demo User** — Creates Cognito user for testing
 
-The deployment requires permissions for:
-- CloudFormation stack creation and management
-- IAM role creation and management
-- DynamoDB table creation and management
-- API Gateway creation and configuration
-- Lambda function deployment
-- S3 bucket creation and management
-- CloudFront distribution management
-- Cognito User Pool and Identity Pool management
+### Knowledge Base Only
 
-## Deployment Steps
+```bash
+./deployment/deploy-knowledge-base.sh
+```
 
-1. Clone the repository using command:
-   ```bash
-   git clone https://github.com/aws-solutions-library-samples/guidance-for-restaurant-monitoring-agents-on-aws.git
-   ```
+Deploys the equipment manuals knowledge base independently (AOSS collection, vector index, Bedrock KB, data source, ingestion).
 
-2. Change to the repository folder:
-   ```bash
-   cd guidance-for-restaurant-monitoring-agents-on-aws
-   ```
+### Manual Commands
 
-3. Run the automated deployment script for complete setup:
-   ```bash
-   ./deployment/deploy.sh
-   ```
+```bash
+./deployment/deploy-all.sh                    # Full deployment
+./deployment/deploy-knowledge-base.sh         # Knowledge base only
+./deployment/deploy-agentcore-cli.sh          # Agent only
+./deployment/load-data.sh                     # Reload sample data
+./deployment/cleanup.sh                       # Delete all stacks
+./deployment/invalidate-frontend-cache.sh     # Clear CloudFront cache
+```
 
-This script will:
-- Deploy Restaurant Monitoring Agent Base Infrastructure
-- Deploy Restaurant Monitoring Agent Workflow Lambda functions  
-- Deploy website content and load initial data
+### Deployment Output
 
-4. For clean deployment (recommended when executed multiple times to reset the source code mapping for Cognito and API Gateway endpoint), run:
-   ```bash
-   ./deployment/reset-source-to-placeholders.sh
-   ./deployment/deploy.sh
-   ```
+The script outputs:
+- CloudFront URL (frontend)
+- API Gateway URL (REST endpoints)
+- Agent ARN (AgentCore runtime)
+- Knowledge Base ID
+- Demo login credentials
 
-5. Capture the CloudFront URL from the deployment output:
-   ```bash
-   aws cloudformation describe-stacks --stack-name restaurant-monitoring-agents-base-infrastructure-production --query 'Stacks[0].Outputs[?OutputKey==`CloudFrontURL`].OutputValue' --output text
-   ```
+### Post-Deployment Login
 
-## Deployment Validation
+```
+URL:      https://<cloudfront-domain>.cloudfront.net
+Email:    demo@anycompany.com
+Password: DemoPass#2026!
+```
 
-After deployment, verify the following resources were created:
+Note: Self-registration is disabled. Additional users must be created by an admin via:
+```bash
+aws cognito-idp admin-create-user --user-pool-id <pool-id> --username user@example.com \
+    --user-attributes Name=email,Value=user@example.com Name=name,Value="User Name" Name=email_verified,Value=true \
+    --temporary-password 'TempPass123!'
+```
 
-- Open CloudFormation console and verify the status of the templates with names starting with `restaurant-monitoring-agents`
-- If deployment is successful, you should see active DynamoDB tables with names starting with `restaurant-kitchen-assistant` in the DynamoDB console
-- Run the following CLI command to validate the deployment:
-  ```bash
-  aws cloudformation describe-stacks --stack-name restaurant-monitoring-agents-base-infrastructure-production
-  ```
-- Verify API Gateway endpoints are responding:
-  ```bash
-  # Test API endpoints (replace with your actual API URL)
-  curl "https://YOUR-API-URL/restaurants"
-  curl "https://YOUR-API-URL/tickets"
-  curl "https://YOUR-API-URL/equipment"
-  ```
+## Data Model
 
-## Running the Guidance
+### DynamoDB Tables
 
-### Accessing the Dashboard
+| Table | Key | Data |
+|---|---|---|
+| restaurants | `id` (HASH) | 5 Georgia locations with status |
+| equipment-readings | `restaurant_id` (HASH) + `equipment_id` (RANGE) | 5 equipment per restaurant |
+| inventory-items | `item_id` (HASH) | 6 items per restaurant (composite key: `AFC-001_INV-001`) |
+| staffing-requirements | `restaurant_id` (HASH) + `date` (RANGE) | Nested staffing array per day |
+| tickets | `ticket_id` (HASH) | Equipment/inventory/staffing issues with category |
 
-1. Navigate to the CloudFront URL provided in the deployment output
-2. Sign up for a new account or sign in with existing credentials
-3. View real-time restaurant status powered by monitoring agents by navigating across the three Tabs onthe webapp named Dashboard, 3D Digital Twin and Tickets. 
-4. Dashboard screen displays overall status and Tickets screen displays summary of ticket status.
-5. 3D Digital Twin displays digital representation of the restaurants. Click on each restaurant location under 3D Digital Twin tab to see a 3D view of the store and its appliance status.
-6. Interact with Gen AI chat interface on the bottom right to know the status of the restaurants in natural language format.
+### Sample Data Issues (for demo)
 
-### Expected Output
+| Restaurant | Issues |
+|---|---|
+| Atlanta (AFC-001) | Grill overheating 520°F, cooler warm 48.5°F, oil low, understaffed |
+| Savannah (AFC-002) | Freezer failure 15°F, chicken low, fries low |
+| Augusta (AFC-003) | Fryer underheating 310°F, lettuce critical |
+| Macon (AFC-004) | Minor cashier gap |
+| Athens (AFC-005) | Minor manager gap |
 
-The dashboard provides:
-- **Real-time Status**: View all 10 Georgia locations with color-coded status
-- **3D Digital Twin**: Interactive 3D visualization of restaurant equipment
-- **Equipment Monitoring**: Live temperature data from 7 appliances per location
-- **Automated Ticketing**: Strands agents automatically create tickets for anomalies
-- **AI Chat Interface**: Conversational AI for restaurant operations queries
+## Agent Tools
 
-### API Endpoints
+| Tool | Description |
+|---|---|
+| `get_restaurants` | List all restaurant locations |
+| `get_equipment` | Get equipment status and temperatures |
+| `get_inventory` | Get inventory levels |
+| `get_staffing` | Get staffing schedules |
+| `get_tickets` | Get maintenance tickets |
+| `create_ticket` | Create new maintenance ticket |
+| `analyze_temperature` | Analyze equipment temperature deviation |
+| `get_troubleshooting` | Get troubleshooting steps by equipment type |
+| `search_equipment_manual` | Search equipment manuals for usage, maintenance, warranty, and troubleshooting info (RAG via Bedrock KB) |
 
-The system provides the following REST API endpoints:
-- `GET /restaurants` - List all restaurant locations with agent-analyzed status
-- `GET /equipment` - Get equipment readings processed by monitoring agents  
-- `GET /tickets` - Get maintenance tickets created by restaurant monitoring agents
-- `POST /strands-agent-chat` - Direct interface to restaurant monitoring agents
+## API Endpoints
 
-The system covers 10 Georgia restaurant locations with full equipment monitoring:
+| Endpoint | Method | Description |
+|---|---|---|
+| `/restaurants` | GET | List all restaurants |
+| `/equipment` | GET | Equipment status |
+| `/inventory` | GET | Inventory levels |
+| `/staffing` | GET | Staffing schedules |
+| `/tickets` | GET | Maintenance tickets |
+| `/chat` | POST | Text chat (Nova Lite via AgentCore) |
+| `/voice-token` | GET | Presigned WebSocket URL for voice (Nova Sonic) |
 
-| Location | ID | Equipment Count | Monitoring |
-|----------|----|-----------------|-----------| 
-| Atlanta Kitchen | AFC-001 | 7 appliances | ✅ Active |
-| Savannah Kitchen | AFC-002 | 7 appliances | ✅ Active |
-| Augusta Kitchen | AFC-003 | 7 appliances | ✅ Active |
-| Macon Kitchen | AFC-004 | 7 appliances | ✅ Active |
-| Athens Kitchen | AFC-005 | 7 appliances | ✅ Active |
-| Columbus Kitchen | AFC-006 | 7 appliances | ✅ Active |
-| Brunswick Kitchen | AFC-007 | 7 appliances | ✅ Active |
-| Albany Kitchen | AFC-008 | 7 appliances | ✅ Active |
-| Valdosta Kitchen | AFC-009 | 7 appliances | ✅ Active |
-| Cumming Kitchen | AFC-010 | 7 appliances | ✅ Active |
+## Frontend Pages
 
-**Equipment Types Monitored:**
-- Walk-in Cooler (38°F target)
-- Beverage Cooler (35°F target)  
-- Freezer Unit (-5°F target)
-- Burger Grill (450°F target)
-- French Fry Station (375°F target)
-- Chicken Fryer (375°F target)
-- Ice Cream Freezer (-10°F target)
+| Page | Description |
+|---|---|
+| `index.html` | Dashboard — restaurant cards with equipment/ticket counts |
+| `3d-twin.html` | 3D Digital Twin — Georgia map, click-through to restaurant interiors |
+| `inventory.html` | Inventory — table with stock levels, filters, status badges |
+| `staffing.html` | Staffing — schedule with gap detection |
+| `tickets.html` | Tickets — grouped by restaurant with category column |
+| `login.html` | Cognito authentication |
 
-The system covers 10 Georgia restaurant locations with full equipment monitoring:
+All pages include a chat widget (text + voice) via `shared.js`.
 
-| Location | ID | Equipment Count | Monitoring |
-|----------|----|-----------------|-----------| 
-| Atlanta Kitchen | AFC-001 | 7 appliances | ✅ Active |
-| Savannah Kitchen | AFC-002 | 7 appliances | ✅ Active |
-| Augusta Kitchen | AFC-003 | 7 appliances | ✅ Active |
-| Macon Kitchen | AFC-004 | 7 appliances | ✅ Active |
-| Athens Kitchen | AFC-005 | 7 appliances | ✅ Active |
-| Columbus Kitchen | AFC-006 | 7 appliances | ✅ Active |
-| Brunswick Kitchen | AFC-007 | 7 appliances | ✅ Active |
-| Albany Kitchen | AFC-008 | 7 appliances | ✅ Active |
-| Valdosta Kitchen | AFC-009 | 7 appliances | ✅ Active |
-| Cumming Kitchen | AFC-010 | 7 appliances | ✅ Active |
+## Project Structure
 
-**Equipment Types Monitored:**
-- Walk-in Cooler (38°F target)
-- Beverage Cooler (35°F target)  
-- Freezer Unit (-5°F target)
-- Burger Grill (450°F target)
-- French Fry Station (375°F target)
-- Chicken Fryer (375°F target)
-- Ice Cream Freezer (-10°F target)
-
-## Next Steps
-
-After deploying this guidance, consider these enhancements:
-
-### Extend Monitoring Capabilities
-- Add more equipment types (HVAC, lighting, security systems)
-- Integrate with IoT sensors for real-time data collection
-- Implement predictive maintenance using historical data
-- Add mobile app support for field technicians
-
-### Enhance AI Capabilities
-- Train custom models on restaurant-specific data
-- Implement advanced anomaly detection algorithms
-- Add natural language processing for maintenance reports
-- Integrate with external maintenance management systems
-
-### Scale the Solution
-- Deploy across multiple regions
-- Add support for different restaurant chains
-- Implement multi-tenant architecture
-- Add advanced analytics and reporting dashboards
-
-### Current System Status
-
-✅ **Fully Deployed and Operational**
-- 10 Georgia restaurant locations monitored
-- 70 equipment sensors providing real-time data
-- Strands agents actively creating maintenance tickets
-- Interactive dashboard with 3D visualization
-- AI chat interface for operations support
-- Secure user authentication and session management
+```
+├── README.md
+├── assets/
+│   └── architecture-diagram.drawio            # Architecture diagram (draw.io)
+├── deployment/
+│   ├── deploy-all.sh                          # Full deployment (7 steps)
+│   ├── deploy-knowledge-base.sh               # Knowledge base deployment
+│   ├── deploy-agentcore-cli.sh                # Agent-only deploy
+│   ├── restaurant-monitoring-base-template.yaml  # CloudFormation (infra)
+│   ├── chat-endpoint.yaml                     # Chat Lambda + API Gateway
+│   ├── knowledge-base.yaml                    # KB CloudFormation (AOSS + S3)
+│   ├── load-data.sh / load-sample-data.py     # Sample data loaders
+│   ├── cleanup.sh                             # Delete all stacks
+│   ├── agent-code/
+│   │   ├── agent.py                           # Strands agent (9 tools + memory)
+│   │   └── requirements.txt
+│   └── knowledge-base/
+│       └── manuals/                           # 6 equipment product manuals
+│           ├── walk-in-cooler-manual.md
+│           ├── beverage-cooler-manual.md
+│           ├── freezer-unit-manual.md
+│           ├── burger-grill-manual.md
+│           ├── fryer-manual.md
+│           └── ice-cream-freezer-manual.md
+├── frontend/
+│   ├── shared.js          # Nav, chat widget, auth, voice loader
+│   ├── voice-client.js    # WebSocket voice client for Nova Sonic
+│   ├── api.js             # API Gateway client (with auth)
+│   ├── auth.js            # Cognito auth
+│   ├── index.html         # Dashboard
+│   ├── 3d-twin.html       # 3D Digital Twin
+│   ├── inventory.html     # Inventory
+│   ├── staffing.html      # Staffing
+│   ├── tickets.html       # Tickets
+│   └── login.html         # Login
+├── security/              # Security scan reports (ASH)
+└── .ash/                  # ASH security scanner config
+```
 
 ## Cleanup
 
-To remove all deployed resources and avoid ongoing charges:
-
 ```bash
-./deployment/cleanup.sh
+bash deployment/cleanup.sh
 ```
 
-**⚠️ WARNING: This will permanently delete ALL resources and data!**
-
-The cleanup script will:
-1. Empty S3 buckets
-2. Delete CloudFormation stacks
-3. Clean up orphaned resources
-4. Provide cleanup summary
-
 ## Notices
 
-Customers are responsible for making their own independent assessment of the information in this Guidance. This Guidance: (a) is for informational purposes only, (b) represents AWS current product offerings and practices, which are subject to change without notice, and (c) does not create any commitments or assurances from AWS and its affiliates, suppliers or licensors. AWS products or services are provided "as is" without warranties, representations, or conditions of any kind, whether express or implied. AWS responsibilities and liabilities to its customers are controlled by AWS agreements, and this Guidance is not part of, nor does it modify, any agreement between AWS and its customers.
-
-## Authors
-
-This guidance was created by the AWS Solutions Library team.
-
-## Notices
-
-Customers are responsible for making their own independent assessment of the information in this Guidance. This Guidance: (a) is for informational purposes only, (b) represents AWS current product offerings and practices, which are subject to change without notice, and (c) does not create any commitments or assurances from AWS and its affiliates, suppliers or licensors. AWS products or services are provided "as is" without warranties, representations, or conditions of any kind, whether express or implied. AWS responsibilities and liabilities to its customers are controlled by AWS agreements, and this Guidance is not part of, nor does it modify, any agreement between AWS and its customers.
-
-## Authors
-
-This guidance was created by the AWS Solutions Library team.
+This guidance is for informational purposes only and represents AWS current product offerings. Customers are responsible for making their own independent assessment. See `security/` for known security considerations.

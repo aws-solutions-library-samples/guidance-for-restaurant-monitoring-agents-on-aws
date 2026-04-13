@@ -1,0 +1,30 @@
+{
+  "enabled": true,
+  "name": "Security Scan on Edit",
+  "description": "Reviews edited code files for potential security issues including credentials, keys, tokens, and sensitive data",
+  "version": "1",
+  "when": {
+    "type": "fileEdited",
+    "patterns": [
+      "*.py",
+      "*.js",
+      "*.ts",
+      "*.jsx",
+      "*.tsx",
+      "*.java",
+      "*.go",
+      "*.rb",
+      "*.php",
+      "*.sh",
+      "*.yaml",
+      "*.yml",
+      "*.json",
+      "*.env",
+      "*.config"
+    ]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "Review the changed file for potential security issues:\n\n1. Look for API keys, tokens, or credentials in source code\n2. Check for private keys or sensitive credentials\n3. Scan for encryption keys or certificates\n4. Identify authentication tokens or session IDs\n5. Flag passwords or secrets in configuration files\n6. Detect IP addresses containing sensitive data\n7. Find hardcoded internal URLs\n8. Spot database connection credentials\n\nFor each issue found:\n1. Highlight the specific security risk with line numbers\n2. Suggest a secure alternative approach (environment variables, secrets manager, AWS Secrets Manager, etc.)\n3. Recommend security best practices\n\nIf no issues are found, briefly confirm the file passes security review."
+  }
+}
