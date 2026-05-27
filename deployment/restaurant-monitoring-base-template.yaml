@@ -242,33 +242,6 @@ Resources:
         - Key: Project
           Value: !Ref ProjectName
 
-  # Forecasts table — stores AI/ML demand predictions per restaurant per date
-  ForecastsTable:
-    Type: AWS::DynamoDB::Table
-    Properties:
-      TableName: !Sub '${ProjectName}-forecasts-prod'
-      BillingMode: PAY_PER_REQUEST
-      AttributeDefinitions:
-        - AttributeName: restaurant_id
-          AttributeType: S
-        - AttributeName: forecast_date
-          AttributeType: S
-      KeySchema:
-        - AttributeName: restaurant_id
-          KeyType: HASH
-        - AttributeName: forecast_date
-          KeyType: RANGE
-      SSESpecification:
-        SSEEnabled: true
-        SSEType: KMS
-        KMSMasterKeyId: !GetAtt DynamoDBEncryptionKey.Arn
-      PointInTimeRecoverySpecification:
-        PointInTimeRecoveryEnabled: true
-      Tags:
-        - Key: Environment
-          Value: !Ref Environment
-        - Key: Project
-          Value: !Ref ProjectName
 
   # Enhanced IAM Role with least privilege
   ApiLambdaRole:
@@ -303,8 +276,6 @@ Resources:
                   - !GetAtt TicketsTable.Arn
                   - !GetAtt InventoryItemsTable.Arn
                   - !GetAtt StaffingRequirementsTable.Arn
-                  - !GetAtt ForecastsTable.Arn
-                  - !GetAtt ForecastsTable.Arn
                 Condition:
                   StringEquals:
                     'aws:RequestedRegion': !Ref 'AWS::Region'
@@ -344,8 +315,6 @@ Resources:
           TICKETS_TABLE: !Ref TicketsTable
           INVENTORY_TABLE: !Ref InventoryItemsTable
           STAFFING_TABLE: !Ref StaffingRequirementsTable
-          FORECASTS_TABLE: !Ref ForecastsTable
-          FORECASTS_TABLE: !Ref ForecastsTable
           AGENT_RUNTIME_ARN: !Sub 'arn:aws:bedrock-agentcore:${AWS::Region}:${AWS::AccountId}:runtime/restaurant_agent'
       Tags:
         - Key: Environment
@@ -441,23 +410,6 @@ Resources:
                           'statusCode': 200,
                           'headers': headers,
                           'body': json.dumps({'staffing': response['Items']}, default=decimal_default)
-                      }
-                  
-                  elif path == '/forecasts':
-                      table = dynamodb.Table(os.environ['FORECASTS_TABLE'])
-                      # Support optional restaurant_id query param
-                      params = event.get('queryStringParameters') or {}
-                      rid = params.get('restaurant_id', '')
-                      if rid and len(rid) < 20:
-                          response = table.query(
-                              KeyConditionExpression=boto3.dynamodb.conditions.Key('restaurant_id').eq(rid)
-                          )
-                      else:
-                          response = table.scan()
-                      return {
-                          'statusCode': 200,
-                          'headers': headers,
-                          'body': json.dumps({'forecasts': response['Items']}, default=decimal_default)
                       }
                   
                   elif path == '/voice-token':
@@ -566,8 +518,6 @@ Resources:
       - StaffingOptionsMethod
       - VoiceTokenMethod
       - VoiceTokenOptionsMethod
-      - ForecastsMethod
-      - ForecastsOptionsMethod
     Properties:
       RestApiId: !Ref RestApi
       StageName: prod
@@ -613,13 +563,6 @@ Resources:
       RestApiId: !Ref RestApi
       ParentId: !GetAtt RestApi.RootResourceId
       PathPart: voice-token
-
-  ForecastsResource:
-    Type: AWS::ApiGateway::Resource
-    Properties:
-      RestApiId: !Ref RestApi
-      ParentId: !GetAtt RestApi.RootResourceId
-      PathPart: forecasts
 
   RestaurantsMethod:
     Type: AWS::ApiGateway::Method
@@ -849,43 +792,6 @@ Resources:
     Properties:
       RestApiId: !Ref RestApi
       ResourceId: !Ref VoiceTokenResource
-      HttpMethod: OPTIONS
-      AuthorizationType: NONE
-      Integration:
-        Type: MOCK
-        IntegrationResponses:
-          - StatusCode: 200
-            ResponseParameters:
-              method.response.header.Access-Control-Allow-Headers: "'Content-Type,Authorization,X-Amz-Date,X-Api-Key,X-Amz-Security-Token'"
-              method.response.header.Access-Control-Allow-Methods: "'GET,OPTIONS'"
-              method.response.header.Access-Control-Allow-Origin: "'*'"
-        RequestTemplates:
-          application/json: '{"statusCode": 200}'
-      MethodResponses:
-        - StatusCode: 200
-          ResponseParameters:
-            method.response.header.Access-Control-Allow-Headers: true
-            method.response.header.Access-Control-Allow-Methods: true
-            method.response.header.Access-Control-Allow-Origin: true
-
-  ForecastsMethod:
-    Type: AWS::ApiGateway::Method
-    Properties:
-      RestApiId: !Ref RestApi
-      ResourceId: !Ref ForecastsResource
-      HttpMethod: GET
-      AuthorizationType: COGNITO_USER_POOLS
-      AuthorizerId: !Ref CognitoAuthorizer
-      Integration:
-        Type: AWS_PROXY
-        IntegrationHttpMethod: POST
-        Uri: !Sub 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ApiLambdaFunction.Arn}/invocations'
-
-  ForecastsOptionsMethod:
-    Type: AWS::ApiGateway::Method
-    Properties:
-      RestApiId: !Ref RestApi
-      ResourceId: !Ref ForecastsResource
       HttpMethod: OPTIONS
       AuthorizationType: NONE
       Integration:
@@ -1155,11 +1061,7 @@ Resources:
           RequireLowercase: true
           RequireNumbers: true
           RequireSymbols: true
-      MfaConfiguration: 'ON'
-      EnabledMfas:
-        - SOFTWARE_TOKEN_MFA
-      UserPoolAddOns:
-        AdvancedSecurityMode: ENFORCED
+      MfaConfiguration: 'OFF'
       Schema:
         - Name: email
           AttributeDataType: String
@@ -1280,11 +1182,6 @@ Outputs:
     Value: !Ref TicketsTable
     Export:
       Name: !Sub '${ProjectName}-tickets-table-${Environment}'
-
-  ForecastsTable:
-    Value: !Ref ForecastsTable
-    Export:
-      Name: !Sub '${ProjectName}-forecasts-table-${Environment}'
 
   ApiLambdaFunction:
     Description: 'Secure Lambda Function ARN'
