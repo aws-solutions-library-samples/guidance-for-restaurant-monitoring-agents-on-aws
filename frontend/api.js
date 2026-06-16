@@ -81,13 +81,6 @@ class ApiGatewayClient {
         const staffing = data.staffing || data.Items || data;
         return Array.isArray(staffing) ? staffing : [];
     }
-
-    async getForecasts(restaurantId) {
-        const endpoint = restaurantId ? `/forecasts?restaurant_id=${encodeURIComponent(restaurantId)}` : '/forecasts';
-        const data = await this.makeRequest(endpoint);
-        const forecasts = data.forecasts || data.Items || data;
-        return Array.isArray(forecasts) ? forecasts : [];
-    }
 }
 
 const apiClient = new ApiGatewayClient();
