@@ -6,8 +6,8 @@ AI-powered restaurant equipment monitoring system using Amazon Bedrock AgentCore
 
 ### Key Features
 
-- **AI Agent**: Strands SDK agent on Bedrock AgentCore with 9 tools (equipment, inventory, staffing, tickets, knowledge base)
-- **Knowledge Base**: Bedrock Knowledge Base with 6 equipment manuals (usage, maintenance, warranty, troubleshooting)
+- **AI Agent**: Strands SDK agent on Bedrock AgentCore with 8 tools (equipment, inventory, staffing, tickets)
+- **Voice Chat**: Nova Sonic BidiAgent for real-time speech-to-speech conversations via WebSocket
 - **AgentCore Memory**: Short-term + long-term memory for conversation continuity
 - **Voice Chat**: Nova Sonic BidiAgent for real-time speech-to-speech conversations via WebSocket
 - **Text Chat**: Nova Lite model for text-based queries via API Gateway
@@ -102,25 +102,15 @@ cd guidance-for-ai-powered-restaurant-visibility-on-aws
 This runs 7 steps:
 1. **Infrastructure** — CloudFormation: DynamoDB (KMS CMK), API Gateway (Cognito auth), S3, CloudFront (WAF + TLS 1.2), Cognito (MFA), KMS keys, SQS DLQ
 2. **Sample Data** — Loads restaurants, equipment (with issues), inventory, staffing, tickets
-3. **Knowledge Base** — Deploys Bedrock KB with OpenSearch Serverless, uploads 6 equipment manuals, triggers ingestion
-4. **AgentCore Agent** — Deploys Strands agent with text + voice endpoints + STM/LTM memory
+3. **AgentCore Agent** — Deploys Strands agent with text + voice endpoints + STM/LTM memory
 5. **Chat Endpoint** — Lambda + API Gateway `/chat` with Cognito authorizer
 6. **Frontend** — Syncs to S3, updates API/Cognito credentials, invalidates CloudFront
 7. **Demo User** — Creates Cognito user for testing
-
-### Knowledge Base Only
-
-```bash
-./deployment/deploy-knowledge-base.sh
-```
-
-Deploys the equipment manuals knowledge base independently (AOSS collection, vector index, Bedrock KB, data source, ingestion).
 
 ### Manual Commands
 
 ```bash
 ./deployment/deploy-all.sh                    # Full deployment
-./deployment/deploy-knowledge-base.sh         # Knowledge base only
 ./deployment/deploy-agentcore-cli.sh          # Agent only
 ./deployment/load-data.sh                     # Reload sample data
 ./deployment/cleanup.sh                       # Delete all stacks
@@ -133,7 +123,6 @@ The script outputs:
 - CloudFront URL (frontend)
 - API Gateway URL (REST endpoints)
 - Agent ARN (AgentCore runtime)
-- Knowledge Base ID
 - Demo login credentials
 
 ### Post-Deployment Login
@@ -185,7 +174,6 @@ aws cognito-idp admin-create-user --user-pool-id <pool-id> --username user@examp
 | `create_ticket` | Create new maintenance ticket |
 | `analyze_temperature` | Analyze equipment temperature deviation |
 | `get_troubleshooting` | Get troubleshooting steps by equipment type |
-| `search_equipment_manual` | Search equipment manuals for usage, maintenance, warranty, and troubleshooting info (RAG via Bedrock KB) |
 
 ## API Endpoints
 
@@ -219,20 +207,15 @@ All pages include a chat widget (text + voice) via `shared.js`.
 ├── assets/
 │   └── architecture-diagram.drawio            # Architecture diagram (draw.io)
 ├── deployment/
-│   ├── deploy-all.sh                          # Full deployment (7 steps)
-│   ├── deploy-knowledge-base.sh               # Knowledge base deployment
+│   ├── deploy-all.sh                          # Full deployment
 │   ├── deploy-agentcore-cli.sh                # Agent-only deploy
 │   ├── restaurant-monitoring-base-template.yaml  # CloudFormation (infra)
 │   ├── chat-endpoint.yaml                     # Chat Lambda + API Gateway
-│   ├── knowledge-base.yaml                    # KB CloudFormation (AOSS + S3)
 │   ├── load-data.sh / load-sample-data.py     # Sample data loaders
 │   ├── cleanup.sh                             # Delete all stacks
 │   ├── agent-code/
-│   │   ├── agent.py                           # Strands agent (9 tools + memory)
+│   │   ├── agent.py                           # Strands agent (8 tools + memory)
 │   │   └── requirements.txt
-│   └── knowledge-base/
-│       └── manuals/                           # 6 equipment product manuals
-│           ├── walk-in-cooler-manual.md
 │           ├── beverage-cooler-manual.md
 │           ├── freezer-unit-manual.md
 │           ├── burger-grill-manual.md

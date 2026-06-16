@@ -155,58 +155,8 @@ def create_ticket(restaurant_id: str, issue: str, priority: str = "medium", cate
     table.put_item(Item=ticket)
     return {"status": "success", "content": [{"text": f"Ticket {ticket_id} created successfully for {category} — {issue}"}]}
 
-# Knowledge Base ID — set via environment variable after KB creation
-KNOWLEDGE_BASE_ID = os.environ.get('KNOWLEDGE_BASE_ID', 'RXNA4EHZKC')
-
-@tool
-def search_equipment_manual(query: str, equipment_type: str = None) -> dict:
-    """Search equipment manuals for information about usage, maintenance, warranty, troubleshooting, and operating procedures.
-    Use this tool when operators ask questions about how to use equipment, maintenance schedules,
-    warranty coverage, safety procedures, cleaning instructions, or temperature settings.
-
-    Args:
-        query: The question or topic to search for in equipment manuals
-        equipment_type: Optional equipment type filter (e.g. 'walk-in cooler', 'fryer', 'grill', 'freezer', 'ice cream freezer', 'beverage cooler')
-    """
-    if not KNOWLEDGE_BASE_ID:
-        return {"status": "error", "content": [{"text": "Knowledge base not configured. Set KNOWLEDGE_BASE_ID environment variable."}]}
-
-    try:
-        client = boto3.client('bedrock-agent-runtime', region_name=REGION)
-
-        search_query = query
-        if equipment_type:
-            search_query = f"{equipment_type}: {query}"
-
-        response = client.retrieve(
-            knowledgeBaseId=KNOWLEDGE_BASE_ID,
-            retrievalQuery={'text': search_query},
-            retrievalConfiguration={
-                'vectorSearchConfiguration': {
-                    'numberOfResults': 5
-                }
-            }
-        )
-
-        results = []
-        for result in response.get('retrievalResults', []):
-            content = result.get('content', {}).get('text', '')
-            source = result.get('location', {}).get('s3Location', {}).get('uri', 'Unknown source')
-            score = result.get('score', 0)
-            if content:
-                results.append(f"[Source: {source.split('/')[-1]}, Relevance: {score:.2f}]\n{content}")
-
-        if results:
-            return {"status": "success", "content": [{"text": "\n\n---\n\n".join(results)}]}
-        else:
-            return {"status": "success", "content": [{"text": "No relevant information found in equipment manuals for that query."}]}
-
-    except Exception as e:
-        logger.error(f"Knowledge base query error: {e}")
-        return {"status": "error", "content": [{"text": f"Error searching equipment manuals: {str(e)}"}]}
-
 ALL_TOOLS = [get_restaurants, get_equipment, analyze_temperature, get_troubleshooting,
-             get_inventory, get_staffing, get_tickets, create_ticket, search_equipment_manual]
+             get_inventory, get_staffing, get_tickets, create_ticket]
 
 
 # ============================================================
@@ -236,13 +186,9 @@ CREATING TICKETS:
 - For equipment issues: create a ticket with category="equipment" and include equipment_id.
 - Always confirm the ticket was created and provide the ticket ID.
 
-EQUIPMENT KNOWLEDGE BASE:
-- You have access to detailed equipment manuals via the search_equipment_manual tool.
-- Use it when operators ask about: how to use equipment, startup/shutdown procedures, maintenance schedules,
-  warranty information, troubleshooting steps, safety procedures, cleaning instructions, or temperature settings.
-- Always cite the manual when providing maintenance or warranty information.
-- Equipment types: Walk-In Cooler (WC-3800), Beverage Cooler (BC-3500), Freezer Unit (FZ-500),
-  Burger Grill (BG-450), Deep Fryer (DF-375), Ice Cream Freezer (ICF-1000).
+EQUIPMENT TROUBLESHOOTING:
+- For equipment troubleshooting, use the get_troubleshooting tool to provide standard guidance.
+- Equipment types: Walk-In Cooler, Beverage Cooler, Freezer Unit, Burger Grill, Deep Fryer, Ice Cream Freezer.
 
 RESPONSE STYLE:
 - Summarize data conversationally. Do NOT dump raw tables or lists.
@@ -257,7 +203,7 @@ RULES:
 - Restaurant IDs: AFC-001 (Atlanta), AFC-002 (Savannah), AFC-003 (Augusta), AFC-004 (Macon), AFC-005 (Athens),
   AFC-006 (Columbus), AFC-007 (Brunswick), AFC-008 (Albany), AFC-009 (Valdosta), AFC-010 (Cumming).
 
-TOOLS: get_restaurants, get_equipment, get_inventory, get_staffing, get_tickets, create_ticket, analyze_temperature, get_troubleshooting, search_equipment_manual"""
+TOOLS: get_restaurants, get_equipment, get_inventory, get_staffing, get_tickets, create_ticket, analyze_temperature, get_troubleshooting"""
 
 # ============================================================
 # WEBSOCKET ENTRYPOINT — BidiAgent with Nova Sonic (voice)

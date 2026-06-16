@@ -5,8 +5,7 @@
 # This script deploys the entire restaurant monitoring system:
 # 1. Infrastructure (DynamoDB, API Gateway, S3, CloudFront, Cognito, WAF, KMS)
 # 2. Sample Data (restaurants, equipment, inventory, staffing, tickets)
-# 3. Knowledge Base (equipment manuals in Bedrock KB + OpenSearch Serverless)
-# 4. AgentCore Agent (Strands-based AI agent with tools + memory)
+# 3. AgentCore Agent (Strands-based AI agent with tools + memory)
 # 5. Chat Endpoint (Lambda + API Gateway with Cognito auth)
 # 6. Frontend (S3 + CloudFront with auth)
 # =============================================================================
@@ -51,24 +50,7 @@ bash "$SCRIPT_DIR/load-data.sh"
 echo "  ✅ Sample data loaded"
 
 # =============================================================================
-# Step 3: Deploy Knowledge Base
-# =============================================================================
-echo ""
-echo "Step 3: Deploying Knowledge Base..."
-
-if [ -f "$SCRIPT_DIR/deploy-knowledge-base.sh" ]; then
-    bash "$SCRIPT_DIR/deploy-knowledge-base.sh"
-    KB_ID=$(aws bedrock-agent list-knowledge-bases --region $REGION \
-        --query "knowledgeBaseSummaries[?contains(name,'equipment-manuals')].knowledgeBaseId" \
-        --output text 2>/dev/null || echo "")
-    echo "  ✅ Knowledge Base deployed: $KB_ID"
-else
-    echo "  ⚠️  deploy-knowledge-base.sh not found, skipping KB deployment"
-    KB_ID=""
-fi
-
-# =============================================================================
-# Step 4: Deploy AgentCore Agent
+# Step 3: Deploy AgentCore Agent
 # =============================================================================
 echo ""
 echo "Step 4: Deploying AgentCore Agent..."
@@ -341,7 +323,6 @@ echo "============================================"
 echo ""
 echo "Resources:"
 echo "  Agent ARN:       $AGENT_ARN"
-echo "  Knowledge Base:  $KB_ID"
 echo "  API Gateway:     https://$REST_API_ID.execute-api.$REGION.amazonaws.com/prod"
 echo "  CloudFront:      $CLOUDFRONT_URL"
 echo ""
@@ -360,7 +341,7 @@ echo "  /voice-token  - Get presigned WebSocket URL"
 echo "  /chat         - Chat with AI agent"
 echo ""
 echo "Features:"
-echo "  - AI Chat with equipment knowledge base (6 manuals)"
+echo "  - AI Chat with equipment monitoring (8 tools)"
 echo "  - Voice chat via Nova Sonic (WebSocket)"
 echo "  - AgentCore Memory (STM + LTM)"
 echo "  - Security: Cognito MFA, KMS encryption, WAF, TLS 1.2"
