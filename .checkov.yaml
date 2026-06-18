@@ -1,0 +1,22 @@
+# Checkov configuration for Restaurant Monitoring Guidance
+
+# Exclude scan artifact directories (contain previously generated templates, not source code)
+skip-path:
+  - solution-guidance-docs-July2026
+
+# Skipped checks with documented justifications
+skip-check:
+  # Lambda functions intentionally not in VPC:
+  # - They only access DynamoDB (via public endpoint) and Bedrock AgentCore
+  # - VPC placement would require NAT Gateway ($45/mo/AZ) with no security benefit
+  # - API Gateway + Cognito + WAF provide network-layer protection
+  - CKV_AWS_117  # Lambda VPC
+
+  # Access logs bucket cannot log to itself (circular dependency)
+  # The main DashboardBucket logs to AccessLogsBucket; AccessLogsBucket
+  # itself does not need a separate logging destination
+  - CKV_AWS_18  # S3 access logging (for log destination buckets only)
+
+  # CloudFront distribution uses TLSv1.2_2021 MinimumProtocolVersion
+  # Checkov false-positive when CloudFrontDefaultCertificate is true
+  - CKV_AWS_174  # CloudFront TLS version

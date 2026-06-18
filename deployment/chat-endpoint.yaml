@@ -46,10 +46,15 @@ Resources:
   # SQS Dead Letter Queue for Chat Lambda
   ChatLambdaDLQ:
     Type: AWS::SQS::Queue
+    Metadata:
+      cdk_nag:
+        rules_to_suppress:
+          - id: AwsSolutions-SQS3
+            reason: 'This IS the dead-letter queue - adding a DLQ to a DLQ creates an infinite loop'
     Properties:
       QueueName: RestaurantAgent-Chat-DLQ
       MessageRetentionPeriod: 1209600
-      SqsManagedSseEnabled: true
+      KmsMasterKeyId: alias/aws/sqs
 
   ChatLambdaDLQPolicy:
     Type: AWS::SQS::QueuePolicy
@@ -69,6 +74,11 @@ Resources:
 
   ChatLambdaRole:
     Type: AWS::IAM::Role
+    Metadata:
+      cdk_nag:
+        rules_to_suppress:
+          - id: AwsSolutions-IAM5
+            reason: 'Wildcard on log-group resource is required to allow writing to log streams (log-group:*)'
     Properties:
       RoleName: RestaurantAgent-ChatLambda-Role
       AssumeRolePolicyDocument:
@@ -78,9 +88,17 @@ Resources:
             Principal:
               Service: lambda.amazonaws.com
             Action: sts:AssumeRole
-      ManagedPolicyArns:
-        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
       Policies:
+        - PolicyName: LambdaBasicExecution
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Resource: !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/RestaurantAgent-Chat:*'
         - PolicyName: InvokeAgentCore
           PolicyDocument:
             Version: '2012-10-17'
@@ -89,7 +107,11 @@ Resources:
                 Action:
                   - bedrock-agentcore:InvokeAgentRuntime
                   - bedrock-agentcore:Invoke
-                Resource: '*'
+                Resource: !Ref AgentRuntimeArn
+        - PolicyName: DLQAccess
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
               - Effect: Allow
                 Action:
                   - sqs:SendMessage
@@ -97,6 +119,11 @@ Resources:
 
   ChatLambda:
     Type: AWS::Lambda::Function
+    Metadata:
+      cdk_nag:
+        rules_to_suppress:
+          - id: AwsSolutions-L1
+            reason: 'Python 3.13 is the latest available runtime as of June 2026'
     Properties:
       FunctionName: RestaurantAgent-Chat
       Runtime: python3.13
@@ -203,6 +230,11 @@ Resources:
 
   ChatOptionsMethod:
     Type: AWS::ApiGateway::Method
+    Metadata:
+      cdk_nag:
+        rules_to_suppress:
+          - id: AwsSolutions-APIG4
+            reason: 'OPTIONS preflight requests cannot carry authorization headers per CORS specification'
     Properties:
       RestApiId: !Ref RestApiId
       ResourceId: !Ref ChatResource

@@ -5,6 +5,12 @@ global_settings:
   ignore_paths:
     - "strands-env"
     - "temp"
+    - "solution-guidance-docs-July2026"
+    - "solution-guidance-docs-July2026/**"
+    - "**/solution-guidance-docs*"
+    - "**/solution-guidance-docs*/**"
+    - "security/ash-results"
+    - ".secrets.baseline"
   suppressions: []
 fail_on_findings: true
 ash_plugin_modules: []
@@ -55,7 +61,7 @@ scanners:
     enabled: true
     options:
       severity_threshold: null
-      config_file: null
+      config_file: .checkov.yaml
       skip_path: []
       additional_formats:
       - cyclonedx_json
@@ -72,10 +78,22 @@ scanners:
       severity_threshold: null
       baseline_file: .secrets.baseline
       scan_settings:
-        version: null
+        version: "1.5.0"
         generated_at: null
-        plugins_used: []
-        filters_used: []
+        plugins_used:
+          - name: AWSKeyDetector
+          - name: BasicAuthDetector
+          - name: KeywordDetector
+            keyword_exclude: "integrity|sha384|sha256|sha512"
+          - name: PrivateKeyDetector
+          - name: Base64HighEntropyString
+            limit: 5.5
+          - name: HexHighEntropyString
+            limit: 4.0
+        filters_used:
+          - path: detect_secrets.filters.allowlist.is_line_allowlisted
+          - path: detect_secrets.filters.heuristic.is_indirect_reference
+          - path: detect_secrets.filters.heuristic.is_likely_id_string
         results: {}
   grype:
     name: grype
