@@ -71,3 +71,6 @@ security/security-scan-results.txt
 security-ash-results.tar
 # Populated at deploy time from CloudFormation outputs (placeholder committed)
 frontend/config.js.placeholder
+
+# Kiro IDE workspace files (steering, hooks, specs, session state) — not for public repo
+.kiro/

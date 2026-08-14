@@ -8,6 +8,10 @@
     if (!window.AmazonCognitoIdentity) {
         var s = document.createElement('script');
         s.src = 'https://unpkg.com/amazon-cognito-identity-js@6.3.12/dist/amazon-cognito-identity.min.js';
+        // Subresource Integrity: browser refuses to run the script if the fetched
+        // bytes don't match this hash. crossOrigin is required for SRI on cross-origin scripts.
+        s.integrity = 'sha384-YkDOkBg8dBira7f28t9KbD0tG5OnnuU540fRBz8JgorAXLJOwtakyHNV7m36RDG4';
+        s.crossOrigin = 'anonymous';
         s.onload = function() { initAuth(); };
         document.head.appendChild(s);
     }

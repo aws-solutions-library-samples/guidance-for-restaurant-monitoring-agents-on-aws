@@ -1,5 +1,7 @@
-strands-agents
-strands-agents-tools
-strands-agents[bidi]
-boto3
-bedrock-agentcore
+# Pinned for reproducible AgentCore builds. Bump deliberately and re-test.
+# strands-agents[bidi] includes the base strands-agents package plus the
+# bidirectional (Nova Sonic voice) extra.
+strands-agents[bidi]==1.52.0
+strands-agents-tools==0.8.6
+boto3==1.43.72
+bedrock-agentcore==1.21.0
