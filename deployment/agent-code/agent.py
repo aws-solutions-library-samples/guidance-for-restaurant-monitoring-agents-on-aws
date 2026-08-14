@@ -36,14 +36,26 @@ logger = logging.getLogger(__name__)
 
 app = BedrockAgentCoreApp()
 
-# DynamoDB Table Names
-RESTAURANTS_TABLE = 'restaurant-kitchen-assistant-restaurants-production'
-EQUIPMENT_TABLE = 'restaurant-kitchen-assistant-equipment-readings-production'
-INVENTORY_TABLE = 'restaurant-kitchen-assistant-inventory-items-prod'
-STAFFING_TABLE = 'restaurant-kitchen-assistant-staffing-requirements-prod'
-TICKETS_TABLE = 'restaurant-kitchen-assistant-tickets-production'
-
 REGION = os.environ.get('AWS_REGION', 'us-east-1')
+
+# Configuration is read from environment variables so no account- or
+# stack-specific values are hardcoded. Defaults match the resources created by
+# restaurant-monitoring-base-template.yaml with the default ProjectName /
+# Environment parameters. Override PROJECT_NAME / ENVIRONMENT (or the explicit
+# *_TABLE / *_MODEL_ID variables) to point the agent at a different deployment.
+PROJECT_NAME = os.environ.get('PROJECT_NAME', 'restaurant-kitchen-assistant')
+ENVIRONMENT = os.environ.get('ENVIRONMENT', 'production')
+
+# DynamoDB Table Names
+RESTAURANTS_TABLE = os.environ.get('RESTAURANTS_TABLE', f'{PROJECT_NAME}-restaurants-{ENVIRONMENT}')
+EQUIPMENT_TABLE = os.environ.get('EQUIPMENT_TABLE', f'{PROJECT_NAME}-equipment-readings-{ENVIRONMENT}')
+INVENTORY_TABLE = os.environ.get('INVENTORY_TABLE', f'{PROJECT_NAME}-inventory-items-{ENVIRONMENT}')
+STAFFING_TABLE = os.environ.get('STAFFING_TABLE', f'{PROJECT_NAME}-staffing-requirements-{ENVIRONMENT}')
+TICKETS_TABLE = os.environ.get('TICKETS_TABLE', f'{PROJECT_NAME}-tickets-{ENVIRONMENT}')
+
+# Bedrock model IDs — override via environment for model upgrades or non-US regions
+TEXT_MODEL_ID = os.environ.get('TEXT_MODEL_ID', 'us.amazon.nova-lite-v1:0')
+VOICE_MODEL_ID = os.environ.get('VOICE_MODEL_ID', 'amazon.nova-2-sonic-v1:0')
 
 # ============================================================
 # TOOLS
@@ -225,7 +237,7 @@ if BIDI_AVAILABLE:
             voice_id = "tiffany"
             model = BidiNovaSonicModel(
                 region=REGION,
-                model_id="amazon.nova-2-sonic-v1:0",
+                model_id=VOICE_MODEL_ID,
                 provider_config={
                     "audio": {
                         "input_sample_rate": 16000,
@@ -281,7 +293,7 @@ async def invoke(payload=None):
                 tools=ALL_TOOLS,
                 system_prompt=SYSTEM_PROMPT,
                 name="RestaurantAgent",
-                model="us.amazon.nova-lite-v1:0"
+                model=TEXT_MODEL_ID
             )
             result = agent(query)
             response_text = result.message['content'][0]['text']

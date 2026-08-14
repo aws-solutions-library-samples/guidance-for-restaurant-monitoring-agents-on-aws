@@ -5,7 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sign In - AnyCompany Restaurant Monitoring</title>
     <script src="https://unpkg.com/amazon-cognito-identity-js@6.3.12/dist/amazon-cognito-identity.min.js" integrity="sha384-YkDOkBg8dBira7f28t9KbD0tG5OnnuU540fRBz8JgorAXLJOwtakyHNV7m36RDG4" crossorigin="anonymous"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="config.js"></script>
+    <link rel="stylesheet" href="fonts/inter.css">
     <style>
         *{margin:0;padding:0;box-sizing:border-box;}
         body{font-family:'Inter',system-ui,sans-serif;background:linear-gradient(135deg,#111827 0%,#1f2937 50%,#111827 100%);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:1rem;}
@@ -56,7 +57,7 @@
         <!-- Sign In Form -->
         <div class="card-body" id="form-signin">
             <form onsubmit="event.preventDefault();signIn();">
-                <div class="form-group"><label for="si-email">Email</label><input type="email" id="si-email" placeholder="demo@anycompany.com" autocomplete="username" required></div>
+                <div class="form-group"><label for="si-email">Email</label><input type="email" id="si-email" placeholder="demo@example.com" autocomplete="username" required></div>
                 <div class="form-group"><label for="si-password">Password</label><input type="password" id="si-password" placeholder="Enter your password" autocomplete="current-password" required></div>
                 <button type="submit" class="btn" id="si-btn">Sign In</button>
             </form>
@@ -91,8 +92,8 @@
 
     <script>
         const userPool = new AmazonCognitoIdentity.CognitoUserPool({
-            UserPoolId: 'us-east-1_irtVFCmZ4',
-            ClientId: '76oq6mah56p6t4tchkfej1vmg8'
+            UserPoolId: window.APP_CONFIG && window.APP_CONFIG.userPoolId,
+            ClientId: window.APP_CONFIG && window.APP_CONFIG.userPoolWebClientId
         });
         let pendingUser = null;
         let pendingEmail = null;

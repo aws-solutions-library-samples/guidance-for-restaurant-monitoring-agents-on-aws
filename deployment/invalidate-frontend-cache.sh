@@ -1,22 +1,26 @@
 #!/bin/bash
+# Invalidate the CloudFront cache after a frontend update.
 
-# Script to invalidate CloudFront cache for frontend updates
+set -e
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+if [ -f "$SCRIPT_DIR/config.env" ]; then
+    source "$SCRIPT_DIR/config.env"
+fi
+REGION="${AWS_REGION:-us-east-1}"
 
 echo "🔄 Invalidating CloudFront cache..."
 
-# Find CloudFront distribution
-DIST_ID=$(aws cloudfront list-distributions --query 'DistributionList.Items[0].Id' --output text 2>/dev/null)
+# Resolve the distribution ID from the infrastructure stack output
+DIST_ID=$(aws cloudformation describe-stacks \
+    --stack-name restaurant-agent-infrastructure-prod \
+    --query 'Stacks[0].Outputs[?OutputKey==`DistributionId`].OutputValue' \
+    --output text --region "$REGION" 2>/dev/null || echo "")
 
 if [ -z "$DIST_ID" ] || [ "$DIST_ID" == "None" ]; then
-    echo "⚠️  No CloudFront distribution found"
-    echo ""
-    echo "The frontend was uploaded directly to S3:"
-    echo "  s3://restaurant-kitchen-assistant-frontend-production-799335355534/index.html"
-    echo ""
-    echo "To see the changes immediately:"
-    echo "1. Access S3 directly (if public)"
-    echo "2. Or wait for browser cache to expire"
-    echo "3. Or use hard refresh: Ctrl+Shift+R (Windows) or Cmd+Shift+R (Mac)"
+    echo "⚠️  Could not find a CloudFront distribution from the stack outputs."
+    echo "    Ensure the infrastructure stack is deployed, then retry."
+    echo "    You can also hard-refresh the browser (Cmd/Ctrl+Shift+R) to bypass cache."
     exit 0
 fi
 
@@ -24,13 +28,14 @@ echo "Found CloudFront distribution: $DIST_ID"
 
 # Create invalidation
 aws cloudfront create-invalidation \
-    --distribution-id $DIST_ID \
+    --distribution-id "$DIST_ID" \
     --paths "/*" \
     --query 'Invalidation.{Id:Id,Status:Status,CreateTime:CreateTime}' \
     --output table
 
+DOMAIN=$(aws cloudfront get-distribution --id "$DIST_ID" \
+    --query 'Distribution.DomainName' --output text)
+
 echo ""
 echo "✅ CloudFront cache invalidation initiated"
-echo ""
-echo "The updated frontend with voice chat icons will be available shortly."
-echo "CloudFront URL: https://$(aws cloudfront get-distribution --id $DIST_ID --query 'Distribution.DomainName' --output text)"
+echo "CloudFront URL: https://$DOMAIN"

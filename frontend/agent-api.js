@@ -5,7 +5,8 @@
 
 class AgentAPI {
     constructor() {
-        this.chatUrl = 'https://kipgsctrp4.execute-api.us-east-1.amazonaws.com/prod/chat';
+        const base = (window.APP_CONFIG && window.APP_CONFIG.apiUrl) || '';
+        this.chatUrl = base + '/chat';
         this.sessionId = `session-${Date.now()}`;
     }
 

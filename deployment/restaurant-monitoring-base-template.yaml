@@ -202,7 +202,7 @@ Resources:
   InventoryItemsTable:
     Type: AWS::DynamoDB::Table
     Properties:
-      TableName: !Sub '${ProjectName}-inventory-items-prod'
+      TableName: !Sub '${ProjectName}-inventory-items-${Environment}'
       BillingMode: PAY_PER_REQUEST
       AttributeDefinitions:
         - AttributeName: item_id
@@ -225,7 +225,7 @@ Resources:
   StaffingRequirementsTable:
     Type: AWS::DynamoDB::Table
     Properties:
-      TableName: !Sub '${ProjectName}-staffing-requirements-prod'
+      TableName: !Sub '${ProjectName}-staffing-requirements-${Environment}'
       BillingMode: PAY_PER_REQUEST
       AttributeDefinitions:
         - AttributeName: restaurant_id
@@ -664,6 +664,10 @@ Resources:
           - id: AwsSolutions-APIG4
             reason: 'OPTIONS preflight requests cannot carry authorization headers per CORS specification'
     Properties:
+      RestApiId: !Ref RestApi
+      ResourceId: !Ref TicketsResource
+      HttpMethod: OPTIONS
+      AuthorizationType: NONE
       Integration:
         Type: MOCK
         IntegrationResponses:
@@ -707,6 +711,10 @@ Resources:
           - id: AwsSolutions-APIG4
             reason: 'OPTIONS preflight requests cannot carry authorization headers per CORS specification'
     Properties:
+      RestApiId: !Ref RestApi
+      ResourceId: !Ref EquipmentResource
+      HttpMethod: OPTIONS
+      AuthorizationType: NONE
       Integration:
         Type: MOCK
         IntegrationResponses:
@@ -750,6 +758,10 @@ Resources:
           - id: AwsSolutions-APIG4
             reason: 'OPTIONS preflight requests cannot carry authorization headers per CORS specification'
     Properties:
+      RestApiId: !Ref RestApi
+      ResourceId: !Ref InventoryResource
+      HttpMethod: OPTIONS
+      AuthorizationType: NONE
       Integration:
         Type: MOCK
         IntegrationResponses:
@@ -793,6 +805,10 @@ Resources:
           - id: AwsSolutions-APIG4
             reason: 'OPTIONS preflight requests cannot carry authorization headers per CORS specification'
     Properties:
+      RestApiId: !Ref RestApi
+      ResourceId: !Ref StaffingResource
+      HttpMethod: OPTIONS
+      AuthorizationType: NONE
       Integration:
         Type: MOCK
         IntegrationResponses:
@@ -836,6 +852,10 @@ Resources:
           - id: AwsSolutions-APIG4
             reason: 'OPTIONS preflight requests cannot carry authorization headers per CORS specification'
     Properties:
+      RestApiId: !Ref RestApi
+      ResourceId: !Ref VoiceTokenResource
+      HttpMethod: OPTIONS
+      AuthorizationType: NONE
       Integration:
         Type: MOCK
         IntegrationResponses:
@@ -1105,11 +1125,11 @@ Resources:
           RequireLowercase: true
           RequireNumbers: true
           RequireSymbols: true
-      MfaConfiguration: 'ON'
+      MfaConfiguration: 'OPTIONAL'
       EnabledMfas:
         - SOFTWARE_TOKEN_MFA
-      UserPoolAddOns:
-        AdvancedSecurityMode: ENFORCED
+      # UserPoolAddOns AdvancedSecurityMode removed — requires PLUS pricing tier
+      # Re-enable if account is upgraded: UserPoolAddOns: { AdvancedSecurityMode: ENFORCED }
       Schema:
         - Name: email
           AttributeDataType: String

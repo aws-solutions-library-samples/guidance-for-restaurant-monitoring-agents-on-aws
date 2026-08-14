@@ -4,10 +4,18 @@
 
 set -e
 
-REGION="us-east-1"
-AGENT_NAME="restaurant_agent"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 AGENT_CODE_DIR="$SCRIPT_DIR/agent-code"
+
+# Load user configuration (edit deployment/config.env before deploying)
+if [ -f "$SCRIPT_DIR/config.env" ]; then
+    source "$SCRIPT_DIR/config.env"
+fi
+
+REGION="${AWS_REGION:-us-east-1}"
+export AWS_REGION="$REGION"
+AGENT_NAME="${AGENT_NAME:-restaurant_agent}"
+ACCOUNT_ID="$(aws sts get-caller-identity --query Account --output text --region "$REGION")"
 
 echo "============================================"
 echo "Restaurant Agent - AgentCore CLI Deployment"
@@ -61,7 +69,7 @@ echo "Step 4: Adding DynamoDB and Bedrock permissions..."
 ROLE_NAME=$(aws iam list-roles --query "Roles[?contains(RoleName, 'AmazonBedrockAgentCoreSDKRuntime')].RoleName" --output text --region $REGION | head -1)
 
 if [ -n "$ROLE_NAME" ]; then
-    cat > /tmp/dynamo-bedrock-policy.json << 'POLICY'
+    cat > /tmp/dynamo-bedrock-policy.json << POLICY
 {
     "Version": "2012-10-17",
     "Statement": [
@@ -74,15 +82,19 @@ if [ -n "$ROLE_NAME" ]; then
                 "dynamodb:PutItem",
                 "dynamodb:UpdateItem"
             ],
-            "Resource": "arn:aws:dynamodb:us-east-1:*:table/restaurant-agent-*"
+            "Resource": "arn:aws:dynamodb:${REGION}:${ACCOUNT_ID}:table/${PROJECT_NAME}-*"
         },
         {
             "Effect": "Allow",
             "Action": [
                 "bedrock:InvokeModel",
-                "bedrock:InvokeModelWithResponseStream"
+                "bedrock:InvokeModelWithResponseStream",
+                "bedrock:InvokeModelWithBidirectionalStream"
             ],
-            "Resource": "*"
+            "Resource": [
+                "arn:aws:bedrock:*::foundation-model/amazon.nova-*",
+                "arn:aws:bedrock:${REGION}:${ACCOUNT_ID}:inference-profile/us.amazon.nova-*"
+            ]
         }
     ]
 }

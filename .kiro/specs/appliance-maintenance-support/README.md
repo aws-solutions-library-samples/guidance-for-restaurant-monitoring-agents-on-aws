@@ -4,7 +4,14 @@
 Nova Sonic now understands and responds to appliance temperature issues with comprehensive analysis, troubleshooting guidance, and safety warnings.
 
 ## Status
-✅ **DEPLOYED** - Live at `https://g38q85ace8.execute-api.us-east-1.amazonaws.com/prod/strands-agent-chat`
+Appliance maintenance support is handled by the deployed restaurant agent. Chat
+requests go to the `/chat` (and `/chat-stream`) routes of the API Gateway created
+by the guidance. The endpoint URL is written to `frontend/config.js` at deploy
+time from the CloudFormation stack outputs — no endpoint is hardcoded here:
+
+```
+https://<REST_API_ID>.execute-api.<AWS_REGION>.amazonaws.com/prod/chat
+```
 
 ## Features Implemented
 
@@ -81,14 +88,11 @@ If these steps don't resolve the issue, I can create a maintenance ticket.
 
 ## Implementation
 
-**Location:** `deployment/strands-agent-chat-workflow.yaml`
-
-The appliance analysis logic is embedded directly in the Lambda function:
-- Equipment specs database (lines 100-108)
-- Troubleshooting guides (lines 110-145)
-- Temperature analysis function (lines 147-195)
-- Troubleshooting function (lines 197-212)
-- Query handler (lines 214-280)
+The appliance analysis logic is implemented as agent tools in
+`deployment/agent-code/agent.py` (`analyze_temperature`, `get_troubleshooting`,
+`get_equipment`, `create_ticket`). The agent is deployed to Amazon Bedrock
+AgentCore and reached through the `/chat` API Gateway route defined in
+`deployment/chat-endpoint.yaml`.
 
 ## Requirements Coverage
 
@@ -107,10 +111,13 @@ The appliance analysis logic is embedded directly in the Lambda function:
 
 ## Testing
 
+Replace `<REST_API_ID>` and `<AWS_REGION>` with the values from your deployed
+stack outputs (also written to `frontend/config.js`):
+
 ```bash
-curl -X POST https://g38q85ace8.execute-api.us-east-1.amazonaws.com/prod/strands-agent-chat \
+curl -X POST https://<REST_API_ID>.execute-api.<AWS_REGION>.amazonaws.com/prod/chat \
   -H "Content-Type: application/json" \
-  -d '{"message": "Why is the walk-in cooler temperature high?", "session_id": "test"}'
+  -d '{"prompt": "Why is the walk-in cooler temperature high?", "sessionId": "test"}'
 ```
 
 ## Documentation

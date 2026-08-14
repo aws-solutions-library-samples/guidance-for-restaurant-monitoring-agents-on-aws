@@ -1,6 +1,6 @@
 class ApiGatewayClient {
     constructor() {
-        this.apiUrl = 'https://kipgsctrp4.execute-api.us-east-1.amazonaws.com/prod';
+        this.apiUrl = (window.APP_CONFIG && window.APP_CONFIG.apiUrl) || '';
     }
 
     async getAuthToken() {

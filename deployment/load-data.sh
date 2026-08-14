@@ -17,12 +17,15 @@ import random
 dynamodb = boto3.resource('dynamodb', region_name=os.environ.get('AWS_REGION', 'us-east-1'))
 now = datetime.now()
 
-# Actual table names from deployed CloudFormation
-RESTAURANTS_TABLE = 'restaurant-kitchen-assistant-restaurants-production'
-EQUIPMENT_TABLE   = 'restaurant-kitchen-assistant-equipment-readings-production'
-INVENTORY_TABLE   = 'restaurant-kitchen-assistant-inventory-items-prod'
-STAFFING_TABLE    = 'restaurant-kitchen-assistant-staffing-requirements-prod'
-TICKETS_TABLE     = 'restaurant-kitchen-assistant-tickets-production'
+# Table names from environment (set by config.env / deploy-all.sh).
+# Defaults match restaurant-monitoring-base-template.yaml with default parameters.
+PROJECT_NAME = os.environ.get('PROJECT_NAME', 'restaurant-kitchen-assistant')
+ENVIRONMENT  = os.environ.get('ENVIRONMENT', 'production')
+RESTAURANTS_TABLE = os.environ.get('RESTAURANTS_TABLE', f'{PROJECT_NAME}-restaurants-{ENVIRONMENT}')
+EQUIPMENT_TABLE   = os.environ.get('EQUIPMENT_TABLE', f'{PROJECT_NAME}-equipment-readings-{ENVIRONMENT}')
+INVENTORY_TABLE   = os.environ.get('INVENTORY_TABLE', f'{PROJECT_NAME}-inventory-items-{ENVIRONMENT}')
+STAFFING_TABLE    = os.environ.get('STAFFING_TABLE', f'{PROJECT_NAME}-staffing-requirements-{ENVIRONMENT}')
+TICKETS_TABLE     = os.environ.get('TICKETS_TABLE', f'{PROJECT_NAME}-tickets-{ENVIRONMENT}')
 
 restaurants_tbl = dynamodb.Table(RESTAURANTS_TABLE)
 equipment_tbl   = dynamodb.Table(EQUIPMENT_TABLE)

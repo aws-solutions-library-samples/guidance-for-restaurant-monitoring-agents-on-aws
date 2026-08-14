@@ -5,8 +5,9 @@
 
 class RestaurantAgentAPI {
     constructor() {
-        this.chatUrl = 'https://kipgsctrp4.execute-api.us-east-1.amazonaws.com/prod/chat';
-        this.streamUrl = 'https://kipgsctrp4.execute-api.us-east-1.amazonaws.com/prod/chat-stream';
+        const base = (window.APP_CONFIG && window.APP_CONFIG.apiUrl) || '';
+        this.chatUrl = base + '/chat';
+        this.streamUrl = base + '/chat-stream';
         this.sessionId = `session-${Date.now()}`;
     }
 

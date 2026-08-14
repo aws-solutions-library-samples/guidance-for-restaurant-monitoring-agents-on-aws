@@ -1,9 +1,10 @@
-// Cognito Authentication Configuration
+// Cognito Authentication Configuration — values come from config.js (window.APP_CONFIG),
+// which is populated at deploy time from CloudFormation outputs.
 const cognitoConfig = {
-    region: 'us-east-1',
-    userPoolId: 'us-east-1_irtVFCmZ4',
-    userPoolWebClientId: '76oq6mah56p6t4tchkfej1vmg8',
-    identityPoolId: 'us-east-1:58064a0f-9248-4638-98f8-3f2e30dfbdc7'
+    region: (window.APP_CONFIG && window.APP_CONFIG.region) || 'us-east-1',
+    userPoolId: window.APP_CONFIG && window.APP_CONFIG.userPoolId,
+    userPoolWebClientId: window.APP_CONFIG && window.APP_CONFIG.userPoolWebClientId,
+    identityPoolId: window.APP_CONFIG && window.APP_CONFIG.identityPoolId
 };
 
 // AWS Cognito SDK

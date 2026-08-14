@@ -3,14 +3,22 @@ project_name: guidance-for-ai-powered-restaurant-visibility-on-aws
 global_settings:
   severity_threshold: MEDIUM
   ignore_paths:
-    - "strands-env"
-    - "temp"
-    - "solution-guidance-docs-July2026"
-    - "solution-guidance-docs-July2026/**"
-    - "**/solution-guidance-docs*"
-    - "**/solution-guidance-docs*/**"
-    - "security/ash-results"
-    - ".secrets.baseline"
+    - path: "strands-env"
+      reason: "Python virtual environment - contains third-party dependencies"
+    - path: "temp"
+      reason: "Temporary working files and drafts"
+    - path: "solution-guidance-docs-July2026"
+      reason: "Documentation files - not part of deployed code"
+    - path: "solution-guidance-docs-July2026/**"
+      reason: "Documentation subdirectories"
+    - path: "**/solution-guidance-docs*"
+      reason: "All documentation files"
+    - path: "**/solution-guidance-docs*/**"
+      reason: "All documentation subdirectories"
+    - path: "security/ash-results"
+      reason: "Previous ASH scan results - avoid scanning scan outputs"
+    - path: ".secrets.baseline"
+      reason: "detect-secrets baseline file - configuration, not secrets"
   suppressions: []
 fail_on_findings: true
 ash_plugin_modules: []

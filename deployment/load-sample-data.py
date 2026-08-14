@@ -4,18 +4,22 @@ Simple Data Loader for Restaurant Agent
 Loads sample data for restaurants, equipment, inventory, and staffing
 """
 
+import os
 import boto3
 import random
 from datetime import datetime, date, timedelta
 from decimal import Decimal
 
-dynamodb = boto3.resource('dynamodb', region_name='us-east-1')
+dynamodb = boto3.resource('dynamodb', region_name=os.environ.get('AWS_REGION', 'us-east-1'))
 
-# Configuration - Table names from CloudFormation
-RESTAURANTS_TABLE = 'restaurant-kitchen-assistant-restaurants-production'
-EQUIPMENT_TABLE = 'restaurant-kitchen-assistant-equipment-readings-production'
-INVENTORY_TABLE = 'restaurant-kitchen-assistant-inventory-items-prod'
-STAFFING_TABLE = 'restaurant-kitchen-assistant-staffing-requirements-prod'
+# Configuration - table names from environment (set by config.env / deploy-all.sh).
+# Defaults match restaurant-monitoring-base-template.yaml with default parameters.
+PROJECT_NAME = os.environ.get('PROJECT_NAME', 'restaurant-kitchen-assistant')
+ENVIRONMENT = os.environ.get('ENVIRONMENT', 'production')
+RESTAURANTS_TABLE = os.environ.get('RESTAURANTS_TABLE', f'{PROJECT_NAME}-restaurants-{ENVIRONMENT}')
+EQUIPMENT_TABLE = os.environ.get('EQUIPMENT_TABLE', f'{PROJECT_NAME}-equipment-readings-{ENVIRONMENT}')
+INVENTORY_TABLE = os.environ.get('INVENTORY_TABLE', f'{PROJECT_NAME}-inventory-items-{ENVIRONMENT}')
+STAFFING_TABLE = os.environ.get('STAFFING_TABLE', f'{PROJECT_NAME}-staffing-requirements-{ENVIRONMENT}')
 
 # Sample Data
 RESTAURANTS = [

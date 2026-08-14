@@ -22,8 +22,8 @@ var authReady = new Promise(function(resolve) { _authReadyResolve = resolve; });
 function initAuth() {
     if (!window.AmazonCognitoIdentity) return;
     _cognitoPool = new AmazonCognitoIdentity.CognitoUserPool({
-        UserPoolId: 'us-east-1_irtVFCmZ4',
-        ClientId: '76oq6mah56p6t4tchkfej1vmg8'
+        UserPoolId: window.APP_CONFIG && window.APP_CONFIG.userPoolId,
+        ClientId: window.APP_CONFIG && window.APP_CONFIG.userPoolWebClientId
     });
     var user = _cognitoPool.getCurrentUser();
     if (user) {
@@ -68,7 +68,7 @@ function sharedSignOut() {
     window.location.href = 'login.html';
 }
 
-const API_URL = 'https://kipgsctrp4.execute-api.us-east-1.amazonaws.com/prod';
+const API_URL = (window.APP_CONFIG && window.APP_CONFIG.apiUrl) || '';
 const CHAT_URL = API_URL + '/chat';
 
 // Authenticated fetch helper - use this instead of raw fetch() for API calls
