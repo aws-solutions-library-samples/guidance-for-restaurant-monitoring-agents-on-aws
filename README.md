@@ -1,4 +1,4 @@
-# Guidance for AI-Powered Restaurant Monitoring Agents on AWS
+# Guidance for Restaurant Visibility using Agents on AWS
 
 ## Table of Contents
 
