@@ -408,4 +408,4 @@ See the [`security/`](security/) directory for known security considerations.
 
 ## 10. Authors
 
-- AWS Solutions Library
+- Manikandan Karimanal
